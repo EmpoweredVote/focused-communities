@@ -31,12 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Every RLS policy on INSERT and UPDATE has a WITH CHECK clause; every policy column (author_id, community_id, thread_id) has an index in the same migration
   4. GRANT USAGE ON SCHEMA connect TO anon, authenticated is applied; anon role can SELECT from published_posts and published_replies views (security_invoker = true)
   5. All schema changes exist as Supabase CLI migration files — no manual console changes; supabase db push applies cleanly to a fresh project
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Repo scaffold, Supabase project setup, and Express skeleton with /api/health
-- [ ] 01-02: connect.* schema migrations — tables, indexes, moderation_status enum, edit history tables
-- [ ] 01-03: RLS policies on all tables (WITH CHECK on every INSERT/UPDATE), schema grants, published_posts/published_replies views
+- [ ] 01-01-PLAN.md — Repo scaffold, Express skeleton with /api/health, Supabase CLI init, Redis cache module
+- [ ] 01-02-PLAN.md — connect.* schema migration: tables, enum, triggers, edit history, connected_profiles
+- [ ] 01-03-PLAN.md — RLS policies (WITH CHECK on every INSERT/UPDATE), schema grants, indexes, security-invoker views
 
 ---
 
@@ -139,11 +139,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Schema | 0/3 | Not started | - |
+| 1. Foundation + Schema | 0/3 | Planned | - |
 | 2. Auth Infrastructure | 0/2 | Not started | - |
 | 3. Read API + Cache | 0/4 | Not started | - |
 | 4. Write API + Rate Limiting | 0/3 | Not started | - |
