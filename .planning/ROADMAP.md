@@ -12,7 +12,7 @@ Focused Communities is a civic deliberation platform giving every Empowered Comp
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation + Schema** - Repo, Supabase schema, RLS policies, and edit history tables wired correctly from day one
+- [x] **Phase 1: Foundation + Schema** - Repo, Supabase schema, RLS policies, and edit history tables wired correctly from day one
 - [ ] **Phase 2: Auth Infrastructure** - Connected Account middleware and two-client auth pattern established before any write routes
 - [ ] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
 - [ ] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
@@ -34,9 +34,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Repo scaffold, Express skeleton with /api/health, Supabase CLI init, Redis cache module
-- [ ] 01-02-PLAN.md — connect.* schema migration: tables, enum, triggers, edit history, connected_profiles
-- [ ] 01-03-PLAN.md — RLS policies (WITH CHECK on every INSERT/UPDATE), schema grants, indexes, security-invoker views
+- [x] 01-01-PLAN.md — Repo scaffold, Express skeleton with /api/health, Supabase CLI init, Redis cache module
+- [x] 01-02-PLAN.md — connect.* schema migration: tables, enum, triggers, edit history, connected_profiles
+- [x] 01-03-PLAN.md — RLS policies (WITH CHECK on every INSERT/UPDATE), schema grants, indexes, security-invoker views
 
 ---
 
@@ -143,7 +143,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Schema | 0/3 | Planned | - |
+| 1. Foundation + Schema | 3/3 | Complete | 2026-04-15 |
 | 2. Auth Infrastructure | 0/2 | Not started | - |
 | 3. Read API + Cache | 0/4 | Not started | - |
 | 4. Write API + Rate Limiting | 0/3 | Not started | - |

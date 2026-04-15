@@ -63,12 +63,12 @@
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Backend exposes GET /api/health → { status: 'ok', timestamp: Date.now() }
-- [ ] **INFRA-02**: All backend routes use /api/ prefix
-- [ ] **INFRA-03**: Redis cache with in-memory fallback on all read routes
-- [ ] **INFRA-04**: RLS enforced at database layer; API middleware is second layer
-- [ ] **INFRA-05**: connect.* schema uses moderation_status enum (not deleted_at) for soft-hide
-- [ ] **INFRA-06**: All schema changes via Supabase CLI migrations only
+- [x] **INFRA-01**: Backend exposes GET /api/health → { status: 'ok', timestamp: Date.now() }
+- [x] **INFRA-02**: All backend routes use /api/ prefix
+- [x] **INFRA-03**: Redis cache with in-memory fallback on all read routes
+- [x] **INFRA-04**: RLS enforced at database layer; API middleware is second layer
+- [x] **INFRA-05**: connect.* schema uses moderation_status enum (not deleted_at) for soft-hide
+- [x] **INFRA-06**: All schema changes via Supabase CLI migrations only
 
 ## v2 Requirements
 
@@ -134,12 +134,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 — Foundation + Schema | Pending |
-| INFRA-02 | Phase 1 — Foundation + Schema | Pending |
-| INFRA-03 | Phase 1 — Foundation + Schema | Pending |
-| INFRA-04 | Phase 1 — Foundation + Schema | Pending |
-| INFRA-05 | Phase 1 — Foundation + Schema | Pending |
-| INFRA-06 | Phase 1 — Foundation + Schema | Pending |
+| INFRA-01 | Phase 1 — Foundation + Schema | Complete |
+| INFRA-02 | Phase 1 — Foundation + Schema | Complete |
+| INFRA-03 | Phase 1 — Foundation + Schema | Complete |
+| INFRA-04 | Phase 1 — Foundation + Schema | Complete |
+| INFRA-05 | Phase 1 — Foundation + Schema | Complete |
+| INFRA-06 | Phase 1 — Foundation + Schema | Complete |
 | AUTH-01 | Phase 2 — Auth Infrastructure | Pending |
 | AUTH-02 | Phase 2 — Auth Infrastructure | Pending |
 | AUTH-03 | Phase 2 — Auth Infrastructure | Pending |
@@ -182,4 +182,4 @@ Note: Phase 5 (Frontend UI) delivers all user-facing behaviors for DIR, HUB, THR
 
 ---
 *Requirements defined: 2026-04-15*
-*Last updated: 2026-04-15 after roadmap creation*
+*Last updated: 2026-04-15 after Phase 1 completion*

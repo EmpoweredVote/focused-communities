@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 1 — Foundation + Schema
+**Current focus:** Phase 2 — Auth Infrastructure
 
 ## Current Position
 
@@ -19,19 +19,19 @@ Progress: [███░░░░░░░] 16% (3/19 plans)
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 3
+- Average duration: ~3 min/plan
+- Total execution time: ~10 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 
 **Recent Trend:**
-- Last 5 plans: —
-- Trend: —
+- Last 3 plans: 01-01 (~6 min), 01-02 (~2 min), 01-03 (~2 min)
+- Trend: Migration-only plans are faster than scaffold plans
 
 *Updated after each plan completion*
 
