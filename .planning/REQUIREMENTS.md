@@ -134,21 +134,52 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 through INFRA-06 | Phase 1 | Pending |
-| DIR-01 through DIR-05 | Phase 2 | Pending |
-| HUB-01 through HUB-05 | Phase 2 | Pending |
-| AUTH-01, AUTH-02 | Phase 2 | Pending |
-| THRD-01 through THRD-05 | Phase 3 | Pending |
-| REPL-01 through REPL-03 | Phase 3 | Pending |
-| EDIT-01 through EDIT-04 | Phase 3 | Pending |
-| PROF-01 through PROF-03 | Phase 4 | Pending |
-| ENTR-01 through ENTR-04 | Phase 5 | Pending |
+| INFRA-01 | Phase 1 — Foundation + Schema | Pending |
+| INFRA-02 | Phase 1 — Foundation + Schema | Pending |
+| INFRA-03 | Phase 1 — Foundation + Schema | Pending |
+| INFRA-04 | Phase 1 — Foundation + Schema | Pending |
+| INFRA-05 | Phase 1 — Foundation + Schema | Pending |
+| INFRA-06 | Phase 1 — Foundation + Schema | Pending |
+| AUTH-01 | Phase 2 — Auth Infrastructure | Pending |
+| AUTH-02 | Phase 2 — Auth Infrastructure | Pending |
+| AUTH-03 | Phase 2 — Auth Infrastructure | Pending |
+| DIR-01 | Phase 3 — Read API + Cache | Pending |
+| DIR-02 | Phase 3 — Read API + Cache | Pending |
+| DIR-03 | Phase 3 — Read API + Cache | Pending |
+| DIR-04 | Phase 3 — Read API + Cache | Pending |
+| DIR-05 | Phase 3 — Read API + Cache | Pending |
+| HUB-01 | Phase 3 — Read API + Cache | Pending |
+| HUB-02 | Phase 3 — Read API + Cache | Pending |
+| HUB-03 | Phase 3 — Read API + Cache | Pending |
+| HUB-04 | Phase 3 — Read API + Cache | Pending |
+| HUB-05 | Phase 3 — Read API + Cache | Pending |
+| THRD-01 | Phase 3 — Read API + Cache | Pending |
+| THRD-02 | Phase 3 — Read API + Cache | Pending |
+| THRD-05 | Phase 3 — Read API + Cache | Pending |
+| REPL-01 | Phase 3 — Read API + Cache | Pending |
+| REPL-03 | Phase 3 — Read API + Cache | Pending |
+| THRD-03 | Phase 4 — Write API + Rate Limiting | Pending |
+| THRD-04 | Phase 4 — Write API + Rate Limiting | Pending |
+| REPL-02 | Phase 4 — Write API + Rate Limiting | Pending |
+| EDIT-01 | Phase 4 — Write API + Rate Limiting | Pending |
+| EDIT-02 | Phase 4 — Write API + Rate Limiting | Pending |
+| EDIT-03 | Phase 4 — Write API + Rate Limiting | Pending |
+| EDIT-04 | Phase 4 — Write API + Rate Limiting | Pending |
+| PROF-01 | Phase 6 — Entry Points + Deployment | Pending |
+| PROF-02 | Phase 6 — Entry Points + Deployment | Pending |
+| PROF-03 | Phase 6 — Entry Points + Deployment | Pending |
+| ENTR-01 | Phase 6 — Entry Points + Deployment | Pending |
+| ENTR-02 | Phase 6 — Entry Points + Deployment | Pending |
+| ENTR-03 | Phase 6 — Entry Points + Deployment | Pending |
+| ENTR-04 | Phase 6 — Entry Points + Deployment | Pending |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 35
+- v1 requirements: 38 total
+- Mapped to phases: 38
 - Unmapped: 0 ✓
+
+Note: Phase 5 (Frontend UI) delivers all user-facing behaviors for DIR, HUB, THRD, REPL, EDIT, and AUTH requirements. Those requirements are assigned to the phases where their API and schema contracts are established (Phases 1-4). Phase 5 completes their observable delivery in the UI layer.
 
 ---
 *Requirements defined: 2026-04-15*
-*Last updated: 2026-04-15 after initial definition*
+*Last updated: 2026-04-15 after roadmap creation*
