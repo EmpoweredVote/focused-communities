@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 1 of 6 (Foundation + Schema)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-04-15 — Completed 01-02-PLAN.md (connect.* schema migration)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-04-15 — Completed 01-03-PLAN.md (RLS policies, schema grants, security-invoker views)
 
-Progress: [██░░░░░░░░] 11% (2/18 plans)
+Progress: [███░░░░░░░] 16% (3/19 plans)
 
 ## Performance Metrics
 
@@ -67,6 +67,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T21:41:00Z
-Stopped at: Completed 01-02-PLAN.md — connect.* schema migration, all tables, triggers, RLS enabled
+Last session: 2026-04-15T21:47:00Z
+Stopped at: Completed 01-03-PLAN.md — RLS policies, schema grants, indexes, security-invoker views. Phase 1 complete.
 Resume file: None
