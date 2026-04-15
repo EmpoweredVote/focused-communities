@@ -1,0 +1,154 @@
+# Requirements: Focused Communities
+
+**Defined:** 2026-04-15
+**Core Value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
+
+## v1 Requirements
+
+### Directory
+
+- [ ] **DIR-01**: User can view a browsable list of all Focused Communities (one per compass topic)
+- [ ] **DIR-02**: User can search/filter communities by name or topic keyword
+- [ ] **DIR-03**: Each community listing shows its topic description
+- [ ] **DIR-04**: Each community listing shows its member count (Connected Accounts who have posted)
+- [ ] **DIR-05**: Directory displays multiple slices of the same topic when a community has been sharded (schema supports slicing from day one; v1 may only have one slice per topic)
+
+### Community Hub
+
+- [ ] **HUB-01**: User can view a community hub page for each compass topic
+- [ ] **HUB-02**: Hub page displays a brief topic description at the top
+- [ ] **HUB-03**: Hub page displays community activity stats (thread count, recent activity)
+- [ ] **HUB-04**: Hub page displays five stance cards — the preset written positions for that compass spoke, presented neutrally with no party labels
+- [ ] **HUB-05**: Stance cards are read-only and available to all users (no auth required)
+
+### Forum — Threads
+
+- [ ] **THRD-01**: User can view a paginated thread list for a community (cursor-based, newest first)
+- [ ] **THRD-02**: Thread list is readable by all users without authentication
+- [ ] **THRD-03**: Connected Account can create a new thread in a community
+- [ ] **THRD-04**: Thread shows author pseudonym (connected_profiles.display_name) on creation and all edits
+- [ ] **THRD-05**: Thread list shows preview (title + excerpt), author pseudonym, reply count, and time
+
+### Forum — Replies
+
+- [ ] **REPL-01**: User can view all replies in a thread (flat, chronological)
+- [ ] **REPL-02**: Connected Account can reply to an existing thread
+- [ ] **REPL-03**: Reply shows author pseudonym and timestamp
+
+### Forum — Editing
+
+- [ ] **EDIT-01**: Connected Account can edit their own thread or reply
+- [ ] **EDIT-02**: Edited posts display a visible "edited" indicator
+- [ ] **EDIT-03**: Full edit history is preserved and publicly viewable for every post (Memory over Moderation)
+- [ ] **EDIT-04**: Posts cannot be deleted by users — only soft-hidden by moderators via moderation_status
+
+### Authentication
+
+- [ ] **AUTH-01**: Unauthenticated user attempting to post is redirected to sign-in
+- [ ] **AUTH-02**: Auth gate enforced at both API (RLS + middleware) and UI (redirect) layers
+- [ ] **AUTH-03**: Account age gate is NOT in v1 — deferred to anti-spam phase
+
+### Profile
+
+- [ ] **PROF-01**: User's profile page shows their post history across all communities
+- [ ] **PROF-02**: Posts in profile history link back to their originating community thread
+- [ ] **PROF-03**: Profile displays Connected Account pseudonym, never legal name
+
+### Entry Points
+
+- [ ] **ENTR-01**: Tapping a spoke on the Empowered Compass navigates to that topic's community hub
+- [ ] **ENTR-02**: Current Civic Spaces site includes a nav link to the Focused Communities directory
+- [ ] **ENTR-03**: User's profile page links to communities they've participated in
+- [ ] **ENTR-04**: Each community hub has a stable, shareable URL
+
+### Infrastructure
+
+- [ ] **INFRA-01**: Backend exposes GET /api/health → { status: 'ok', timestamp: Date.now() }
+- [ ] **INFRA-02**: All backend routes use /api/ prefix
+- [ ] **INFRA-03**: Redis cache with in-memory fallback on all read routes
+- [ ] **INFRA-04**: RLS enforced at database layer; API middleware is second layer
+- [ ] **INFRA-05**: connect.* schema uses moderation_status enum (not deleted_at) for soft-hide
+- [ ] **INFRA-06**: All schema changes via Supabase CLI migrations only
+
+## v2 Requirements
+
+### Gems Voting
+
+- **GEMS-01**: Connected Account can upvote a thread using Empowered Gems (limited supply)
+- **GEMS-02**: Gem votes affect display sort order (gems-first option alongside chronological)
+- **GEMS-03**: Gem economy integrated with platform-wide gem ledger (closed economy, never sold)
+
+### Anti-Spam
+
+- **SPAM-01**: 24-hour minimum account age before first post
+- **SPAM-02**: Redis sliding-window rate limit on post creation per user
+
+### Moderation Tools
+
+- **MOD-01**: Moderator role can soft-hide a post (set moderation_status = 'hidden')
+- **MOD-02**: Hidden post shows "[removed by moderator]" placeholder — content and history remain in DB
+- **MOD-03**: Moderator action log is preserved for transparency
+
+### Slicing (Auto-Shard)
+
+- **SLICE-01**: When a community reaches 6,000 active members, a new slice is automatically created
+- **SLICE-02**: New members are assigned to the newest slice; existing members remain in their slice
+- **SLICE-03**: Directory shows all slices of a topic with slice number indicator
+
+### Badges Integration
+
+- **BADGE-01**: Ratified Badges appear in the hub as verified shared facts
+- **BADGE-02**: Badge ratification workflow available inside the community
+
+### Symposiums
+
+- **SYMP-01**: Scheduled structured debates hosted inside a community
+- **SYMP-02**: Symposium archive viewable by all users
+
+### Argument Maps
+
+- **ARGMAP-01**: Visual argument map showing major positions and their supporting/opposing claims
+
+### Maturity Tiers
+
+- **MAT-01**: Community displays Emerging / Developing / Established maturity indicator based on activity
+- **MAT-02**: Maturity tier changes are logged and visible in community history
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Party labels on stances or posts | Hard anti-partisan design principle — never |
+| Hard delete of posts | Hard Memory over Moderation principle — never |
+| Anonymous posting | Connect Pillar requires persistent identity for accountability |
+| Algorithmic sort / recommendation | Engagement-bait pattern — harmful to civic discourse |
+| Downvotes | Research-validated harm to discourse quality; excluded by design |
+| Karma / reputation scores visible in forum | Creates perverse incentives; Veracity Rating is separate and system-managed |
+| Direct messages between users | Out of scope for deliberation platform; creates private channels that bypass accountability |
+| Real name display in forum | Connect context always uses pseudonym; Empower is separate |
+| OAuth login (Google, GitHub) | Not in platform auth model; Supabase email auth only |
+| Native mobile app | Web-first for pilot; Framer handles responsive |
+| Push notifications | Deferred; not needed for pilot scale |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INFRA-01 through INFRA-06 | Phase 1 | Pending |
+| DIR-01 through DIR-05 | Phase 2 | Pending |
+| HUB-01 through HUB-05 | Phase 2 | Pending |
+| AUTH-01, AUTH-02 | Phase 2 | Pending |
+| THRD-01 through THRD-05 | Phase 3 | Pending |
+| REPL-01 through REPL-03 | Phase 3 | Pending |
+| EDIT-01 through EDIT-04 | Phase 3 | Pending |
+| PROF-01 through PROF-03 | Phase 4 | Pending |
+| ENTR-01 through ENTR-04 | Phase 5 | Pending |
+
+**Coverage:**
+- v1 requirements: 35 total
+- Mapped to phases: 35
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-04-15*
+*Last updated: 2026-04-15 after initial definition*
