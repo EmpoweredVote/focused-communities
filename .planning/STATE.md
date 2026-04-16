@@ -9,29 +9,30 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation + Schema)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-04-15 — Completed 01-03-PLAN.md (RLS policies, schema grants, security-invoker views)
+Phase: 2 of 6 (Auth Infrastructure)
+Plan: 3 of 3 in current phase (wave 1 — 02-01 and 02-02 may still be in progress)
+Status: In progress (02-03 complete; 02-01 and 02-02 parallel plans pending)
+Last activity: 2026-04-15 — Completed 02-03-PLAN.md (AuthContext, apiFetch, AuthGate)
 
-Progress: [███░░░░░░░] 16% (3/19 plans)
+Progress: [████░░░░░░] 21% (4/19 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: ~3 min/plan
-- Total execution time: ~10 min
+- Total execution time: ~12 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
+| 2. Auth Infrastructure | 1/3 (02-03 done) | ~2 min | — |
 
 **Recent Trend:**
-- Last 3 plans: 01-01 (~6 min), 01-02 (~2 min), 01-03 (~2 min)
-- Trend: Migration-only plans are faster than scaffold plans
+- Last 3 plans: 01-02 (~2 min), 01-03 (~2 min), 02-03 (~2 min)
+- Trend: Focused single-concern plans execute in ~2 min
 
 *Updated after each plan completion*
 
@@ -55,6 +56,10 @@ Recent decisions affecting current work:
 - [Phase 5]: Framer components must use absolute URLs for /api/* calls (self-contained, no direct Supabase queries)
 - [Phase 5]: Skip Supabase Realtime in v1; use React Query refetchInterval polling instead
 - [Phase 6]: Cache-Control: private, no-store on all auth-touching routes
+- [02-03]: window.history.replaceState for hash cleanup (not window.location.hash = '' which adds history entry)
+- [02-03]: apiFetch uses window.open(..., '_blank') for 401 — preserves tab + draft content
+- [02-03]: connected_no_compass users pass through AuthGate (calibration is NOT a write gate)
+- [02-03]: SuspendedNotice is separate from AuthGate — suspension detected at API call time (403 response)
 
 ### Pending Todos
 
@@ -67,6 +72,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T21:47:00Z
-Stopped at: Completed 01-03-PLAN.md — RLS policies, schema grants, indexes, security-invoker views. Phase 1 complete.
+Last session: 2026-04-16T02:13:44Z
+Stopped at: Completed 02-03-PLAN.md — AuthContext, apiFetch, AuthGate frontend primitives. Phase 2 plan 03 complete.
 Resume file: None
