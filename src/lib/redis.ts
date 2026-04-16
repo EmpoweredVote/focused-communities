@@ -59,3 +59,19 @@ export async function cacheSet(
     expiresAt: Date.now() + ttlSeconds * 1000,
   });
 }
+
+export async function cacheDel(...keys: string[]): Promise<void> {
+  // Try Redis first (best-effort — warn on error but always clear memory)
+  if (redisClient) {
+    try {
+      await redisClient.del(...keys);
+    } catch (err) {
+      console.warn(`[redis] cacheDel error for keys "${keys.join(', ')}" — clearing memory only:`, err);
+    }
+  }
+
+  // Always clear from in-memory store
+  for (const key of keys) {
+    memoryStore.delete(key);
+  }
+}
