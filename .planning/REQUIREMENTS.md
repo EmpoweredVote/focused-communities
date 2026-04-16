@@ -143,21 +143,21 @@
 | AUTH-01 | Phase 2 — Auth Infrastructure | Complete |
 | AUTH-02 | Phase 2 — Auth Infrastructure | Complete |
 | AUTH-03 | Phase 2 — Auth Infrastructure | Complete |
-| DIR-01 | Phase 3 — Read API + Cache | Pending |
-| DIR-02 | Phase 3 — Read API + Cache | Pending |
-| DIR-03 | Phase 3 — Read API + Cache | Pending |
-| DIR-04 | Phase 3 — Read API + Cache | Pending |
-| DIR-05 | Phase 3 — Read API + Cache | Pending |
-| HUB-01 | Phase 3 — Read API + Cache | Pending |
-| HUB-02 | Phase 3 — Read API + Cache | Pending |
-| HUB-03 | Phase 3 — Read API + Cache | Pending |
-| HUB-04 | Phase 3 — Read API + Cache | Pending |
-| HUB-05 | Phase 3 — Read API + Cache | Pending |
-| THRD-01 | Phase 3 — Read API + Cache | Pending |
-| THRD-02 | Phase 3 — Read API + Cache | Pending |
-| THRD-05 | Phase 3 — Read API + Cache | Pending |
-| REPL-01 | Phase 3 — Read API + Cache | Pending |
-| REPL-03 | Phase 3 — Read API + Cache | Pending |
+| DIR-01 | Phase 3 — Read API + Cache | Complete |
+| DIR-02 | Phase 3 — Read API + Cache | Complete |
+| DIR-03 | Phase 3 — Read API + Cache | Complete |
+| DIR-04 | Phase 3 — Read API + Cache | Complete |
+| DIR-05 | Phase 3 — Read API + Cache | Complete |
+| HUB-01 | Phase 3 — Read API + Cache | Complete |
+| HUB-02 | Phase 3 — Read API + Cache | Complete |
+| HUB-03 | Phase 3 — Read API + Cache | Complete |
+| HUB-04 | Phase 3 — Read API + Cache | Complete |
+| HUB-05 | Phase 3 — Read API + Cache | Complete |
+| THRD-01 | Phase 3 — Read API + Cache | Complete |
+| THRD-02 | Phase 3 — Read API + Cache | Complete |
+| THRD-05 | Phase 3 — Read API + Cache | Complete |
+| REPL-01 | Phase 3 — Read API + Cache | Complete |
+| REPL-03 | Phase 3 — Read API + Cache | Complete |
 | THRD-03 | Phase 4 — Write API + Rate Limiting | Pending |
 | THRD-04 | Phase 4 — Write API + Rate Limiting | Pending |
 | REPL-02 | Phase 4 — Write API + Rate Limiting | Pending |
