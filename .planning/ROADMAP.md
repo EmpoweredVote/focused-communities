@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Auth Infrastructure** - JWKS-based JWT verification, accounts API tier lookup, frontend token lifecycle, and typed fetch wrapper
 - [x] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
 - [x] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
+- [ ] **Phase 4.5: Stance Content Enrichment** (INSERTED) - Extend inform.compass_stances with description and example perspectives fields; author content for all stances before frontend renders them
 - [ ] **Phase 5: Frontend UI** - Full UI built against stable /api/* contracts; all v1 surfaces in Framer-compatible components
 - [ ] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
 
@@ -98,6 +99,23 @@ Plans:
 
 ---
 
+### Phase 4.5: Stance Content Enrichment (INSERTED)
+**Goal**: The inform.compass_stances table is extended with description and example_perspectives fields, and all stance rows are authored with real content — so the frontend has rich stance data to display before Phase 5 begins
+**Depends on**: Phase 4
+**Requirements**: (Content prerequisite for Phase 5 StanceCard components)
+**Success Criteria** (what must be TRUE):
+  1. inform.compass_stances has a non-null description column (short narrative, 2-4 sentences) and an example_perspectives column (array or JSONB) on every row
+  2. The GET /api/communities/:id/stances endpoint returns description and example_perspectives in each stance object
+  3. All five stance rows for every seeded topic have authored description and example_perspectives content — no nulls in production data
+  4. Migration applies cleanly via MCP apply_migration; no manual console changes
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04.5-01-PLAN.md — Schema migration: ADD COLUMN (description, example_perspectives), RPC function replacement, authored seed content for all stance rows
+- [ ] 04.5-02-PLAN.md — Route update: stances.ts response map extension + test assertions for new fields
+
+---
+
 ### Phase 5: Frontend UI
 **Goal**: The complete v1 UI exists as self-contained, Framer-compatible React components using absolute /api/* URLs — every user-facing surface works end-to-end
 **Depends on**: Phase 4
@@ -148,5 +166,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
 | 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
 | 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
+| 4.5. Stance Content Enrichment (INSERTED) | 0/2 | Not started | - |
 | 5. Frontend UI | 0/4 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |
