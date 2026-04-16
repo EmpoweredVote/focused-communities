@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
 import express from 'express';
 import supertest from 'supertest';
-import { generateKeyPair, exportJWK, SignJWT, type KeyLike } from 'jose';
+import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 import { requireAuth, optionalAuth } from '../auth.js';
 
 // Test keypair setup
-let privateKey: KeyLike;
+let privateKey: CryptoKey;
 let publicJwk: Awaited<ReturnType<typeof exportJWK>>;
 let mockJwks: object;
 
