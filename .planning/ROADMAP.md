@@ -73,7 +73,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Schema gap migrations (slice_label, last_activity_at, supporting_points) + cache middleware factory + shared utils + app.ts route wiring
 - [x] 03-02-PLAN.md — GET /api/communities and GET /api/communities/:id (search, filter, cursor pagination, slice-aware listing)
-- [ ] 03-03-PLAN.md — GET /api/communities/:id/stances (RPC join to inform.*) and GET /api/communities/:id/threads (cursor-paginated with excerpts)
+- [x] 03-03-PLAN.md — GET /api/communities/:id/stances (RPC join to inform.*) and GET /api/communities/:id/threads (cursor-paginated with excerpts)
 - [ ] 03-04-PLAN.md — GET /api/threads/:id and GET /api/threads/:id/posts (flat replies); end-to-end verification of all read endpoints
 
 ---
@@ -146,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation + Schema | 3/3 | Complete | 2026-04-15 |
 | 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
-| 3. Read API + Cache | 2/4 | In progress | - |
+| 3. Read API + Cache | 3/4 | In progress | - |
 | 4. Write API + Rate Limiting | 0/3 | Not started | - |
 | 5. Frontend UI | 0/4 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |

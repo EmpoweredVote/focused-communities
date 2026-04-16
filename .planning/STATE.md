@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 3 of 6 (Read API + Cache) — In Progress
-Plan: 2 of 4 complete in current phase (03-02 complete)
+Plan: 3 of 4 complete in current phase (03-03 complete)
 Status: In progress
-Last activity: 2026-04-16 — Completed 03-02-PLAN.md (GET /api/communities list + detail, cursor pagination, cache)
+Last activity: 2026-04-16 — Completed 03-03-PLAN.md (stances RPC endpoint, threads cursor-paginated endpoint)
 
-Progress: [████████░░] 42% (8/19 plans)
+Progress: [█████████░] 45% (9/20 plans)
 
 ## Performance Metrics
 
@@ -29,10 +29,10 @@ Progress: [████████░░] 42% (8/19 plans)
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
-| 3. Read API + Cache | 2/4 | ~17 min | ~8 min |
+| 3. Read API + Cache | 3/4 | ~20 min | ~7 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (~4 min), 02-03 (~2 min), 02-02 (~5 min), 03-01 (~15 min, included checkpoint), 03-02 (~2 min)
+- Last 5 plans: 02-03 (~2 min), 02-02 (~5 min), 03-01 (~15 min, included checkpoint), 03-02 (~2 min), 03-03 (~3 min)
 - Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min
 
 *Updated after each plan completion*
@@ -76,6 +76,9 @@ Recent decisions affecting current work:
 - [03-02]: GET /api/communities/:id maps both Supabase error and null data to 404 (COMMUNITY_NOT_FOUND) — no distinction between DB error and not-found at route layer
 - [03-02]: Cursor encodes sort column value + id; cursor is sort-mode-specific (not interchangeable between ?sort=newest and ?sort=popular)
 - [03-02]: Response envelopes: list → { data, meta: { cursor, hasMore } }, single → { data } — established for all remaining read endpoints
+- [03-03]: supabase.schema('connect').rpc() not supabase.rpc(..., { schema }) — schema option does not exist on SupabaseClient.rpc() third-arg options in v2; use .schema() chain
+- [03-03]: Thread pagination uses two-column cursor (sortColumn, id) to prevent gaps when multiple threads share the same timestamp
+- [03-03]: Thread sort: active=last_activity_at DESC (default), newest=created_at DESC; unknown values fall back silently to active
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:08:45Z
-Stopped at: Completed 03-02-PLAN.md — GET /api/communities (paginated, searchable, sortable) and GET /api/communities/:id (detail + 404). All 15 tests pass.
+Last session: 2026-04-16T14:12:01Z
+Stopped at: Completed 03-03-PLAN.md — GET /api/communities/:id/stances (RPC join) and GET /api/communities/:id/threads (cursor-paginated + excerpts). All 15 tests pass.
 Resume file: None
