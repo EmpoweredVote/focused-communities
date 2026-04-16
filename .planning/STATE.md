@@ -5,34 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 2 — Auth Infrastructure
+**Current focus:** Phase 2 — Auth Infrastructure (COMPLETE)
 
 ## Current Position
 
-Phase: 2 of 6 (Auth Infrastructure)
-Plan: 1 of 3 in current phase (02-01 complete; 02-02 pending; 02-03 complete)
-Status: In progress (02-01 and 02-03 complete; 02-02 pending)
-Last activity: 2026-04-16 — Completed 02-01-PLAN.md (JWKS singleton, requireAuth, optionalAuth, requireConnected)
+Phase: 2 of 6 (Auth Infrastructure) — COMPLETE
+Plan: 3 of 3 in current phase (02-01, 02-02, 02-03 all complete)
+Status: Phase 2 complete — ready for Phase 3
+Last activity: 2026-04-15 — Completed 02-02-PLAN.md (vitest config, auth middleware test suite, tier guard test suite)
 
-Progress: [█████░░░░░] 26% (5/19 plans)
+Progress: [██████░░░░] 32% (6/19 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: ~3 min/plan
-- Total execution time: ~16 min
+- Total execution time: ~21 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
-| 2. Auth Infrastructure | 2/3 (02-01, 02-03 done) | ~6 min | ~3 min |
+| 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
 
 **Recent Trend:**
-- Last 4 plans: 01-02 (~2 min), 01-03 (~2 min), 02-03 (~2 min), 02-01 (~4 min)
-- Trend: Focused single-concern plans execute in ~2-4 min
+- Last 4 plans: 02-01 (~4 min), 02-03 (~2 min), 02-02 (~5 min)
+- Trend: Focused single-concern plans execute in ~2-5 min
 
 *Updated after each plan completion*
 
@@ -64,6 +64,10 @@ Recent decisions affecting current work:
 - [02-03]: apiFetch uses window.open(..., '_blank') for 401 — preserves tab + draft content
 - [02-03]: connected_no_compass users pass through AuthGate (calibration is NOT a write gate)
 - [02-03]: SuspendedNotice is separate from AuthGate — suspension detected at API call time (403 response)
+- [02-02]: Mock global.fetch (not msw/nock) intercepts both JWKS lazy-load and accounts API with one stub — works because createRemoteJWKSet fetches keys lazily on first jwtVerify
+- [02-02]: Real jose ES256 keypair in beforeAll for authentic JWT signing in tests — no hardcoded token strings
+- [02-02]: afterEach vi.unstubAllGlobals() prevents fetch mock leaking between tests
+- [02-02]: Pure makeMocks() for sync tierGuards tests — no Express app overhead needed
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T02:14:36Z
-Stopped at: Completed 02-01-PLAN.md — JWKS singleton, requireAuth/optionalAuth, requireConnected. Phase 2 plans 02-01 and 02-03 complete; 02-02 pending.
+Last session: 2026-04-15T23:25:00Z
+Stopped at: Completed 02-02-PLAN.md — vitest config, auth middleware test suite (8 tests), tier guard test suite (6 tests). All 15 tests pass. Phase 2 complete.
 Resume file: None
