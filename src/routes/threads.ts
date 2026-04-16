@@ -76,6 +76,100 @@ threadsRouter.get('/communities/:id/threads', cacheMiddleware(TTL.THREAD_LIST), 
 // POST /api/communities/:id/threads — create a new thread
 // Requires: connected or empowered account with active standing
 // Rate limited: shared 5-post/hour bucket per user
+// PATCH /api/threads/:id — edit thread title and/or body (ownership-checked, no rate limit)
+threadsRouter.patch('/threads/:id', requireAuth, requireConnected, async (req: Request, res: Response) => {
+  const { title, body } = req.body as { title?: unknown; body?: unknown };
+
+  // At least one field must be provided
+  if (title === undefined && body === undefined) {
+    res.status(422).json({ errors: { _: 'At least one of title or body is required' } });
+    return;
+  }
+
+  const errors: Record<string, string> = {};
+  let trimmedTitle = '';
+  let trimmedBody = '';
+
+  if (title !== undefined) {
+    trimmedTitle = (typeof title === 'string' ? title : '').trim();
+    if (trimmedTitle.length < 5 || trimmedTitle.length > 150) {
+      errors.title = 'Title must be 5-150 characters';
+    }
+  }
+
+  if (body !== undefined) {
+    trimmedBody = (typeof body === 'string' ? body : '').trim();
+    if (trimmedBody.length < 10 || trimmedBody.length > 5000) {
+      errors.body = 'Body must be 10-5,000 characters';
+    }
+  }
+
+  if (Object.keys(errors).length > 0) {
+    res.status(422).json({ errors });
+    return;
+  }
+
+  // Ownership check — service role bypasses RLS, so we check manually
+  // Return 404 (not 403) for non-author — hides existence of content
+  const { data: existing, error: fetchError } = await supabase
+    .schema('connect')
+    .from('threads')
+    .select('id, author_id, moderation_status, title, body')
+    .eq('id', req.params.id)
+    .single();
+
+  if (fetchError || !existing || existing.author_id !== req.user!.id || existing.moderation_status !== 'visible') {
+    res.status(404).json({ error: { code: 'THREAD_NOT_FOUND', message: 'Thread not found' } });
+    return;
+  }
+
+  // Build partial update — only include fields that were provided
+  const updates: Record<string, string> = {};
+  if (title !== undefined) updates.title = trimmedTitle;
+  if (body !== undefined) updates.body = trimmedBody;
+  updates.updated_at = new Date().toISOString();
+
+  // DB trigger trg_log_thread_edit fires AFTER UPDATE when title or body actually changed
+  const { data, error } = await supabase
+    .schema('connect')
+    .from('threads')
+    .update(updates)
+    .eq('id', req.params.id)
+    .select('id, title, body, author_display_name, reply_count, created_at, last_activity_at, updated_at')
+    .single();
+
+  if (error || !data) {
+    res.status(500).json({ error: { code: 'THREAD_UPDATE_FAILED', message: error?.message } });
+    return;
+  }
+
+  // Invalidate thread detail cache
+  await cacheDel(`fc:/api/threads/${req.params.id}:${JSON.stringify({})}`);
+
+  res.status(200).json({
+    data: {
+      id: data.id,
+      title: data.title,
+      body: data.body,
+      authorPseudonym: data.author_display_name,
+      replyCount: data.reply_count,
+      createdAt: data.created_at,
+      lastActivityAt: data.last_activity_at,
+      updatedAt: data.updated_at,
+      isEdited: data.updated_at !== data.created_at,
+    },
+  });
+});
+
+// DELETE /api/threads/:id — not allowed (Memory over Moderation principle)
+threadsRouter.delete('/threads/:id', (_req, res) => {
+  res.setHeader('Allow', 'GET, PATCH');
+  res.status(405).json({ error: { code: 'DELETE_NOT_ALLOWED', message: 'Threads cannot be deleted' } });
+});
+
+// POST /api/communities/:id/threads — create a new thread
+// Requires: connected or empowered account with active standing
+// Rate limited: shared 5-post/hour bucket per user
 threadsRouter.post(
   '/communities/:id/threads',
   requireAuth,

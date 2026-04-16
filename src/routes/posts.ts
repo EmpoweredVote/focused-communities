@@ -96,6 +96,69 @@ postsRouter.get('/threads/:id/posts', cacheMiddleware(TTL.THREAD_DETAIL), async 
   res.json({ data: posts });
 });
 
+// PATCH /api/posts/:id — edit a post body (ownership-checked, no rate limit)
+postsRouter.patch('/posts/:id', requireAuth, requireConnected, async (req: Request, res: Response) => {
+  const { body } = req.body as { body?: unknown };
+
+  if (body === undefined) {
+    res.status(422).json({ errors: { body: 'Body is required' } });
+    return;
+  }
+
+  const trimmedBody = (typeof body === 'string' ? body : '').trim();
+  if (trimmedBody.length < 10 || trimmedBody.length > 5000) {
+    res.status(422).json({ errors: { body: 'Body must be 10-5,000 characters' } });
+    return;
+  }
+
+  // Ownership check — return 404 for non-author to hide existence
+  const { data: existing, error: fetchError } = await supabase
+    .schema('connect')
+    .from('posts')
+    .select('id, author_id, thread_id, moderation_status, body')
+    .eq('id', req.params.id)
+    .single();
+
+  if (fetchError || !existing || existing.author_id !== req.user!.id || existing.moderation_status !== 'visible') {
+    res.status(404).json({ error: { code: 'POST_NOT_FOUND', message: 'Post not found' } });
+    return;
+  }
+
+  // DB trigger trg_log_post_edit fires AFTER UPDATE when body actually changed
+  const { data, error } = await supabase
+    .schema('connect')
+    .from('posts')
+    .update({ body: trimmedBody, updated_at: new Date().toISOString() })
+    .eq('id', req.params.id)
+    .select('id, body, author_display_name, created_at, updated_at')
+    .single();
+
+  if (error || !data) {
+    res.status(500).json({ error: { code: 'POST_UPDATE_FAILED', message: error?.message } });
+    return;
+  }
+
+  // Invalidate the thread's posts list cache
+  await cacheDel(`fc:/api/threads/${existing.thread_id}/posts:${JSON.stringify({})}`);
+
+  res.status(200).json({
+    data: {
+      id: data.id,
+      body: data.body,
+      authorPseudonym: data.author_display_name,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      isEdited: data.updated_at !== data.created_at,
+    },
+  });
+});
+
+// DELETE /api/posts/:id — not allowed (Memory over Moderation principle)
+postsRouter.delete('/posts/:id', (_req, res) => {
+  res.setHeader('Allow', 'GET, PATCH');
+  res.status(405).json({ error: { code: 'DELETE_NOT_ALLOWED', message: 'Posts cannot be deleted' } });
+});
+
 // POST /api/threads/:id/posts — reply to a thread
 // Requires: connected or empowered account with active standing
 // Rate limited: shared 5-post/hour bucket per user (same as thread creation)
