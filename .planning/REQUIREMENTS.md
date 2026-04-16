@@ -25,22 +25,22 @@
 
 - [ ] **THRD-01**: User can view a paginated thread list for a community (cursor-based, newest first)
 - [ ] **THRD-02**: Thread list is readable by all users without authentication
-- [ ] **THRD-03**: Connected Account can create a new thread in a community
-- [ ] **THRD-04**: Thread shows author pseudonym (connected_profiles.display_name) on creation and all edits
+- [x] **THRD-03**: Connected Account can create a new thread in a community
+- [x] **THRD-04**: Thread shows author pseudonym (connected_profiles.display_name) on creation and all edits
 - [ ] **THRD-05**: Thread list shows preview (title + excerpt), author pseudonym, reply count, and time
 
 ### Forum — Replies
 
 - [ ] **REPL-01**: User can view all replies in a thread (flat, chronological)
-- [ ] **REPL-02**: Connected Account can reply to an existing thread
+- [x] **REPL-02**: Connected Account can reply to an existing thread
 - [ ] **REPL-03**: Reply shows author pseudonym and timestamp
 
 ### Forum — Editing
 
-- [ ] **EDIT-01**: Connected Account can edit their own thread or reply
-- [ ] **EDIT-02**: Edited posts display a visible "edited" indicator
-- [ ] **EDIT-03**: Full edit history is preserved and publicly viewable for every post (Memory over Moderation)
-- [ ] **EDIT-04**: Posts cannot be deleted by users — only soft-hidden by moderators via moderation_status
+- [x] **EDIT-01**: Connected Account can edit their own thread or reply
+- [x] **EDIT-02**: Edited posts display a visible "edited" indicator
+- [x] **EDIT-03**: Full edit history is preserved and publicly viewable for every post (Memory over Moderation)
+- [x] **EDIT-04**: Posts cannot be deleted by users — only soft-hidden by moderators via moderation_status
 
 ### Authentication
 
@@ -158,13 +158,13 @@
 | THRD-05 | Phase 3 — Read API + Cache | Complete |
 | REPL-01 | Phase 3 — Read API + Cache | Complete |
 | REPL-03 | Phase 3 — Read API + Cache | Complete |
-| THRD-03 | Phase 4 — Write API + Rate Limiting | Pending |
-| THRD-04 | Phase 4 — Write API + Rate Limiting | Pending |
-| REPL-02 | Phase 4 — Write API + Rate Limiting | Pending |
-| EDIT-01 | Phase 4 — Write API + Rate Limiting | Pending |
-| EDIT-02 | Phase 4 — Write API + Rate Limiting | Pending |
-| EDIT-03 | Phase 4 — Write API + Rate Limiting | Pending |
-| EDIT-04 | Phase 4 — Write API + Rate Limiting | Pending |
+| THRD-03 | Phase 4 — Write API + Rate Limiting | Complete |
+| THRD-04 | Phase 4 — Write API + Rate Limiting | Complete |
+| REPL-02 | Phase 4 — Write API + Rate Limiting | Complete |
+| EDIT-01 | Phase 4 — Write API + Rate Limiting | Complete |
+| EDIT-02 | Phase 4 — Write API + Rate Limiting | Complete |
+| EDIT-03 | Phase 4 — Write API + Rate Limiting | Complete |
+| EDIT-04 | Phase 4 — Write API + Rate Limiting | Complete |
 | PROF-01 | Phase 6 — Entry Points + Deployment | Pending |
 | PROF-02 | Phase 6 — Entry Points + Deployment | Pending |
 | PROF-03 | Phase 6 — Entry Points + Deployment | Pending |
