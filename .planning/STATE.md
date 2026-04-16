@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 3 of 6 (Read API + Cache) — In Progress
-Plan: 3 of 4 complete in current phase (03-03 complete)
-Status: In progress
-Last activity: 2026-04-16 — Completed 03-03-PLAN.md (stances RPC endpoint, threads cursor-paginated endpoint)
+Phase: 3 of 6 (Read API + Cache) — Complete
+Plan: 4 of 4 complete in current phase (03-04 complete)
+Status: Phase complete — ready for Phase 4 (Write API)
+Last activity: 2026-04-16 — Completed 03-04-PLAN.md (thread detail, posts list, integration tests — Phase 3 fully done)
 
-Progress: [█████████░] 45% (9/20 plans)
+Progress: [██████████░] 50% (10/20 plans)
 
 ## Performance Metrics
 
@@ -29,11 +29,11 @@ Progress: [█████████░] 45% (9/20 plans)
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
-| 3. Read API + Cache | 3/4 | ~20 min | ~7 min |
+| 3. Read API + Cache | 4/4 | ~28 min | ~7 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (~2 min), 02-02 (~5 min), 03-01 (~15 min, included checkpoint), 03-02 (~2 min), 03-03 (~3 min)
-- Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min
+- Last 5 plans: 02-02 (~5 min), 03-01 (~15 min, included checkpoint), 03-02 (~2 min), 03-03 (~3 min), 03-04 (~8 min)
+- Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min; integration test creation adds complexity
 
 *Updated after each plan completion*
 
@@ -79,6 +79,10 @@ Recent decisions affecting current work:
 - [03-03]: supabase.schema('connect').rpc() not supabase.rpc(..., { schema }) — schema option does not exist on SupabaseClient.rpc() third-arg options in v2; use .schema() chain
 - [03-03]: Thread pagination uses two-column cursor (sortColumn, id) to prevent gaps when multiple threads share the same timestamp
 - [03-03]: Thread sort: active=last_activity_at DESC (default), newest=created_at DESC; unknown values fall back silently to active
+- [03-04]: supabase-js (postgrest-js) uses res.text() not res.json(); fetch mocks must provide text: async () => JSON.stringify(body)
+- [03-04]: In-memory Redis fallback (module-level Map) persists across tests; use unique resource IDs per test to avoid cache hits
+- [03-04]: vitest.config.ts test.env field satisfies module-level env var checks before module evaluation (correct approach over .env.test)
+- [03-04]: Hidden content returns 404 not 403 — avoids revealing existence of moderated threads/posts
 
 ### Pending Todos
 
@@ -91,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:12:01Z
-Stopped at: Completed 03-03-PLAN.md — GET /api/communities/:id/stances (RPC join) and GET /api/communities/:id/threads (cursor-paginated + excerpts). All 15 tests pass.
+Last session: 2026-04-16T14:23:33Z
+Stopped at: Completed 03-04-PLAN.md — Thread detail + posts list endpoints, 15 integration tests. Phase 3 fully complete. 30 tests pass.
 Resume file: None

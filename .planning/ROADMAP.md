@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation + Schema** - Repo, Supabase schema, RLS policies, and edit history tables wired correctly from day one
 - [x] **Phase 2: Auth Infrastructure** - JWKS-based JWT verification, accounts API tier lookup, frontend token lifecycle, and typed fetch wrapper
-- [ ] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
+- [x] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
 - [ ] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
 - [ ] **Phase 5: Frontend UI** - Full UI built against stable /api/* contracts; all v1 surfaces in Framer-compatible components
 - [ ] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
@@ -74,7 +74,7 @@ Plans:
 - [x] 03-01-PLAN.md — Schema gap migrations (slice_label, last_activity_at, supporting_points) + cache middleware factory + shared utils + app.ts route wiring
 - [x] 03-02-PLAN.md — GET /api/communities and GET /api/communities/:id (search, filter, cursor pagination, slice-aware listing)
 - [x] 03-03-PLAN.md — GET /api/communities/:id/stances (RPC join to inform.*) and GET /api/communities/:id/threads (cursor-paginated with excerpts)
-- [ ] 03-04-PLAN.md — GET /api/threads/:id and GET /api/threads/:id/posts (flat replies); end-to-end verification of all read endpoints
+- [x] 03-04-PLAN.md — GET /api/threads/:id and GET /api/threads/:id/posts (flat replies); end-to-end verification of all read endpoints
 
 ---
 
@@ -146,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation + Schema | 3/3 | Complete | 2026-04-15 |
 | 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
-| 3. Read API + Cache | 3/4 | In progress | - |
+| 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
 | 4. Write API + Rate Limiting | 0/3 | Not started | - |
 | 5. Frontend UI | 0/4 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |
