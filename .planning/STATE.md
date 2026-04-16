@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 4 of 6 (Write API) — In Progress
-Plan: 1 of 3 complete in current phase (04-01 complete)
-Status: In progress — 04-01 complete, ready for 04-02 (edit endpoints)
-Last activity: 2026-04-16 — Completed 04-01-PLAN.md (POST endpoints for threads + posts, rate limiter, cacheDel)
+Plan: 2 of 3 complete in current phase (04-02 complete)
+Status: In progress — 04-02 complete, ready for 04-03 (integration tests)
+Last activity: 2026-04-16 — Completed 04-02-PLAN.md (PATCH edit endpoints, DELETE 405, edit history GETs, isEdited on reads)
 
-Progress: [███████████░] 55% (11/20 plans)
+Progress: [████████████░] 60% (12/20 plans)
 
 ## Performance Metrics
 
@@ -30,7 +30,7 @@ Progress: [███████████░] 55% (11/20 plans)
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
 | 3. Read API + Cache | 4/4 | ~28 min | ~7 min |
-| 4. Write API | 1/3 | ~3 min | ~3 min |
+| 4. Write API | 2/3 | ~7 min | ~3.5 min |
 
 **Recent Trend:**
 - Last 5 plans: 03-02 (~2 min), 03-03 (~3 min), 03-04 (~8 min), 04-01 (~3 min)
@@ -89,6 +89,11 @@ Recent decisions affecting current work:
 - [04-01]: reset from @upstash/ratelimit is milliseconds; Retry-After header divides by 1000 for seconds
 - [04-01]: cacheDel Redis error is warn-and-continue — in-memory store always cleared regardless of Redis outcome
 - [04-01]: Dev/test stub for postRateLimiter: always returns { success: true } when Upstash env vars absent
+- [04-02]: Non-author PATCH returns 404 (not 403) — consistent with Phase 3 hidden-content approach, hides existence
+- [04-02]: PATCH has no rate limit — editing is not new feed content
+- [04-02]: isEdited derived from updated_at !== created_at — no extra column needed
+- [04-02]: Edit history GET endpoints are unauthenticated — Memory over Moderation, all edits are public
+- [04-02]: 405 DELETE uses Allow: GET, PATCH header — RFC 7231 compliant
 
 ### Pending Todos
 
@@ -101,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T16:28:25Z
-Stopped at: Completed 04-01-PLAN.md — POST endpoints for threads + posts, postRateLimiter, cacheDel. 30 read tests still pass.
+Last session: 2026-04-16T16:34:00Z
+Stopped at: Completed 04-02-PLAN.md — PATCH edit endpoints, 405 DELETE rejection, edit history GETs, isEdited on read responses. 30 tests still pass.
 Resume file: None
