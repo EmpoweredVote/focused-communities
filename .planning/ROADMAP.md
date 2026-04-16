@@ -13,7 +13,7 @@ Focused Communities is a civic deliberation platform giving every Empowered Comp
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation + Schema** - Repo, Supabase schema, RLS policies, and edit history tables wired correctly from day one
-- [ ] **Phase 2: Auth Infrastructure** - JWKS-based JWT verification, accounts API tier lookup, frontend token lifecycle, and typed fetch wrapper
+- [x] **Phase 2: Auth Infrastructure** - JWKS-based JWT verification, accounts API tier lookup, frontend token lifecycle, and typed fetch wrapper
 - [ ] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
 - [ ] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
 - [ ] **Phase 5: Frontend UI** - Full UI built against stable /api/* contracts; all v1 surfaces in Framer-compatible components
@@ -52,9 +52,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Backend auth middleware: JWKS singleton, requireAuth/optionalAuth, tierGuards with suspended detection
-- [ ] 02-02-PLAN.md — Auth middleware test suite: mock-jwks/vitest tests proving all 401/403 scenarios
-- [ ] 02-03-PLAN.md — Frontend auth primitives: AuthContext with token lifecycle, apiFetch with new-tab 401, AuthGate component
+- [x] 02-01-PLAN.md — Backend auth middleware: JWKS singleton, requireAuth/optionalAuth, tierGuards with suspended detection
+- [x] 02-02-PLAN.md — Auth middleware test suite: mock-jwks/vitest tests proving all 401/403 scenarios
+- [x] 02-03-PLAN.md — Frontend auth primitives: AuthContext with token lifecycle, apiFetch with new-tab 401, AuthGate component
 
 ---
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Schema | 3/3 | Complete | 2026-04-15 |
-| 2. Auth Infrastructure | 0/3 | Not started | - |
+| 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
 | 3. Read API + Cache | 0/4 | Not started | - |
 | 4. Write API + Rate Limiting | 0/3 | Not started | - |
 | 5. Frontend UI | 0/4 | Not started | - |

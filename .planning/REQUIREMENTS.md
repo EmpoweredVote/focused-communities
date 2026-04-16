@@ -44,9 +44,9 @@
 
 ### Authentication
 
-- [ ] **AUTH-01**: Unauthenticated user attempting to post is redirected to sign-in
-- [ ] **AUTH-02**: Auth gate enforced at both API (RLS + middleware) and UI (redirect) layers
-- [ ] **AUTH-03**: Account age gate is NOT in v1 — deferred to anti-spam phase
+- [x] **AUTH-01**: Unauthenticated user attempting to post is redirected to sign-in
+- [x] **AUTH-02**: Auth gate enforced at both API (RLS + middleware) and UI (redirect) layers
+- [x] **AUTH-03**: Account age gate is NOT in v1 — deferred to anti-spam phase
 
 ### Profile
 
@@ -140,9 +140,9 @@
 | INFRA-04 | Phase 1 — Foundation + Schema | Complete |
 | INFRA-05 | Phase 1 — Foundation + Schema | Complete |
 | INFRA-06 | Phase 1 — Foundation + Schema | Complete |
-| AUTH-01 | Phase 2 — Auth Infrastructure | Pending |
-| AUTH-02 | Phase 2 — Auth Infrastructure | Pending |
-| AUTH-03 | Phase 2 — Auth Infrastructure | Pending |
+| AUTH-01 | Phase 2 — Auth Infrastructure | Complete |
+| AUTH-02 | Phase 2 — Auth Infrastructure | Complete |
+| AUTH-03 | Phase 2 — Auth Infrastructure | Complete |
 | DIR-01 | Phase 3 — Read API + Cache | Pending |
 | DIR-02 | Phase 3 — Read API + Cache | Pending |
 | DIR-03 | Phase 3 — Read API + Cache | Pending |
