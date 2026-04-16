@@ -15,7 +15,7 @@ postsRouter.get('/threads/:id', cacheMiddleware(TTL.THREAD_DETAIL), async (req: 
   const { data, error } = await supabase
     .schema('connect')
     .from('threads')
-    .select('id, title, body, author_display_name, reply_count, created_at, last_activity_at, moderation_status')
+    .select('id, title, body, author_display_name, reply_count, created_at, last_activity_at, updated_at, moderation_status')
     .eq('id', req.params.id)
     .single();
 
@@ -43,6 +43,8 @@ postsRouter.get('/threads/:id', cacheMiddleware(TTL.THREAD_DETAIL), async (req: 
       replyCount: data.reply_count,
       createdAt: data.created_at,
       lastActivityAt: data.last_activity_at,
+      updatedAt: data.updated_at,
+      isEdited: data.updated_at !== data.created_at,
       // moderation_status intentionally excluded from response
     },
   });
@@ -90,6 +92,7 @@ postsRouter.get('/threads/:id/posts', cacheMiddleware(TTL.THREAD_DETAIL), async 
     body: p.body,
     createdAt: p.created_at,
     updatedAt: p.updated_at,
+    isEdited: p.updated_at !== p.created_at,
   }));
 
   // No cursor/meta for posts — flat list with limit (v1)
@@ -157,6 +160,42 @@ postsRouter.patch('/posts/:id', requireAuth, requireConnected, async (req: Reque
 postsRouter.delete('/posts/:id', (_req, res) => {
   res.setHeader('Allow', 'GET, PATCH');
   res.status(405).json({ error: { code: 'DELETE_NOT_ALLOWED', message: 'Posts cannot be deleted' } });
+});
+
+// GET /api/posts/:id/edits — public edit history (Memory over Moderation — no auth required)
+postsRouter.get('/posts/:id/edits', async (req: Request, res: Response) => {
+  // Verify post exists and is visible
+  const { data: post, error: postError } = await supabase
+    .schema('connect')
+    .from('posts')
+    .select('id, moderation_status')
+    .eq('id', req.params.id)
+    .single();
+
+  if (postError || !post || post.moderation_status !== 'visible') {
+    res.status(404).json({ error: { code: 'POST_NOT_FOUND', message: 'Post not found' } });
+    return;
+  }
+
+  const { data, error } = await supabase
+    .schema('connect')
+    .from('post_edits')
+    .select('id, old_body, edited_at')
+    .eq('post_id', req.params.id)
+    .order('edited_at', { ascending: false });
+
+  if (error) {
+    res.status(500).json({ error: { code: 'EDITS_FETCH_FAILED', message: error.message } });
+    return;
+  }
+
+  res.json({
+    data: (data ?? []).map(e => ({
+      id: e.id,
+      oldBody: e.old_body,
+      editedAt: e.edited_at,
+    })),
+  });
 });
 
 // POST /api/threads/:id/posts — reply to a thread

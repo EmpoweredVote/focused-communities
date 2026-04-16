@@ -73,9 +73,6 @@ threadsRouter.get('/communities/:id/threads', cacheMiddleware(TTL.THREAD_LIST), 
   });
 });
 
-// POST /api/communities/:id/threads — create a new thread
-// Requires: connected or empowered account with active standing
-// Rate limited: shared 5-post/hour bucket per user
 // PATCH /api/threads/:id — edit thread title and/or body (ownership-checked, no rate limit)
 threadsRouter.patch('/threads/:id', requireAuth, requireConnected, async (req: Request, res: Response) => {
   const { title, body } = req.body as { title?: unknown; body?: unknown };
@@ -165,6 +162,43 @@ threadsRouter.patch('/threads/:id', requireAuth, requireConnected, async (req: R
 threadsRouter.delete('/threads/:id', (_req, res) => {
   res.setHeader('Allow', 'GET, PATCH');
   res.status(405).json({ error: { code: 'DELETE_NOT_ALLOWED', message: 'Threads cannot be deleted' } });
+});
+
+// GET /api/threads/:id/edits — public edit history (Memory over Moderation — no auth required)
+threadsRouter.get('/threads/:id/edits', async (req: Request, res: Response) => {
+  // Verify thread exists and is visible
+  const { data: thread, error: threadError } = await supabase
+    .schema('connect')
+    .from('threads')
+    .select('id, moderation_status')
+    .eq('id', req.params.id)
+    .single();
+
+  if (threadError || !thread || thread.moderation_status !== 'visible') {
+    res.status(404).json({ error: { code: 'THREAD_NOT_FOUND', message: 'Thread not found' } });
+    return;
+  }
+
+  const { data, error } = await supabase
+    .schema('connect')
+    .from('thread_edits')
+    .select('id, old_title, old_body, edited_at')
+    .eq('thread_id', req.params.id)
+    .order('edited_at', { ascending: false });
+
+  if (error) {
+    res.status(500).json({ error: { code: 'EDITS_FETCH_FAILED', message: error.message } });
+    return;
+  }
+
+  res.json({
+    data: (data ?? []).map(e => ({
+      id: e.id,
+      oldTitle: e.old_title,
+      oldBody: e.old_body,
+      editedAt: e.edited_at,
+    })),
+  });
 });
 
 // POST /api/communities/:id/threads — create a new thread
