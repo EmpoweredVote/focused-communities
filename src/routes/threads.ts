@@ -3,6 +3,10 @@ import type { Request, Response } from 'express';
 import { supabase } from '../lib/supabase.js';
 import { cacheMiddleware, TTL } from '../middleware/cache.js';
 import { encodeCursor, decodeCursor, parseLimit, generateExcerpt } from '../lib/utils.js';
+import { requireAuth } from '../middleware/auth.js';
+import { requireConnected } from '../middleware/tierGuards.js';
+import { postRateLimiter } from '../lib/rateLimit.js';
+import { cacheDel } from '../lib/redis.js';
 
 export const threadsRouter = Router();
 
@@ -68,3 +72,78 @@ threadsRouter.get('/communities/:id/threads', cacheMiddleware(TTL.THREAD_LIST), 
     meta: { cursor: nextCursor, hasMore },
   });
 });
+
+// POST /api/communities/:id/threads — create a new thread
+// Requires: connected or empowered account with active standing
+// Rate limited: shared 5-post/hour bucket per user
+threadsRouter.post(
+  '/communities/:id/threads',
+  requireAuth,
+  requireConnected,
+  async (req: Request, res: Response) => {
+    const { title, body } = req.body as { title?: unknown; body?: unknown };
+    const errors: Record<string, string> = {};
+
+    const trimmedTitle = (typeof title === 'string' ? title : '').trim();
+    if (trimmedTitle.length < 5 || trimmedTitle.length > 150) {
+      errors.title = 'Title must be 5-150 characters';
+    }
+
+    const trimmedBody = (typeof body === 'string' ? body : '').trim();
+    if (trimmedBody.length < 10 || trimmedBody.length > 5000) {
+      errors.body = 'Body must be 10-5,000 characters';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      res.status(422).json({ errors });
+      return;
+    }
+
+    // Rate limiting — shared bucket with reply posting
+    const { success, reset } = await postRateLimiter.limit(req.user!.id);
+    if (!success) {
+      // reset is in milliseconds; Retry-After is in seconds
+      res.set('Retry-After', String(Math.ceil((reset - Date.now()) / 1000)));
+      res.status(429).json({ reason: 'rate_limited' });
+      return;
+    }
+
+    // Insert thread — trg_threads_snapshot_display_name fires BEFORE INSERT
+    // and populates author_display_name automatically from connected_profiles
+    const { data, error } = await supabase
+      .schema('connect')
+      .from('threads')
+      .insert({
+        community_id: req.params.id,
+        author_id: req.user!.id,
+        title: trimmedTitle,
+        body: trimmedBody,
+      })
+      .select('id, title, body, author_display_name, reply_count, created_at, last_activity_at, updated_at')
+      .single();
+
+    if (error || !data) {
+      res.status(500).json({
+        error: { code: 'THREAD_CREATE_FAILED', message: error?.message },
+      });
+      return;
+    }
+
+    // Invalidate thread list cache for this community (default query params)
+    await cacheDel(`fc:/api/communities/${req.params.id}/threads:${JSON.stringify({})}`);
+
+    res.status(201).json({
+      data: {
+        id: data.id,
+        title: data.title,
+        body: data.body,
+        authorPseudonym: data.author_display_name,
+        replyCount: data.reply_count,
+        createdAt: data.created_at,
+        lastActivityAt: data.last_activity_at,
+        updatedAt: data.updated_at,
+        isEdited: false,
+      },
+    });
+  }
+);
