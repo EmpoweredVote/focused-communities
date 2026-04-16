@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 2 — Auth Infrastructure (COMPLETE)
+**Current focus:** Phase 3 — Read API + Cache (In Progress)
 
 ## Current Position
 
-Phase: 2 of 6 (Auth Infrastructure) — COMPLETE
-Plan: 3 of 3 in current phase (02-01, 02-02, 02-03 all complete)
-Status: Phase 2 complete — ready for Phase 3
-Last activity: 2026-04-15 — Completed 02-02-PLAN.md (vitest config, auth middleware test suite, tier guard test suite)
+Phase: 3 of 6 (Read API + Cache) — In Progress
+Plan: 1 of 4 complete in current phase (03-01 complete)
+Status: In progress
+Last activity: 2026-04-16 — Completed 03-01-PLAN.md (schema migration, cache middleware, shared utils, route stubs, app.ts wiring)
 
-Progress: [██████░░░░] 32% (6/19 plans)
+Progress: [███████░░░] 37% (7/19 plans)
 
 ## Performance Metrics
 
@@ -29,10 +29,11 @@ Progress: [██████░░░░] 32% (6/19 plans)
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
+| 3. Read API + Cache | 1/4 | ~15 min | ~15 min |
 
 **Recent Trend:**
-- Last 4 plans: 02-01 (~4 min), 02-03 (~2 min), 02-02 (~5 min)
-- Trend: Focused single-concern plans execute in ~2-5 min
+- Last 4 plans: 02-01 (~4 min), 02-03 (~2 min), 02-02 (~5 min), 03-01 (~15 min, included checkpoint)
+- Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min
 
 *Updated after each plan completion*
 
@@ -68,6 +69,10 @@ Recent decisions affecting current work:
 - [02-02]: Real jose ES256 keypair in beforeAll for authentic JWT signing in tests — no hardcoded token strings
 - [02-02]: afterEach vi.unstubAllGlobals() prevents fetch mock leaking between tests
 - [02-02]: Pure makeMocks() for sync tierGuards tests — no Express app overhead needed
+- [03-01]: inform.compass_stances uses column 'value' (integer) not 'position' — RPC aliases s.value AS position in RETURNS TABLE contract
+- [03-01]: RPC function lives in connect schema with SECURITY DEFINER so anon role can read inform.* without direct schema grants
+- [03-01]: Cache key format fc:{req.path}:{JSON.stringify(req.query)} prevents route collisions between endpoints with identical empty query strings
+- [03-01]: jose v6 removed KeyLike type — use native CryptoKey (Web Crypto API) in test files
 
 ### Pending Todos
 
@@ -76,10 +81,10 @@ None yet.
 ### Blockers/Concerns
 
 - [Pre-Phase 5]: Framer + Express auth token flow is unverified — how Framer production frontend passes Supabase JWT to Express write endpoints needs research before Phase 5 planning. Flag: run /gsd:research-phase before planning Phase 5.
-- [Pre-Phase 3]: Confirm connect.communities can reference inform.compass_topics via FK (cross-schema JOIN). If not, use denormalized topic_id UUID with no FK constraint. Verify during Phase 3 implementation.
+- [Pre-Phase 3]: RESOLVED — inform.compass_stances confirmed to exist with columns: id, topic_id, value, text. Cross-schema join via SECURITY DEFINER RPC is functional.
 
 ## Session Continuity
 
-Last session: 2026-04-15T23:25:00Z
-Stopped at: Completed 02-02-PLAN.md — vitest config, auth middleware test suite (8 tests), tier guard test suite (6 tests). All 15 tests pass. Phase 2 complete.
+Last session: 2026-04-16T07:10:00Z
+Stopped at: Completed 03-01-PLAN.md — schema migration (all 4 sections), cache middleware, shared utils, route stubs, app.ts wiring. All 15 tests pass.
 Resume file: None
