@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 3 of 6 (Read API + Cache) — In Progress
-Plan: 1 of 4 complete in current phase (03-01 complete)
+Plan: 2 of 4 complete in current phase (03-02 complete)
 Status: In progress
-Last activity: 2026-04-16 — Completed 03-01-PLAN.md (schema migration, cache middleware, shared utils, route stubs, app.ts wiring)
+Last activity: 2026-04-16 — Completed 03-02-PLAN.md (GET /api/communities list + detail, cursor pagination, cache)
 
-Progress: [███████░░░] 37% (7/19 plans)
+Progress: [████████░░] 42% (8/19 plans)
 
 ## Performance Metrics
 
@@ -29,10 +29,10 @@ Progress: [███████░░░] 37% (7/19 plans)
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
-| 3. Read API + Cache | 1/4 | ~15 min | ~15 min |
+| 3. Read API + Cache | 2/4 | ~17 min | ~8 min |
 
 **Recent Trend:**
-- Last 4 plans: 02-01 (~4 min), 02-03 (~2 min), 02-02 (~5 min), 03-01 (~15 min, included checkpoint)
+- Last 5 plans: 02-01 (~4 min), 02-03 (~2 min), 02-02 (~5 min), 03-01 (~15 min, included checkpoint), 03-02 (~2 min)
 - Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min
 
 *Updated after each plan completion*
@@ -73,6 +73,9 @@ Recent decisions affecting current work:
 - [03-01]: RPC function lives in connect schema with SECURITY DEFINER so anon role can read inform.* without direct schema grants
 - [03-01]: Cache key format fc:{req.path}:{JSON.stringify(req.query)} prevents route collisions between endpoints with identical empty query strings
 - [03-01]: jose v6 removed KeyLike type — use native CryptoKey (Web Crypto API) in test files
+- [03-02]: GET /api/communities/:id maps both Supabase error and null data to 404 (COMMUNITY_NOT_FOUND) — no distinction between DB error and not-found at route layer
+- [03-02]: Cursor encodes sort column value + id; cursor is sort-mode-specific (not interchangeable between ?sort=newest and ?sort=popular)
+- [03-02]: Response envelopes: list → { data, meta: { cursor, hasMore } }, single → { data } — established for all remaining read endpoints
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T07:10:00Z
-Stopped at: Completed 03-01-PLAN.md — schema migration (all 4 sections), cache middleware, shared utils, route stubs, app.ts wiring. All 15 tests pass.
+Last session: 2026-04-16T14:08:45Z
+Stopped at: Completed 03-02-PLAN.md — GET /api/communities (paginated, searchable, sortable) and GET /api/communities/:id (detail + 404). All 15 tests pass.
 Resume file: None
