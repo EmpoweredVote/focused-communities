@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 4 — Write API (In Progress)
+**Current focus:** Phase 5 — Frontend (Next)
 
 ## Current Position
 
-Phase: 4 of 6 (Write API) — In Progress
-Plan: 2 of 3 complete in current phase (04-02 complete)
-Status: In progress — 04-02 complete, ready for 04-03 (integration tests)
-Last activity: 2026-04-16 — Completed 04-02-PLAN.md (PATCH edit endpoints, DELETE 405, edit history GETs, isEdited on reads)
+Phase: 4 of 6 (Write API) — Complete
+Plan: 3 of 3 complete in current phase (04-03 complete)
+Status: Phase 4 complete — all 3 plans done; ready to begin Phase 5 (Frontend)
+Last activity: 2026-04-16 — Completed 04-03-PLAN.md (write API integration tests — 30 tests, 10 endpoint groups)
 
-Progress: [████████████░] 60% (12/20 plans)
+Progress: [█████████████░] 65% (13/20 plans)
 
 ## Performance Metrics
 
@@ -30,11 +30,11 @@ Progress: [████████████░] 60% (12/20 plans)
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
 | 3. Read API + Cache | 4/4 | ~28 min | ~7 min |
-| 4. Write API | 2/3 | ~7 min | ~3.5 min |
+| 4. Write API | 3/3 | ~12 min | ~4 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (~2 min), 03-03 (~3 min), 03-04 (~8 min), 04-01 (~3 min)
-- Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min; integration test creation adds complexity
+- Last 5 plans: 03-04 (~8 min), 04-01 (~3 min), 04-02 (~4 min), 04-03 (~5 min)
+- Trend: Focused single-concern plans execute in ~2-5 min; integration test creation ~5 min; plans with checkpoints add ~10 min
 
 *Updated after each plan completion*
 
@@ -94,6 +94,9 @@ Recent decisions affecting current work:
 - [04-02]: isEdited derived from updated_at !== created_at — no extra column needed
 - [04-02]: Edit history GET endpoints are unauthenticated — Memory over Moderation, all edits are public
 - [04-02]: 405 DELETE uses Allow: GET, PATCH header — RFC 7231 compliant
+- [04-03]: URL-routing fetch mock routes JWKS vs Supabase DB by checking supabase.co without /rest/ — DB calls use /rest/v1/ path
+- [04-03]: vi.mock top-level hoisting required for rate limiter mock — must be declared before createApp() call resolves module
+- [04-03]: Non-author test: JWT sub overrides accounts API id field in requireAuth — signToken('user-uuid-2') sets req.user.id regardless of accounts API body
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T16:34:00Z
-Stopped at: Completed 04-02-PLAN.md — PATCH edit endpoints, 405 DELETE rejection, edit history GETs, isEdited on read responses. 30 tests still pass.
+Last session: 2026-04-16T16:54:00Z
+Stopped at: Completed 04-03-PLAN.md — write API integration tests, 30 tests across 10 endpoint groups, 60 total tests passing. Phase 4 complete.
 Resume file: None

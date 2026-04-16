@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation + Schema** - Repo, Supabase schema, RLS policies, and edit history tables wired correctly from day one
 - [x] **Phase 2: Auth Infrastructure** - JWKS-based JWT verification, accounts API tier lookup, frontend token lifecycle, and typed fetch wrapper
 - [x] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
-- [ ] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
+- [x] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
 - [ ] **Phase 5: Frontend UI** - Full UI built against stable /api/* contracts; all v1 surfaces in Framer-compatible components
 - [ ] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
 
@@ -93,8 +93,8 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — POST /api/communities/:id/threads and POST /api/threads/:id/posts with rate limiting, cache invalidation, display_name snapshot
-- [ ] 04-02-PLAN.md — PATCH /api/threads/:id and PATCH /api/posts/:id with ownership check, edit history endpoints, DELETE rejection, isEdited on reads
-- [ ] 04-03-PLAN.md — Integration tests for all write endpoints (POST, PATCH, DELETE, edit history, isEdited)
+- [x] 04-02-PLAN.md — PATCH /api/threads/:id and PATCH /api/posts/:id with ownership check, edit history endpoints, DELETE rejection, isEdited on reads
+- [x] 04-03-PLAN.md — Integration tests for all write endpoints (POST, PATCH, DELETE, edit history, isEdited)
 
 ---
 
@@ -147,6 +147,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation + Schema | 3/3 | Complete | 2026-04-15 |
 | 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
 | 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
-| 4. Write API + Rate Limiting | 2/3 | In progress | - |
+| 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
 | 5. Frontend UI | 0/4 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |
