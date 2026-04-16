@@ -2,6 +2,7 @@
   "name": "empowered-focused-communities",
   "version": "1.0.0",
   "description": "Civic deliberation hub for Empowered Compass topics",
+  "type": "module",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
