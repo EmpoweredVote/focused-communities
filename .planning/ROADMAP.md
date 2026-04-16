@@ -89,12 +89,12 @@ Plans:
   4. Edited posts display a visible "edited" indicator; the full version history is publicly retrievable
   5. Posts cannot be deleted by users; the API rejects DELETE requests; only moderation_status can be changed (and only by moderators in v2+)
   6. Post creation is rate-limited to 5 posts/hour per user_id via Upstash Redis sliding window; a 429 is returned with Retry-After when exceeded
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: POST /api/communities/:id/threads and POST /api/threads/:id/posts (requireConnectedAccount + display_name snapshot + rate limiting)
-- [ ] 04-02: PATCH /api/threads/:id and PATCH /api/posts/:id (author check + atomic transaction writing edit history + body update)
-- [ ] 04-03: Cache invalidation wired to all write routes; no-delete enforcement; Upstash sliding window rate limiting
+- [ ] 04-01-PLAN.md — POST /api/communities/:id/threads and POST /api/threads/:id/posts with rate limiting, cache invalidation, display_name snapshot
+- [ ] 04-02-PLAN.md — PATCH /api/threads/:id and PATCH /api/posts/:id with ownership check, edit history endpoints, DELETE rejection, isEdited on reads
+- [ ] 04-03-PLAN.md — Integration tests for all write endpoints (POST, PATCH, DELETE, edit history, isEdited)
 
 ---
 
