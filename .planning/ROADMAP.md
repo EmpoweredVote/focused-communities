@@ -68,13 +68,13 @@ Plans:
   3. An unauthenticated user can retrieve a thread list for any community (cursor-paginated, newest first) showing title, excerpt, author pseudonym, reply count, and timestamp
   4. An unauthenticated user can retrieve all replies in a thread (flat, chronological) showing author pseudonym and timestamp
   5. Community lists are cached for 5 minutes, stance data for 30 minutes, and thread lists for 30 seconds; in-memory Map fallback is active when Redis is unavailable
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: Upstash Redis client with in-memory fallback and cache middleware (per-route TTL configuration)
-- [ ] 03-02: GET /api/communities and GET /api/communities/:id (with search/filter support and slice-aware listing)
-- [ ] 03-03: GET /api/communities/:id/stances (join to inform.*) and GET /api/communities/:id/threads (cursor-paginated)
-- [ ] 03-04: GET /api/threads/:id and GET /api/threads/:id/posts (flat replies); verify anon RLS end-to-end
+- [ ] 03-01-PLAN.md — Schema gap migrations (slice_label, last_activity_at, supporting_points) + cache middleware factory + shared utils + app.ts route wiring
+- [ ] 03-02-PLAN.md — GET /api/communities and GET /api/communities/:id (search, filter, cursor pagination, slice-aware listing)
+- [ ] 03-03-PLAN.md — GET /api/communities/:id/stances (RPC join to inform.*) and GET /api/communities/:id/threads (cursor-paginated with excerpts)
+- [ ] 03-04-PLAN.md — GET /api/threads/:id and GET /api/threads/:id/posts (flat replies); end-to-end verification of all read endpoints
 
 ---
 
