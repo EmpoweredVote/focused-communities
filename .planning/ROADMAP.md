@@ -92,7 +92,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — POST /api/communities/:id/threads and POST /api/threads/:id/posts with rate limiting, cache invalidation, display_name snapshot
+- [x] 04-01-PLAN.md — POST /api/communities/:id/threads and POST /api/threads/:id/posts with rate limiting, cache invalidation, display_name snapshot
 - [ ] 04-02-PLAN.md — PATCH /api/threads/:id and PATCH /api/posts/:id with ownership check, edit history endpoints, DELETE rejection, isEdited on reads
 - [ ] 04-03-PLAN.md — Integration tests for all write endpoints (POST, PATCH, DELETE, edit history, isEdited)
 
@@ -147,6 +147,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation + Schema | 3/3 | Complete | 2026-04-15 |
 | 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
 | 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
-| 4. Write API + Rate Limiting | 0/3 | Not started | - |
+| 4. Write API + Rate Limiting | 1/3 | In progress | - |
 | 5. Frontend UI | 0/4 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |

@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 3 — Read API + Cache (In Progress)
+**Current focus:** Phase 4 — Write API (In Progress)
 
 ## Current Position
 
-Phase: 3 of 6 (Read API + Cache) — Complete
-Plan: 4 of 4 complete in current phase (03-04 complete)
-Status: Phase complete — ready for Phase 4 (Write API)
-Last activity: 2026-04-16 — Completed 03-04-PLAN.md (thread detail, posts list, integration tests — Phase 3 fully done)
+Phase: 4 of 6 (Write API) — In Progress
+Plan: 1 of 3 complete in current phase (04-01 complete)
+Status: In progress — 04-01 complete, ready for 04-02 (edit endpoints)
+Last activity: 2026-04-16 — Completed 04-01-PLAN.md (POST endpoints for threads + posts, rate limiter, cacheDel)
 
-Progress: [██████████░] 50% (10/20 plans)
+Progress: [███████████░] 55% (11/20 plans)
 
 ## Performance Metrics
 
@@ -30,9 +30,10 @@ Progress: [██████████░] 50% (10/20 plans)
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
 | 3. Read API + Cache | 4/4 | ~28 min | ~7 min |
+| 4. Write API | 1/3 | ~3 min | ~3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (~5 min), 03-01 (~15 min, included checkpoint), 03-02 (~2 min), 03-03 (~3 min), 03-04 (~8 min)
+- Last 5 plans: 03-02 (~2 min), 03-03 (~3 min), 03-04 (~8 min), 04-01 (~3 min)
 - Trend: Focused single-concern plans execute in ~2-5 min; plans with checkpoints add ~10 min; integration test creation adds complexity
 
 *Updated after each plan completion*
@@ -83,6 +84,11 @@ Recent decisions affecting current work:
 - [03-04]: In-memory Redis fallback (module-level Map) persists across tests; use unique resource IDs per test to avoid cache hits
 - [03-04]: vitest.config.ts test.env field satisfies module-level env var checks before module evaluation (correct approach over .env.test)
 - [03-04]: Hidden content returns 404 not 403 — avoids revealing existence of moderated threads/posts
+- [04-01]: Validation runs before rate limiting — invalid requests do not consume rate limit quota
+- [04-01]: Thread existence check runs before validation in POST /threads/:id/posts — fail fast before I/O
+- [04-01]: reset from @upstash/ratelimit is milliseconds; Retry-After header divides by 1000 for seconds
+- [04-01]: cacheDel Redis error is warn-and-continue — in-memory store always cleared regardless of Redis outcome
+- [04-01]: Dev/test stub for postRateLimiter: always returns { success: true } when Upstash env vars absent
 
 ### Pending Todos
 
@@ -95,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:23:33Z
-Stopped at: Completed 03-04-PLAN.md — Thread detail + posts list endpoints, 15 integration tests. Phase 3 fully complete. 30 tests pass.
+Last session: 2026-04-16T16:28:25Z
+Stopped at: Completed 04-01-PLAN.md — POST endpoints for threads + posts, postRateLimiter, cacheDel. 30 read tests still pass.
 Resume file: None
