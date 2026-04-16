@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 2 of 6 (Auth Infrastructure)
-Plan: 3 of 3 in current phase (wave 1 — 02-01 and 02-02 may still be in progress)
-Status: In progress (02-03 complete; 02-01 and 02-02 parallel plans pending)
-Last activity: 2026-04-15 — Completed 02-03-PLAN.md (AuthContext, apiFetch, AuthGate)
+Plan: 1 of 3 in current phase (02-01 complete; 02-02 pending; 02-03 complete)
+Status: In progress (02-01 and 02-03 complete; 02-02 pending)
+Last activity: 2026-04-16 — Completed 02-01-PLAN.md (JWKS singleton, requireAuth, optionalAuth, requireConnected)
 
-Progress: [████░░░░░░] 21% (4/19 plans)
+Progress: [█████░░░░░] 26% (5/19 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: ~3 min/plan
-- Total execution time: ~12 min
+- Total execution time: ~16 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation + Schema | 3/3 | ~10 min | ~3 min |
-| 2. Auth Infrastructure | 1/3 (02-03 done) | ~2 min | — |
+| 2. Auth Infrastructure | 2/3 (02-01, 02-03 done) | ~6 min | ~3 min |
 
 **Recent Trend:**
-- Last 3 plans: 01-02 (~2 min), 01-03 (~2 min), 02-03 (~2 min)
-- Trend: Focused single-concern plans execute in ~2 min
+- Last 4 plans: 01-02 (~2 min), 01-03 (~2 min), 02-03 (~2 min), 02-01 (~4 min)
+- Trend: Focused single-concern plans execute in ~2-4 min
 
 *Updated after each plan completion*
 
@@ -56,6 +56,10 @@ Recent decisions affecting current work:
 - [Phase 5]: Framer components must use absolute URLs for /api/* calls (self-contained, no direct Supabase queries)
 - [Phase 5]: Skip Supabase Realtime in v1; use React Query refetchInterval polling instead
 - [Phase 6]: Cache-Control: private, no-store on all auth-touching routes
+- [02-01]: "type": "module" added to package.json — jose is ESM-only; entire codebase already used ESM import syntax confirming this was always the intended module format
+- [02-01]: JWKS singleton at module level, not per-request — one instance per process
+- [02-01]: Accounts API called on every requireAuth request for session revocation (not just JWT verification)
+- [02-01]: requireConnected does NOT gate on completed_onboarding — connected_no_compass users are write-eligible
 - [02-03]: window.history.replaceState for hash cleanup (not window.location.hash = '' which adds history entry)
 - [02-03]: apiFetch uses window.open(..., '_blank') for 401 — preserves tab + draft content
 - [02-03]: connected_no_compass users pass through AuthGate (calibration is NOT a write gate)
@@ -72,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T02:13:44Z
-Stopped at: Completed 02-03-PLAN.md — AuthContext, apiFetch, AuthGate frontend primitives. Phase 2 plan 03 complete.
+Last session: 2026-04-16T02:14:36Z
+Stopped at: Completed 02-01-PLAN.md — JWKS singleton, requireAuth/optionalAuth, requireConnected. Phase 2 plans 02-01 and 02-03 complete; 02-02 pending.
 Resume file: None
