@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 5 — Frontend (Next)
+**Current focus:** Phase 5 — Frontend UI
 
 ## Current Position
 
-Phase: 4 of 6 (Write API) — Complete
-Plan: 3 of 3 complete in current phase (04-03 complete)
-Status: Phase 4 complete — all 3 plans done; ready to begin Phase 5 (Frontend)
-Last activity: 2026-04-16 — Completed 04-03-PLAN.md (write API integration tests — 30 tests, 10 endpoint groups)
+Phase: 5 of 6 (Frontend UI) — Not started
+Plan: 0 of 4 complete in current phase
+Status: Phase 4.5 complete — 160 stances seeded, API updated; ready for Phase 5 (Frontend)
+Last activity: 2026-04-16 — Completed Phase 4.5 (stance content enrichment); all 160 stances authored
 
-Progress: [█████████████░] 65% (13/20 plans)
+Progress: [██████████████░] 68% (15/22 plans)
 
 ## Performance Metrics
 
@@ -31,6 +31,7 @@ Progress: [█████████████░] 65% (13/20 plans)
 | 2. Auth Infrastructure | 3/3 | ~11 min | ~4 min |
 | 3. Read API + Cache | 4/4 | ~28 min | ~7 min |
 | 4. Write API | 3/3 | ~12 min | ~4 min |
+| 4.5. Stance Content Enrichment | 2/2 | ~35 min | ~17 min |
 
 **Recent Trend:**
 - Last 5 plans: 03-04 (~8 min), 04-01 (~3 min), 04-02 (~4 min), 04-03 (~5 min)
@@ -97,6 +98,14 @@ Recent decisions affecting current work:
 - [04-03]: URL-routing fetch mock routes JWKS vs Supabase DB by checking supabase.co without /rest/ — DB calls use /rest/v1/ path
 - [04-03]: vi.mock top-level hoisting required for rate limiter mock — must be declared before createApp() call resolves module
 - [04-03]: Non-author test: JWT sub overrides accounts API id field in requireAuth — signToken('user-uuid-2') sets req.user.id regardless of accounts API body
+- [04.5-01]: description is nullable TEXT (not NOT NULL) — shared inform schema may have rows from other products; enforce non-null via seed data, not schema constraint
+- [04.5-01]: example_perspectives is TEXT[] NOT NULL DEFAULT '{}' — empty array is a safe default for unauthored rows
+- [04.5-01]: RPC connect.get_stances_for_community required DROP + CREATE (not CREATE OR REPLACE) — PostgreSQL cannot change RETURNS TABLE column list in place
+- [04.5-02]: description maps to empty string fallback (?? ''), examplePerspectives to empty array (?? []) — API never returns null to frontend consumers
+
+### Roadmap Evolution
+
+- Phase 4.5 inserted after Phase 4 (2026-04-16): Stance Content Enrichment — extend inform.compass_stances with description + example_perspectives fields, author content for all stances before Phase 5 frontend renders them (URGENT — frontend StanceCard depends on this data)
 
 ### Pending Todos
 
@@ -104,11 +113,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Pre-Phase 5]: Framer + Express auth token flow is unverified — how Framer production frontend passes Supabase JWT to Express write endpoints needs research before Phase 5 planning. Flag: run /gsd:research-phase before planning Phase 5.
+- [Pre-Phase 5]: Framer + Express auth token flow is unverified — how Framer production frontend passes Supabase JWT to Express write endpoints needs research before Phase 5 planning. Flag: run /gsd:research-phase before planning Phase 5 (after Phase 4.5 completes).
 - [Pre-Phase 3]: RESOLVED — inform.compass_stances confirmed to exist with columns: id, topic_id, value, text. Cross-schema join via SECURITY DEFINER RPC is functional.
 
 ## Session Continuity
 
-Last session: 2026-04-16T16:54:00Z
-Stopped at: Completed 04-03-PLAN.md — write API integration tests, 30 tests across 10 endpoint groups, 60 total tests passing. Phase 4 complete.
+Last session: 2026-04-16T17:25:00Z
+Stopped at: Completed Phase 4.5 — schema migration (description + example_perspectives columns), RPC updated, 160 stances seeded across 32 topics, stances.ts route updated, 61 tests passing. Phase 4.5 complete, verified.
 Resume file: None

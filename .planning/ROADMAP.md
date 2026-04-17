@@ -111,8 +111,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04.5-01-PLAN.md — Schema migration: ADD COLUMN (description, example_perspectives), RPC function replacement, authored seed content for all stance rows
-- [ ] 04.5-02-PLAN.md — Route update: stances.ts response map extension + test assertions for new fields
+- [x] 04.5-01-PLAN.md — Schema migration: ADD COLUMN (description, example_perspectives), RPC function replacement, authored seed content for all stance rows
+- [x] 04.5-02-PLAN.md — Route update: stances.ts response map extension + test assertions for new fields
 
 ---
 
@@ -166,6 +166,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Auth Infrastructure | 3/3 | Complete | 2026-04-15 |
 | 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
 | 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
-| 4.5. Stance Content Enrichment (INSERTED) | 0/2 | Not started | - |
+| 4.5. Stance Content Enrichment (INSERTED) | 2/2 | Complete | 2026-04-16 |
 | 5. Frontend UI | 0/4 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |
