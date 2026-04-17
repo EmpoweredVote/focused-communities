@@ -165,13 +165,13 @@
 | EDIT-02 | Phase 4 — Write API + Rate Limiting | Complete |
 | EDIT-03 | Phase 4 — Write API + Rate Limiting | Complete |
 | EDIT-04 | Phase 4 — Write API + Rate Limiting | Complete |
-| PROF-01 | Phase 6 — Entry Points + Deployment | Pending |
-| PROF-02 | Phase 6 — Entry Points + Deployment | Pending |
-| PROF-03 | Phase 6 — Entry Points + Deployment | Pending |
-| ENTR-01 | Phase 6 — Entry Points + Deployment | Pending |
-| ENTR-02 | Phase 6 — Entry Points + Deployment | Pending |
-| ENTR-03 | Phase 6 — Entry Points + Deployment | Pending |
-| ENTR-04 | Phase 6 — Entry Points + Deployment | Pending |
+| PROF-01 | Phase 6 — Entry Points + Deployment | Complete |
+| PROF-02 | Phase 6 — Entry Points + Deployment | Complete |
+| PROF-03 | Phase 6 — Entry Points + Deployment | Complete |
+| ENTR-01 | Phase 6 — Entry Points + Deployment | Complete |
+| ENTR-02 | Phase 6 — Entry Points + Deployment | Complete |
+| ENTR-03 | Phase 6 — Entry Points + Deployment | Complete |
+| ENTR-04 | Phase 6 — Entry Points + Deployment | Complete |
 
 **Coverage:**
 - v1 requirements: 38 total
