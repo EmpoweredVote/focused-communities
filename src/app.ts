@@ -6,6 +6,7 @@ import { communitiesRouter } from './routes/communities.js';
 import { stancesRouter } from './routes/stances.js';
 import { threadsRouter } from './routes/threads.js';
 import { postsRouter } from './routes/posts.js';
+import { usersRouter } from './routes/users.js';
 
 export function createApp() {
   const app = express();
@@ -18,6 +19,7 @@ export function createApp() {
   app.use('/api', stancesRouter);
   app.use('/api', threadsRouter);
   app.use('/api', postsRouter);
+  app.use('/api', usersRouter);
 
   // Global error handler — must be last
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
