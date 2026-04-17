@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { Toaster } from 'sonner'
-import { DirectoryPage } from './pages/DirectoryPage'
-import { CommunityHubPage } from './pages/CommunityHubPage'
+import DirectoryPage from './pages/DirectoryPage'
+import CommunityHubPage from './pages/CommunityHubPage'
 import { ThreadPage } from './pages/ThreadPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
