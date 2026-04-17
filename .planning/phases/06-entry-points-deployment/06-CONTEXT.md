@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-FC is reachable from all external entry points (Empowered Compass spokes and Civic Spaces nav), user post history is accessible via API with a full handoff spec for the Accounts team, and the system passes the production deployment checklist. FC owns the API, the spec documents, and the checklist. External UI work (Compass wiring, Civic Spaces nav, Accounts profile page) is spec-handoff only — FC does not build those UIs.
+FC is reachable from all external entry points (Empowered Compass spokes and Civic Spaces nav), user post history is accessible via API, and the system passes the production deployment checklist. A critical Phase 6 output is three spec documents: the Accounts handoff spec (profile UI), the Compass integration spec (topic-to-slug mapping), and the EV Post History Standard (cross-product API contract that Civic Spaces and future products implement to feed into unified Accounts post history). FC is the reference implementation of the standard. External UI work (Compass wiring, Civic Spaces nav, Accounts profile page) is spec-handoff only — FC does not build those UIs.
 
 </domain>
 
@@ -21,8 +21,8 @@ FC is reachable from all external entry points (Empowered Compass spokes and Civ
 
 ### Profile page ownership
 - FC does NOT build a profile page UI — Accounts team owns that
-- FC Phase 6 deliverable: API endpoint + full handoff spec document for Accounts
-- Spec document covers: API contract (endpoint, fields, pagination), display requirements (pseudonym never legal name, community name + thread link per row, is_edited indicator), access model (self-only Connect, publicly trackable Empower in future), future cross-product vision (flat + grouped views, aggregating Civic Spaces + future forums)
+- FC Phase 6 deliverable: API endpoint + full Accounts handoff spec document
+- Accounts spec covers: API contract (endpoint, fields, pagination), display requirements (pseudonym never legal name, community name + thread link per row, is_edited indicator), access model (self-only Connect, publicly trackable Empower in future), vision for cross-product aggregation (FC + Civic Spaces + future products all feed into one unified history view)
 
 ### Profile page access and navigation
 - Post history is private by default — Connect account users see only their own history
@@ -35,10 +35,12 @@ FC is reachable from all external entry points (Empowered Compass spokes and Civ
 - FC deliverable: topic-to-slug mapping document (all seeded communities, their slugs, and corresponding Compass topic IDs)
 - Compass wiring: handled by Compass team using FC's spec — not FC's codebase work
 
-### Civic Spaces nav link
-- Phase 6: single "Focused Communities" nav item in Civic Spaces pointing to `fc.empowered.vote` (the directory)
-- FC deliverable: URL + recommended link text spec; Civic Spaces team adds nav item to their own site
+### Civic Spaces nav link and post history spec
+- Phase 6 nav: single "Focused Communities" nav item in Civic Spaces pointing to `fc.empowered.vote` (the directory)
+- FC deliverable (nav): URL + recommended link text spec; Civic Spaces team adds nav item to their own site
 - FC hubs are topic-based, not location-based — contextual per-topic linking from Civic Spaces pages deferred
+- FC deliverable (post history): **EV Post History Standard** — a spec document for Civic Spaces showing how FC built `GET /api/users/:id/posts` and defining the cross-product API contract that every EV product should implement so Accounts can aggregate post history across all products. Civic Spaces was not built with this functionality; the spec gives them everything needed to add it.
+- EV Post History Standard covers: the API contract (endpoint path, auth requirements, response shape, pagination), pseudonym rules (never legal name, snapshotted at post time), required fields per post (source product identifier, community/context name, thread/topic link, excerpt, timestamps, is_edited), and the FC reference implementation as the model to follow
 
 ### Custom domain
 - Already complete: `fc.empowered.vote` (primary) and `focusedcommunities.empowered.vote` (alias) both resolve to the Render deployment
@@ -69,7 +71,7 @@ FC is reachable from all external entry points (Empowered Compass spokes and Civ
 <deferred>
 ## Deferred Ideas
 
-- **Unified cross-product post history** — aggregating FC + Civic Spaces + future Connect forums into a single Accounts profile view. Future Accounts platform initiative; FC's API provides the FC slice.
+- **Unified cross-product post history UI** — Accounts displaying aggregated history from FC + Civic Spaces + future products with flat/grouped toggle. Future Accounts initiative; Phase 6 lays the groundwork via the EV Post History Standard and Accounts spec.
 - **Flat + grouped toggle view** — profile page shows both chronological and grouped-by-community views. Deferred to Accounts when they build the profile page.
 - **Shareable profile links** — giving Connect users the ability to share their post history with friends. Future feature; v1 is self-only.
 - **Publicly trackable Empower profiles** — Empower accounts' post history becomes browsable. Future; the `/:id` endpoint shape already supports this — just relax the auth gate.
