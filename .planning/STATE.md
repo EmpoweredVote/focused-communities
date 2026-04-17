@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 5 — Frontend UI
+**Current focus:** Phase 6 — Entry Points + Deployment
 
 ## Current Position
 
-Phase: 5 of 6 (Frontend UI) — Checkpoint pending
-Plan: 5 of 5 auto tasks complete in current phase (human-verify checkpoint pending)
-Status: Plan 05-05 auto tasks done — edit workflow, edit history, draft preservation; awaiting human verify
-Last activity: 2026-04-17 — Completed 05-05 auto tasks, waiting at checkpoint:human-verify
+Phase: 6 of 6 (Entry Points + Deployment) — Not started
+Plan: 0 of 3 complete in current phase
+Status: Phase 5 complete — human verified on fc.empowered.vote (2026-04-17)
+Last activity: 2026-04-17 — Completed Phase 5 (Frontend UI), deployed to fc.empowered.vote
 
-Progress: [████████████████████] 90% (20/22 plans — checkpoint pending)
+Progress: [█████████████████████░] 95% (22/25 plans)
 
 ## Performance Metrics
 

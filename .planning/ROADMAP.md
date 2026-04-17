@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
 - [x] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
 - [x] **Phase 4.5: Stance Content Enrichment** (INSERTED) - Extend inform.compass_stances with description and example perspectives fields; author content for all stances before frontend renders them
-- [ ] **Phase 5: Frontend UI** - Standalone React/Vite app with all v1 surfaces working end-to-end against /api/* contracts
+- [x] **Phase 5: Frontend UI** - Standalone React/Vite app with all v1 surfaces working end-to-end against /api/* contracts
 - [ ] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
 
 ## Phase Details
@@ -129,11 +129,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — App scaffold + Vite config + Tailwind v4 + provider stack + route tree + migrated primitives + shared types + backend slug route
-- [ ] 05-02-PLAN.md — DirectoryPage with keyword filter + CommunityHubPage with expandable StanceCards (randomized, no position numbers)
-- [ ] 05-03-PLAN.md — Thread list on hub with cursor pagination and 30s polling + ThreadPage with flat reply list
-- [ ] 05-04-PLAN.md — Write forms: thread creation + reply with auth gate, optimistic updates, character counters, toast errors
-- [ ] 05-05-PLAN.md — Inline edit forms + expandable edit history + localStorage draft preservation
+- [x] 05-01-PLAN.md — App scaffold + Vite config + Tailwind v4 + provider stack + route tree + migrated primitives + shared types + backend slug route
+- [x] 05-02-PLAN.md — DirectoryPage with keyword filter + CommunityHubPage with expandable StanceCards (randomized, no position numbers)
+- [x] 05-03-PLAN.md — Thread list on hub with cursor pagination and 30s polling + ThreadPage with flat reply list
+- [x] 05-04-PLAN.md — Write forms: thread creation + reply with auth gate, optimistic updates, character counters, toast errors
+- [x] 05-05-PLAN.md — Inline edit forms + expandable edit history + localStorage draft preservation
 
 ---
 
@@ -168,5 +168,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
 | 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
 | 4.5. Stance Content Enrichment (INSERTED) | 2/2 | Complete | 2026-04-16 |
-| 5. Frontend UI | 0/5 | Not started | - |
+| 5. Frontend UI | 5/5 | Complete | 2026-04-17 |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |
