@@ -16,8 +16,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Auth Infrastructure** - JWKS-based JWT verification, accounts API tier lookup, frontend token lifecycle, and typed fetch wrapper
 - [x] **Phase 3: Read API + Cache** - All read paths live and tested against real data; Redis cache layer operational
 - [x] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
-- [ ] **Phase 4.5: Stance Content Enrichment** (INSERTED) - Extend inform.compass_stances with description and example perspectives fields; author content for all stances before frontend renders them
-- [ ] **Phase 5: Frontend UI** - Full UI built against stable /api/* contracts; all v1 surfaces in Framer-compatible components
+- [x] **Phase 4.5: Stance Content Enrichment** (INSERTED) - Extend inform.compass_stances with description and example perspectives fields; author content for all stances before frontend renders them
+- [ ] **Phase 5: Frontend UI** - Standalone React/Vite app with all v1 surfaces working end-to-end against /api/* contracts
 - [ ] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
 
 ## Phase Details
@@ -117,7 +117,7 @@ Plans:
 ---
 
 ### Phase 5: Frontend UI
-**Goal**: The complete v1 UI exists as self-contained, Framer-compatible React components using absolute /api/* URLs — every user-facing surface works end-to-end
+**Goal**: The complete v1 UI exists as a standalone React/Vite app using absolute /api/* URLs — every user-facing surface works end-to-end
 **Depends on**: Phase 4
 **Requirements**: (All frontend-facing behaviors delivered by DIR, HUB, THRD, REPL, EDIT, AUTH read-side)
 **Success Criteria** (what must be TRUE):
@@ -126,13 +126,14 @@ Plans:
   3. An unauthenticated user who clicks "reply" or "start thread" sees an auth gate (disabled form with tooltip) and is redirected to sign-in — not a broken UI
   4. A Connected Account can create a thread or reply, then immediately see it appear in the list with their pseudonym and timestamp
   5. A Connected Account can edit their own post, see the "edited" indicator, and expand the full version history — all edits visible publicly
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 05-01: DirectoryPage with search/filter and CommunityPage with StanceCard components (no party labels, numerical 1-5 positions)
-- [ ] 05-02: ThreadListPage with useInfiniteQuery cursor pagination and refetch polling; ThreadPage with flat reply list
-- [ ] 05-03: PostForm with auth gate UI; edit form with history display (edited indicator + expandable version diff)
-- [ ] 05-04: Session management (expiry detection, localStorage draft preservation, URL-based scroll position tracking)
+- [ ] 05-01-PLAN.md — App scaffold + Vite config + Tailwind v4 + provider stack + route tree + migrated primitives + shared types + backend slug route
+- [ ] 05-02-PLAN.md — DirectoryPage with keyword filter + CommunityHubPage with expandable StanceCards (randomized, no position numbers)
+- [ ] 05-03-PLAN.md — Thread list on hub with cursor pagination and 30s polling + ThreadPage with flat reply list
+- [ ] 05-04-PLAN.md — Write forms: thread creation + reply with auth gate, optimistic updates, character counters, toast errors
+- [ ] 05-05-PLAN.md — Inline edit forms + expandable edit history + localStorage draft preservation
 
 ---
 
@@ -167,5 +168,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Read API + Cache | 4/4 | Complete | 2026-04-16 |
 | 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
 | 4.5. Stance Content Enrichment (INSERTED) | 2/2 | Complete | 2026-04-16 |
-| 5. Frontend UI | 0/4 | Not started | - |
+| 5. Frontend UI | 0/5 | Not started | - |
 | 6. Entry Points + Deployment | 0/3 | Not started | - |
