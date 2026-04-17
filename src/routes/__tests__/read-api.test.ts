@@ -145,11 +145,21 @@ describe('GET /api/communities/:id/stances', () => {
     expect(res.body.data).toEqual([]);
   });
 
-  it('returns stance cards with position, text, supportingPoints', async () => {
+  it('returns stance cards with position, text, supportingPoints, description, examplePerspectives', async () => {
     // 2 fetches: community check (single object), RPC result (array)
     mockFetch(
       { body: { id: 'comm-stances-data' } },
-      { body: [{ position: 1, text: 'Stance one', supporting_points: ['Point A'] }] }
+      { body: [{
+        position: 1,
+        text: 'Stance one',
+        supporting_points: ['Point A'],
+        description: 'This stance advocates for a specific policy outcome in practical terms.',
+        example_perspectives: [
+          'Someone prioritizing fiscal responsibility might hold this view.',
+          'A person focused on local economic growth often supports this approach.',
+          'Those who value measurable government accountability tend to favor this stance.',
+        ],
+      }] }
     );
     const res = await request(app).get('/api/communities/comm-stances-data/stances');
     expect(res.status).toBe(200);
@@ -157,6 +167,35 @@ describe('GET /api/communities/:id/stances', () => {
       position: 1,
       text: 'Stance one',
       supportingPoints: ['Point A'],
+      description: 'This stance advocates for a specific policy outcome in practical terms.',
+      examplePerspectives: [
+        'Someone prioritizing fiscal responsibility might hold this view.',
+        'A person focused on local economic growth often supports this approach.',
+        'Those who value measurable government accountability tend to favor this stance.',
+      ],
+    });
+  });
+
+  it('returns empty string for null description and empty array for missing example_perspectives', async () => {
+    // 2 fetches: community check (single object), RPC result (array with nulls)
+    mockFetch(
+      { body: { id: 'comm-stances-nulls' } },
+      { body: [{
+        position: 1,
+        text: 'Stance with nulls',
+        supporting_points: null,
+        description: null,
+        example_perspectives: null,
+      }] }
+    );
+    const res = await request(app).get('/api/communities/comm-stances-nulls/stances');
+    expect(res.status).toBe(200);
+    expect(res.body.data[0]).toEqual({
+      position: 1,
+      text: 'Stance with nulls',
+      supportingPoints: [],
+      description: '',
+      examplePerspectives: [],
     });
   });
 

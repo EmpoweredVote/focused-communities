@@ -35,10 +35,18 @@ stancesRouter.get('/communities/:id/stances', cacheMiddleware(TTL.STANCES), asyn
     return;
   }
 
-  const stances = (data ?? []).map((s: { position: number; text: string; supporting_points: string[] }) => ({
+  const stances = (data ?? []).map((s: {
+    position: number;
+    text: string;
+    supporting_points: string[];
+    description: string | null;
+    example_perspectives: string[];
+  }) => ({
     position: s.position,
     text: s.text,
     supportingPoints: s.supporting_points ?? [],
+    description: s.description ?? '',
+    examplePerspectives: s.example_perspectives ?? [],
   }));
 
   res.json({ data: stances });
