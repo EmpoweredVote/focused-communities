@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 6 of 6 (Entry Points + Deployment) — In progress
-Plan: 1 of 3 complete in current phase
-Status: In progress
-Last activity: 2026-04-17 — Completed 06-01-PLAN.md (API + Header + Accounts handoff spec)
+Phase: 6 of 6 (Entry Points + Deployment) — Complete
+Plan: 3 of 3 complete in current phase
+Status: ALL PHASES COMPLETE
+Last activity: 2026-04-17 — Completed Phase 6 (Entry Points + Deployment)
 
-Progress: [████████████████████████░] 96% (23/25 plans)
+Progress: [█████████████████████████] 100% (25/25 plans)
 
 ## Performance Metrics
 
@@ -128,6 +128,8 @@ Recent decisions affecting current work:
 - [06-02]: COMPASS-INTEGRATION-SPEC mapping table uses placeholder + SQL — communities seeded directly in production DB, not in migrations; requires live query SELECT id, slug, name, topic_id FROM connect.communities ORDER BY name
 - [06-02]: EV Post History Standard sourceProduct is a registered string ("focused-communities", "civic-spaces"), not an enum — new products register with platform team
 - [06-02]: Pseudonym snapshotting is a hard standard requirement — authorPseudonym is the name at post time, never current name; Civic Spaces may need schema addition
+- [06-03]: Cache-Control: private, no-store added to requireAuth success path — prevents CDN caching of auth-gated responses; one location covers all current and future auth-gated routes
+- [06-03]: Frontend bundle verified clean — VITE_API_BASE_URL is the only env var exposed to the client bundle; no Supabase keys reach the browser
 
 ### Roadmap Evolution
 
@@ -144,6 +146,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T17:27:50Z
-Stopped at: Completed 06-01-PLAN.md (API endpoint + Header + Accounts handoff spec)
+Last session: 2026-04-17
+Stopped at: Completed 06-03-PLAN.md — ALL PHASES COMPLETE
 Resume file: None

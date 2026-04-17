@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Write API + Rate Limiting** - Thread/reply creation and editing with atomic history and brigading protection
 - [x] **Phase 4.5: Stance Content Enrichment** (INSERTED) - Extend inform.compass_stances with description and example perspectives fields; author content for all stances before frontend renders them
 - [x] **Phase 5: Frontend UI** - Standalone React/Vite app with all v1 surfaces working end-to-end against /api/* contracts
-- [ ] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
+- [x] **Phase 6: Entry Points + Deployment** - Profile history, external wiring (Compass, Civic Spaces, Profile), and production deployment checklist
 
 ## Phase Details
 
@@ -152,7 +152,7 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — Post history API (GET /api/users/:id/posts), shared Header with "Your activity" link, Accounts handoff spec
 - [x] 06-02-PLAN.md — Compass integration spec (topic-to-slug mapping), Civic Spaces nav spec, EV Post History Standard
-- [ ] 06-03-PLAN.md — Production deployment checklist (Cache-Control headers, bundle scan, RLS verification, health monitoring)
+- [x] 06-03-PLAN.md — Production deployment checklist (Cache-Control headers, bundle scan, RLS verification, health monitoring)
 
 ---
 
@@ -169,4 +169,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
 | 4.5. Stance Content Enrichment (INSERTED) | 2/2 | Complete | 2026-04-16 |
 | 5. Frontend UI | 5/5 | Complete | 2026-04-17 |
-| 6. Entry Points + Deployment | 2/3 | In progress | - |
+| 6. Entry Points + Deployment | 3/3 | Complete | 2026-04-17 |
