@@ -24,7 +24,7 @@ export function Header() {
             <div className="flex items-center gap-4 text-sm">
               <span className="text-gray-500">{auth.user.display_name}</span>
               <a
-                href="https://accounts.empowered.vote/profile"
+                href="https://app.empowered.vote/profile"
                 className="text-[#03b9d2] hover:underline"
               >
                 Your activity

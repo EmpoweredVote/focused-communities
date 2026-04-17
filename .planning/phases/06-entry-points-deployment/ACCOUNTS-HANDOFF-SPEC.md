@@ -15,8 +15,10 @@ Focused Communities (FC) provides a post history API endpoint. The Accounts team
 | Concern | Owner |
 |---------|-------|
 | Post history data API | FC (this document) |
-| Profile page UI (`accounts.empowered.vote/profile`) | Accounts team |
+| Profile page UI (`app.empowered.vote/profile`) | Accounts team |
 | "Your activity" navigation link (points to Accounts profile) | FC (already implemented in app header) |
+
+> **Domain note:** FC's header links to `https://app.empowered.vote/profile`. If the Accounts team deploys the profile page at a different path or subdomain, notify FC to update the link in `frontend/src/components/Header.tsx`.
 
 FC does not build a profile UI. This spec gives the Accounts team everything needed to build and maintain the profile post history feature.
 
@@ -39,7 +41,9 @@ All API requests should target the primary production URL.
 
 Returns the authenticated user's post history in reverse chronological order.
 
-**Authentication:** Bearer JWT (Supabase access token from `localStorage.getItem('ev_token')`)
+**Authentication:** Bearer JWT (Supabase access token)
+
+> **Token key note:** FC stores its token under `localStorage.getItem('ev_token')`. The Accounts app uses `@supabase/ssr` for session management — the actual token key will differ. The Accounts team should retrieve the access token from their own Supabase session (e.g., `supabase.auth.getSession()`) rather than reading localStorage directly. The token itself is the same Supabase JWT; only the storage key differs.
 
 **Authorization model:** Self-only. The `:id` path parameter must match the authenticated user's own ID. This is a privacy-by-design constraint for Connect-tier accounts (see Section 9 for the future Empower-tier public profile roadmap).
 
@@ -184,7 +188,22 @@ GET /api/users/:id/posts?cursor=xyz789...
 
 ---
 
-## 8. Error Responses
+## 8. CORS
+
+FC's API explicitly allows cross-origin requests from `https://app.empowered.vote`. No CORS configuration is needed on the Accounts side — FC handles it.
+
+**Allowed origins (configured in FC's `src/app.ts`):**
+
+- `https://fc.empowered.vote`
+- `https://app.empowered.vote`
+- `http://localhost:5173` (dev)
+- `http://localhost:5174` (dev alt)
+
+If the Accounts team is developing locally against FC's production API, requests from `http://localhost:*` will be blocked. Use FC's local dev server (`npm run dev` in the FC repo) or request a temporary local origin addition.
+
+---
+
+## 9. Error Responses
 
 | HTTP Status | Code | When |
 |-------------|------|------|
@@ -232,7 +251,7 @@ or
 
 ---
 
-## 9. Cross-Product Vision
+## 10. Cross-Product Vision
 
 FC is the **reference implementation** of the EV Post History Standard — a cross-product API contract that all Empowered.Vote products should implement.
 
@@ -240,7 +259,36 @@ FC is the **reference implementation** of the EV Post History Standard — a cro
 
 Today, the Accounts profile page will display post history from FC. In the future, Accounts will fan out to multiple products (FC, Civic Spaces, and future products), each of which exposes a `GET /api/users/:id/posts` endpoint following this same shape.
 
-The unified profile experience on Accounts will aggregate these into a single chronological or grouped view.
+### Recommended fan-out architecture: client-side (v1)
+
+For v1, we recommend the profile page performs the fan-out **client-side** — the browser makes parallel `fetch()` calls to each product's `/api/users/:id/posts` endpoint, then merges and sorts the results by `createdAt`.
+
+**Why client-side for v1:**
+- No new server route required on the Accounts API
+- Each product receives the user's own JWT directly (no token forwarding)
+- CORS is already configured on each product's API
+- Simpler to implement and debug
+
+**Tradeoffs to revisit for v2:**
+- All product API endpoints are exposed to the browser (minor)
+- N parallel requests from the browser instead of one to Accounts (acceptable at current scale)
+- A server-side aggregation proxy would be cleaner at scale — centralizes retry logic, hides product topology from clients, enables caching — but adds a new Accounts API route and requires the Accounts server to forward user tokens
+
+**v1 implementation sketch:**
+
+```javascript
+const [fcPosts, civicPosts] = await Promise.allSettled([
+  fetch(`https://fc.empowered.vote/api/users/${userId}/posts`, { headers }),
+  fetch(`https://civicspaces.empowered.vote/api/users/${userId}/posts`, { headers }),
+]);
+
+const allPosts = [
+  ...(fcPosts.status === 'fulfilled' ? await fcPosts.value.json().then(r => r.data) : []),
+  ...(civicPosts.status === 'fulfilled' ? await civicPosts.value.json().then(r => r.data) : []),
+].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+```
+
+Use `Promise.allSettled` (not `Promise.all`) so a failure from one product doesn't blank the entire history.
 
 ### The EV Post History Standard (summary)
 

@@ -11,7 +11,15 @@ import { usersRouter } from './routes/users.js';
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  app.use(cors({
+    origin: [
+      'https://fc.empowered.vote',
+      'https://app.empowered.vote',
+      'http://localhost:5173',
+      'http://localhost:5174',
+    ],
+    credentials: true,
+  }));
   app.use(express.json());
 
   app.use('/api', healthRouter);
