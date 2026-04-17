@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 6 of 6 (Entry Points + Deployment) — Not started
-Plan: 0 of 3 complete in current phase
-Status: Phase 5 complete — human verified on fc.empowered.vote (2026-04-17)
-Last activity: 2026-04-17 — Completed Phase 5 (Frontend UI), deployed to fc.empowered.vote
+Phase: 6 of 6 (Entry Points + Deployment) — In progress
+Plan: 2 of 3 complete in current phase
+Status: In progress
+Last activity: 2026-04-17 — Completed 06-02-PLAN.md (handoff spec documents)
 
-Progress: [█████████████████████░] 95% (22/25 plans)
+Progress: [████████████████████████░] 96% (24/25 plans)
 
 ## Performance Metrics
 
@@ -122,6 +122,9 @@ Recent decisions affecting current work:
 - [05-05]: EditHistory receives edits as prop, parent controls lazy fetch — enabled:!!id in usePostEdits/useThreadEdits handles null
 - [05-05]: Thread inline edit uses raw controlled inputs (not two EditForm instances) — single mutate({ title, body }) saves both fields
 - [05-05]: useDraft key includes entityId to prevent draft leakage between different threads/communities
+- [06-02]: COMPASS-INTEGRATION-SPEC mapping table uses placeholder + SQL — communities seeded directly in production DB, not in migrations; requires live query SELECT id, slug, name, topic_id FROM connect.communities ORDER BY name
+- [06-02]: EV Post History Standard sourceProduct is a registered string ("focused-communities", "civic-spaces"), not an enum — new products register with platform team
+- [06-02]: Pseudonym snapshotting is a hard standard requirement — authorPseudonym is the name at post time, never current name; Civic Spaces may need schema addition
 
 ### Roadmap Evolution
 
@@ -138,6 +141,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T02:46:14Z
-Stopped at: 05-05 checkpoint:human-verify — all auto tasks done, waiting for user to verify edit flow + draft preservation in browser
+Last session: 2026-04-17T17:26:42Z
+Stopped at: Completed 06-02-PLAN.md (Compass integration spec, Civic Spaces nav spec, EV Post History Standard)
 Resume file: None

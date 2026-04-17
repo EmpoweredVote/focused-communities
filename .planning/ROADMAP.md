@@ -151,7 +151,7 @@ Plans:
 
 Plans:
 - [ ] 06-01-PLAN.md — Post history API (GET /api/users/:id/posts), shared Header with "Your activity" link, Accounts handoff spec
-- [ ] 06-02-PLAN.md — Compass integration spec (topic-to-slug mapping), Civic Spaces nav spec, EV Post History Standard
+- [x] 06-02-PLAN.md — Compass integration spec (topic-to-slug mapping), Civic Spaces nav spec, EV Post History Standard
 - [ ] 06-03-PLAN.md — Production deployment checklist (Cache-Control headers, bundle scan, RLS verification, health monitoring)
 
 ---
@@ -169,4 +169,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Write API + Rate Limiting | 3/3 | Complete | 2026-04-16 |
 | 4.5. Stance Content Enrichment (INSERTED) | 2/2 | Complete | 2026-04-16 |
 | 5. Frontend UI | 5/5 | Complete | 2026-04-17 |
-| 6. Entry Points + Deployment | 0/3 | Not started | - |
+| 6. Entry Points + Deployment | 1/3 | In progress | - |
