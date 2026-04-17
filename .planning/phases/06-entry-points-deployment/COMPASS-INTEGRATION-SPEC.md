@@ -55,9 +55,13 @@ The table below maps every seeded FC community to its Compass topic ID and hub U
 
 | Community Name | Slug | Hub URL | Topic ID (UUID) |
 |----------------|------|---------|-----------------|
-| [FILL FROM PRODUCTION DB] | [FILL FROM PRODUCTION DB] | https://fc.empowered.vote/communities/[slug] | [FILL FROM PRODUCTION DB] |
+| Artificial Intelligence Oversight | `ai-oversight` | https://fc.empowered.vote/communities/ai-oversight | `666bf03d-81fc-4138-ab15-69ae734c9023` |
+| Criminalization of Homelessness | `criminalization-of-homelessness` | https://fc.empowered.vote/communities/criminalization-of-homelessness | `4938766b-b45a-46e3-93bd-b8b30651271a` |
+| Immigration & Treatment of Immigrants | `immigration-and-treatment` | https://fc.empowered.vote/communities/immigration-and-treatment | `4e2c69ce-591e-4197-9cd5-7aceff79d390` |
+| School Vouchers & Public Education Funding | `school-vouchers-education` | https://fc.empowered.vote/communities/school-vouchers-education | `00b95a6a-75db-4521-b523-3326bba938de` |
+| Taxation & Government Spending | `taxation-and-spending` | https://fc.empowered.vote/communities/taxation-and-spending | `45ca4740-a861-4c8c-b3b5-0a49cf953501` |
 
-**To populate this table:** Run the SQL above against the production database and replace each placeholder row with real data. One row per community. The `topic_id` column links directly to the `inform.compass_stances` rows that drive the spoke content.
+The `topic_id` column links directly to the `inform.compass_stances` rows that drive the spoke content.
 
 ---
 
@@ -86,9 +90,11 @@ The Compass client should maintain a local lookup table (topic_id → slug) buil
 ```javascript
 // Example lookup (Compass client pseudocode)
 const FC_SLUG_MAP = {
-  "uuid-for-topic-1": "minimum-wage",
-  "uuid-for-topic-2": "gun-control",
-  // ... all topic_id → slug pairs from mapping table
+  "666bf03d-81fc-4138-ab15-69ae734c9023": "ai-oversight",
+  "4938766b-b45a-46e3-93bd-b8b30651271a": "criminalization-of-homelessness",
+  "4e2c69ce-591e-4197-9cd5-7aceff79d390": "immigration-and-treatment",
+  "00b95a6a-75db-4521-b523-3326bba938de": "school-vouchers-education",
+  "45ca4740-a861-4c8c-b3b5-0a49cf953501": "taxation-and-spending",
 };
 
 function onSpokeTap(topicId) {
