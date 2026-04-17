@@ -11,7 +11,7 @@ const app = createApp();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendDist));
-app.get('*', (_req, res) => {
+app.use((_req, res) => {
   res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
