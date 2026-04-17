@@ -109,8 +109,8 @@ postsRouter.patch('/posts/:id', requireAuth, requireConnected, async (req: Reque
   }
 
   const trimmedBody = (typeof body === 'string' ? body : '').trim();
-  if (trimmedBody.length < 10 || trimmedBody.length > 5000) {
-    res.status(422).json({ errors: { body: 'Body must be 10-5,000 characters' } });
+  if (trimmedBody.length < 5 || trimmedBody.length > 5000) {
+    res.status(422).json({ errors: { body: 'Body must be 5-5,000 characters' } });
     return;
   }
 
@@ -228,8 +228,8 @@ postsRouter.post(
     const errors: Record<string, string> = {};
 
     const trimmedBody = (typeof body === 'string' ? body : '').trim();
-    if (trimmedBody.length < 10 || trimmedBody.length > 5000) {
-      errors.body = 'Body must be 10-5,000 characters';
+    if (trimmedBody.length < 5 || trimmedBody.length > 5000) {
+      errors.body = 'Body must be 5-5,000 characters';
     }
 
     if (Object.keys(errors).length > 0) {

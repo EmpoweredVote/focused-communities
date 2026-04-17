@@ -14,7 +14,8 @@ export function ReplyForm({ threadId }: ReplyFormProps) {
 
   const { mutate: createReply, isPending } = useCreateReply(threadId)
 
-  const canSubmit = body.trim().length >= 10 && !isPending
+  const minLength = 5
+  const canSubmit = body.trim().length >= minLength && !isPending
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -44,6 +45,9 @@ export function ReplyForm({ threadId }: ReplyFormProps) {
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
         <CharCounter value={body} max={2000} />
+        {body.trim().length > 0 && body.trim().length < minLength && (
+          <p className="text-xs text-gray-400 mt-1">At least {minLength} characters required</p>
+        )}
 
         {suspended && <SuspendedNotice />}
 
