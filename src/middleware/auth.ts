@@ -85,6 +85,7 @@ export async function requireAuth(
 
     const user = (await accountRes.json()) as AccountUser;
     user.id = payload.sub as string;
+    res.setHeader('Cache-Control', 'private, no-store');
     req.user = user;
     next();
   } catch {
