@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-const ACCOUNTS_API_BASE = import.meta.env.VITE_ACCOUNTS_API_URL ?? 'https://accounts.empowered.vote';
+const ACCOUNTS_API_BASE = import.meta.env.VITE_ACCOUNTS_API_URL ?? 'https://accounts-api.empowered.vote';
 
 export interface AccountUser {
   id: string;
