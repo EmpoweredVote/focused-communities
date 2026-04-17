@@ -1,17 +1,22 @@
 # Compass Integration Spec
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-04-17
 **Owner:** Focused Communities team
-**Status:** Ready for Compass team implementation
+**Status:** Updated following Compass team review — two critical items resolved
 
 ---
 
 ## 1. Overview
 
-Each spoke in the Empowered Compass UI maps to a Focused Communities community hub. When a user taps a Compass spoke, they navigate directly to the corresponding FC hub where they can read all five stances and engage in structured debate.
+Focused Communities (FC) provides a deliberation hub for each Compass topic. This spec defines how the Compass client surfaces a link to the corresponding FC hub for topics that have one.
 
-FC community hubs are the deliberation home for every Compass topic. The mapping is maintained by FC and is stable — slugs do not change after initial assignment.
+**Key design decisions from spec review:**
+
+- FC links surface inside the **LibraryDrawer** (not on spoke tap) to avoid conflicting with existing spoke-tap behaviors (calibration overlay for unanswered spokes, LibraryDrawer open for answered spokes)
+- The UUID-to-slug bridge lives on the **Compass backend** (`fc_community_slug` added to the topic response) — the client never handles raw UUIDs
+- Topics with no FC community: FC link is simply **absent** — no fallback needed on the client
+- FC links open in a **new tab** — Compass is a stateful SPA and navigation away would lose calibration/comparison state
 
 ---
 
@@ -26,97 +31,122 @@ https://fc.empowered.vote/communities/{slug}
 **Slug properties:**
 
 - Stable — slugs are assigned at community creation and never change
-- URL-safe — no special characters, no encoding required
-- Lowercase — all slugs are lowercase ASCII
-- Hyphenated — multi-word slugs use hyphens (e.g., `minimum-wage`)
-- Human-readable — the slug approximates the topic name
-
-**Examples:**
-
-```
-https://fc.empowered.vote/communities/minimum-wage
-https://fc.empowered.vote/communities/gun-control
-https://fc.empowered.vote/communities/climate-change
-```
+- URL-safe, lowercase, hyphenated (e.g., `immigration-and-treatment`)
+- No query parameters needed — the slug alone is sufficient
 
 ---
 
-## 3. Topic-to-Slug Mapping
+## 3. Topic-to-Slug Mapping (Server-Side)
 
-The table below maps every seeded FC community to its Compass topic ID and hub URL.
+FC communities currently map to 5 Compass topics. This mapping is maintained by the FC team and communicated via this spec when new communities are added.
 
-> **Note:** Communities were seeded directly into the production database. The table below must be populated by running the following query against the production Supabase instance (project `kxsdzaojfaibhuzmclfq`):
->
-> ```sql
-> SELECT id, slug, name, topic_id
-> FROM connect.communities
-> ORDER BY name;
-> ```
+**The mapping lives on the Compass backend** — stored at seed/deploy time, not fetched at runtime from FC. The Compass API enriches its `GET /api/compass/topics` response with a `fc_community_slug` field (see Section 4).
 
-| Community Name | Slug | Hub URL | Topic ID (UUID) |
-|----------------|------|---------|-----------------|
+| Community Name | FC Slug | FC Hub URL | FC Topic UUID |
+|----------------|---------|-----------|---------------|
 | Artificial Intelligence Oversight | `ai-oversight` | https://fc.empowered.vote/communities/ai-oversight | `666bf03d-81fc-4138-ab15-69ae734c9023` |
 | Criminalization of Homelessness | `criminalization-of-homelessness` | https://fc.empowered.vote/communities/criminalization-of-homelessness | `4938766b-b45a-46e3-93bd-b8b30651271a` |
 | Immigration & Treatment of Immigrants | `immigration-and-treatment` | https://fc.empowered.vote/communities/immigration-and-treatment | `4e2c69ce-591e-4197-9cd5-7aceff79d390` |
 | School Vouchers & Public Education Funding | `school-vouchers-education` | https://fc.empowered.vote/communities/school-vouchers-education | `00b95a6a-75db-4521-b523-3326bba938de` |
 | Taxation & Government Spending | `taxation-and-spending` | https://fc.empowered.vote/communities/taxation-and-spending | `45ca4740-a861-4c8c-b3b5-0a49cf953501` |
 
-The `topic_id` column links directly to the `inform.compass_stances` rows that drive the spoke content.
+**Topics not in this table have no FC community.** The FC link is absent for those topics — see Section 5.
+
+**Mapping updates:** FC will notify the Compass team when new communities are added. Slugs of existing communities will not change.
 
 ---
 
 ## 4. Integration Instructions
 
-### On Spoke Tap
+### 4.1 Compass backend change (required)
 
-When a user taps a Compass spoke, navigate to the corresponding hub URL:
+Add `fc_community_slug` to the `GET /api/compass/topics` response:
 
-```
-https://fc.empowered.vote/communities/{slug}
-```
-
-Where `{slug}` is looked up from the mapping table above using the spoke's `topic_id`.
-
-### Navigation Behavior
-
-- **Same tab or new tab:** At the Compass team's discretion based on UX context. Both work correctly — FC hub pages are fully self-contained and do not require referrer context.
-- **No query parameters needed:** FC does not require any query params to display the hub. The slug alone is sufficient.
-- **No authentication coordination:** FC handles auth independently. Unauthenticated users can read all content; auth is only required for posting.
-
-### Lookup Implementation
-
-The Compass client should maintain a local lookup table (topic_id → slug) built from the mapping table above. This avoids a round-trip to FC on every spoke render.
-
-```javascript
-// Example lookup (Compass client pseudocode)
-const FC_SLUG_MAP = {
-  "666bf03d-81fc-4138-ab15-69ae734c9023": "ai-oversight",
-  "4938766b-b45a-46e3-93bd-b8b30651271a": "criminalization-of-homelessness",
-  "4e2c69ce-591e-4197-9cd5-7aceff79d390": "immigration-and-treatment",
-  "00b95a6a-75db-4521-b523-3326bba938de": "school-vouchers-education",
-  "45ca4740-a861-4c8c-b3b5-0a49cf953501": "taxation-and-spending",
-};
-
-function onSpokeTap(topicId) {
-  const slug = FC_SLUG_MAP[topicId];
-  if (slug) {
-    navigate(`https://fc.empowered.vote/communities/${slug}`);
-  }
+```json
+{
+  "id": 42,
+  "name": "Immigration & Treatment of Immigrants",
+  "fc_community_slug": "immigration-and-treatment"
 }
 ```
 
+For topics with no FC community, return `null`:
+
+```json
+{
+  "id": 99,
+  "name": "Some Other Topic",
+  "fc_community_slug": null
+}
+```
+
+The Compass backend should store the `topic_id → slug` mapping from Section 3 at seed/deploy time. The client reads `topic.fc_community_slug` and never handles UUIDs.
+
+### 4.2 Where the FC link surfaces
+
+**Recommended placement: inside the LibraryDrawer**
+
+Adding the FC link to spoke tap directly conflicts with existing spoke-tap behavior:
+- Unanswered spoke → opens calibration overlay
+- Answered spoke → opens LibraryDrawer
+
+The least disruptive and most logical placement is a **"Discuss on Focused Communities →"** button or link inside the LibraryDrawer, shown when `topic.fc_community_slug` is non-null.
+
+Suggested UI:
+
+```
+┌─────────────────────────────────┐
+│  LibraryDrawer                  │
+│  ─────────────────────────────  │
+│  [stance content]               │
+│                                 │
+│  Discuss on Focused Communities →│  ← shown only when fc_community_slug is set
+└─────────────────────────────────┘
+```
+
+Alternative placements (Compass UX team's call):
+- A dedicated icon/badge on the spoke itself
+- A button on the topic detail view
+
+### 4.3 Navigation behavior
+
+**Open FC in a new tab.** Compass is a stateful SPA — navigating away in the same tab would lose calibration and comparison state.
+
+```javascript
+// Compass client pseudocode
+function renderFCLink(topic) {
+  if (!topic.fc_community_slug) return null;
+
+  return (
+    <a
+      href={`https://fc.empowered.vote/communities/${topic.fc_community_slug}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Discuss on Focused Communities →
+    </a>
+  );
+}
+```
+
+No query parameters needed. FC handles auth independently — unauthenticated users can read all content; auth is only required for posting.
+
 ---
 
-## 5. Fallback Behavior
+## 5. Behavior for Unmapped Topics
 
-**Invalid slug:** If an unrecognized slug is navigated to (e.g., mapping table is stale), FC returns its standard `NotFoundPage` — a client-side 404 that does not return an HTTP error status from the server. The page displays a "not found" message and links back to the FC directory (`/communities`).
+When `topic.fc_community_slug` is `null`, **do not render an FC link**. There is nothing to link to.
 
-**No FC error reporting to Compass:** FC does not signal back to Compass that a slug was invalid. The Compass team should maintain a fresh copy of the mapping table and update it when FC adds new communities.
-
-**Mapping updates:** FC will notify the Compass team when new communities are added (and thus new spokes need wiring). Slugs of existing communities will not change.
+No fallback URL, no disabled state, no placeholder — simply omit the element. This is the expected state for the majority of Compass topics in v1.
 
 ---
 
-## 6. Contact
+## 6. Fallback for Stale Slugs
 
-For questions about the mapping or to request a mapping update, contact the Focused Communities team.
+If a slug is ever invalid (e.g., a mapping was recorded incorrectly), FC returns a client-side 404 page with a link back to the FC directory. This should not occur in practice — slugs are stable and the Compass backend controls when they're written.
+
+---
+
+## 7. Contact
+
+For mapping updates or questions, contact the Focused Communities team. FC will proactively notify the Compass team when new communities are added so the backend mapping can be updated.
