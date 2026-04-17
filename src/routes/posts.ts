@@ -142,7 +142,7 @@ postsRouter.patch('/posts/:id', requireAuth, requireConnected, async (req: Reque
   }
 
   // Invalidate the thread's posts list cache
-  await cacheDel(`fc:/api/threads/${existing.thread_id}/posts:${JSON.stringify({})}`);
+  await cacheDel(`fc:/threads/${existing.thread_id}/posts:${JSON.stringify({})}`);
 
   res.status(200).json({
     data: {
@@ -278,8 +278,8 @@ postsRouter.post(
 
     // Invalidate thread detail and posts list cache entries
     await cacheDel(
-      `fc:/api/threads/${threadId}:${JSON.stringify({})}`,
-      `fc:/api/threads/${threadId}/posts:${JSON.stringify({})}`,
+      `fc:/threads/${threadId}:${JSON.stringify({})}`,
+      `fc:/threads/${threadId}/posts:${JSON.stringify({})}`,
     );
 
     res.status(201).json({

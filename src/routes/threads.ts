@@ -141,7 +141,7 @@ threadsRouter.patch('/threads/:id', requireAuth, requireConnected, async (req: R
   }
 
   // Invalidate thread detail cache
-  await cacheDel(`fc:/api/threads/${req.params.id}:${JSON.stringify({})}`);
+  await cacheDel(`fc:/threads/${req.params.id}:${JSON.stringify({})}`);
 
   res.status(200).json({
     data: {
@@ -258,7 +258,7 @@ threadsRouter.post(
     }
 
     // Invalidate thread list cache for this community (default query params)
-    await cacheDel(`fc:/api/communities/${req.params.id}/threads:${JSON.stringify({})}`);
+    await cacheDel(`fc:/communities/${req.params.id}/threads:${JSON.stringify({})}`);
 
     res.status(201).json({
       data: {
