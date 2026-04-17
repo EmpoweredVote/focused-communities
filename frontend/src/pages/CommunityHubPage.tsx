@@ -1,15 +1,28 @@
+import { useState } from 'react'
 import { useParams } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
 import { useStances } from '../hooks/useStances'
+import { useThreads } from '../hooks/useThreads'
 import { StanceCard } from '../components/StanceCard'
-import { StanceCardSkeleton } from '../components/SkeletonCard'
+import { StanceCardSkeleton, ThreadListItemSkeleton } from '../components/SkeletonCard'
 import { BackNav } from '../components/BackNav'
+import { ThreadListItem } from '../components/ThreadListItem'
 
 export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
+  const [sort, setSort] = useState<'active' | 'newest'>('active')
   const { data: community, isLoading: communityLoading, isError: communityError } = useCommunityBySlug(slug)
   const { data: stances, isLoading: stancesLoading, isError: stancesError, refetch: refetchStances } =
     useStances(community?.id)
+  const {
+    threads,
+    isLoading: threadsLoading,
+    isError: threadsError,
+    refetch: refetchThreads,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useThreads(community?.id, sort)
 
   if (communityLoading) {
     return (
@@ -79,10 +92,80 @@ export default function CommunityHubPage() {
         )}
       </div>
 
-      {/* Thread list placeholder — replaced in Plan 05-03 */}
       <div className="border-t border-gray-200 pt-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Discussion</h2>
-        <p className="text-gray-500 text-sm">Thread list — coming in Plan 05-03</p>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Discussion</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSort('active')}
+              className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                sort === 'active'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Most Active
+            </button>
+            <button
+              onClick={() => setSort('newest')}
+              className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                sort === 'newest'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Newest
+            </button>
+          </div>
+        </div>
+
+        {threadsLoading && (
+          <div>
+            {Array.from({ length: 4 }).map((_, i) => <ThreadListItemSkeleton key={i} />)}
+          </div>
+        )}
+
+        {threadsError && (
+          <div className="text-center py-6">
+            <p className="text-gray-600 mb-3">Failed to load threads</p>
+            <button
+              onClick={() => refetchThreads()}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {!threadsLoading && !threadsError && threads.length === 0 && (
+          <p className="text-gray-500 text-sm py-4">
+            No threads yet. Be the first to start a discussion.
+          </p>
+        )}
+
+        {threads.length > 0 && (
+          <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
+            {threads.map(thread => (
+              <ThreadListItem
+                key={thread.id}
+                thread={thread}
+                communitySlug={slug!}
+              />
+            ))}
+          </div>
+        )}
+
+        {hasNextPage && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => fetchNextPage()}
+              disabled={!hasNextPage || isFetchingNextPage}
+              className="px-6 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              {isFetchingNextPage ? 'Loading...' : 'Load more threads'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
