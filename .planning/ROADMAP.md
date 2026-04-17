@@ -147,12 +147,12 @@ Plans:
   3. A user's profile page shows their post history across all communities, with each post linking back to its originating thread; the pseudonym (never legal name) is displayed throughout
   4. All API responses that touch auth have Cache-Control: private, no-store — CDN session token leakage is impossible
   5. UptimeRobot or equivalent monitors /api/health; the service role key is absent from all client-side bundles (verified by bundle scan)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: GET /api/users/:id/posts (profile post history API) and Profile page UI (pseudonym display, community thread links)
-- [ ] 06-02: Compass spoke -> hub URL wiring; Civic Spaces nav link; profile page community participation links
-- [ ] 06-03: Production deployment checklist (Cache-Control headers, bundle scan, RLS anon/authenticated verification, rate limit 429 test in staging, UptimeRobot setup)
+- [ ] 06-01-PLAN.md — Post history API (GET /api/users/:id/posts), shared Header with "Your activity" link, Accounts handoff spec
+- [ ] 06-02-PLAN.md — Compass integration spec (topic-to-slug mapping), Civic Spaces nav spec, EV Post History Standard
+- [ ] 06-03-PLAN.md — Production deployment checklist (Cache-Control headers, bundle scan, RLS verification, health monitoring)
 
 ---
 
