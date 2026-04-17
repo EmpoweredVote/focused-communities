@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 5 of 6 (Frontend UI) — In progress
-Plan: 2 of 5 complete in current phase
-Status: Plan 05-02 complete — DirectoryPage, CommunityHubPage, data hooks, StanceCard, SkeletonCard, BackNav
-Last activity: 2026-04-17 — Completed 05-02-PLAN.md (directory and hub)
+Plan: 3 of 5 complete in current phase
+Status: Plan 05-03 complete — thread list on CommunityHubPage, ThreadPage with flat replies, data hooks, formatTime
+Last activity: 2026-04-16 — Completed 05-03-PLAN.md (thread list and thread page)
 
-Progress: [█████████████████░] 77% (17/22 plans)
+Progress: [██████████████████░] 82% (18/22 plans)
 
 ## Performance Metrics
 
@@ -111,6 +111,9 @@ Recent decisions affecting current work:
 - [05-02]: Fisher-Yates shuffle in useStances runs each query load — stances show in random order per page visit
 - [05-02]: Default exports for page components (DirectoryPage, CommunityHubPage); named exports for shared components (StanceCard, BackNav, skeletons)
 - [05-02]: Inline useDebounce (300ms) in DirectoryPage — no library import; filter triggers re-query via queryKey change
+- [05-03]: ThreadPage is default export (named export changed) — matches CommunityHubPage/DirectoryPage page convention
+- [05-03]: isAuthor in ReplyItem uses authorName === post.authorPseudonym — pseudonym matching works because display_name is snapshotted at post time (trigger design from 01-02)
+- [05-03]: Sort toggle pill: bg-gray-900 text-white active, text-gray-600 hover inactive — established toggle pattern
 
 ### Roadmap Evolution
 
@@ -127,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T02:23:00Z
-Stopped at: Completed 05-02 — DirectoryPage (keyword filter, infinite scroll, skeletons, error retry), CommunityHubPage (topic header, 5 expandable StanceCards, thread placeholder), data hooks, BackNav, SkeletonCard family. Build: green (312 kB).
+Last session: 2026-04-16T00:08:00Z
+Stopped at: Completed 05-03 — thread list with sort toggle + cursor pagination on CommunityHubPage, ThreadPage with flat chronological replies, useThreads/useThread/usePosts hooks, formatRelativeTime, ThreadListItem, ReplyItem. Build: green (319 kB).
 Resume file: None
