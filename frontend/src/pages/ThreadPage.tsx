@@ -6,6 +6,7 @@ import { ReplyItem } from '../components/ReplyItem'
 import { BackNav } from '../components/BackNav'
 import { useAuth } from '../context/AuthContext'
 import { formatRelativeTime } from '../lib/formatTime'
+import { ReplyForm } from '../components/ReplyForm'
 
 export default function ThreadPage() {
   const { slug, id } = useParams<{ slug: string; id: string }>()
@@ -104,10 +105,20 @@ export default function ThreadPage() {
         </div>
       )}
 
-      {/* Reply form placeholder — replaced in Plan 05-04 */}
-      <div className="mt-8 pt-8 border-t border-gray-200">
-        <p className="text-sm text-gray-400">Reply form — coming in Plan 05-04</p>
+      {/* Reply form */}
+      <div id="reply-form" className="mt-8 pt-8 border-t border-gray-200">
+        <h3 className="text-base font-semibold text-gray-900 mb-4">Leave a Reply</h3>
+        <ReplyForm threadId={id!} />
       </div>
+
+      {/* Sticky reply shortcut button */}
+      <button
+        type="button"
+        onClick={() => document.getElementById('reply-form')?.scrollIntoView({ behavior: 'smooth' })}
+        className="fixed bottom-4 right-4 z-10 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+      >
+        Reply ↓
+      </button>
     </div>
   )
 }

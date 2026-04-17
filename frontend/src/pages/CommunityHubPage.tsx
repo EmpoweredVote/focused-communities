@@ -7,6 +7,7 @@ import { StanceCard } from '../components/StanceCard'
 import { StanceCardSkeleton, ThreadListItemSkeleton } from '../components/SkeletonCard'
 import { BackNav } from '../components/BackNav'
 import { ThreadListItem } from '../components/ThreadListItem'
+import { ThreadCreateForm } from '../components/ThreadCreateForm'
 
 export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -138,9 +139,9 @@ export default function CommunityHubPage() {
         )}
 
         {!threadsLoading && !threadsError && threads.length === 0 && (
-          <p className="text-gray-500 text-sm py-4">
-            No threads yet. Be the first to start a discussion.
-          </p>
+          <div className="py-4">
+            <p className="text-gray-500 text-sm mb-2">No threads yet. Be the first to start a discussion.</p>
+          </div>
         )}
 
         {threads.length > 0 && (
@@ -166,6 +167,12 @@ export default function CommunityHubPage() {
             </button>
           </div>
         )}
+
+        {/* Thread create form — auth gate handles unauthenticated state */}
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Start a New Thread</h3>
+          <ThreadCreateForm communityId={community.id} communitySlug={slug!} />
+        </div>
       </div>
     </div>
   )
