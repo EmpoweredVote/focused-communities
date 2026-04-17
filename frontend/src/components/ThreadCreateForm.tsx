@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AuthGate, SuspendedNotice } from './AuthGate'
 import { CharCounter } from './CharCounter'
 import { useCreateThread } from '../hooks/useCreateThread'
+import { useDraft } from '../hooks/useDraft'
 
 interface ThreadCreateFormProps {
   communityId: string
@@ -9,8 +10,8 @@ interface ThreadCreateFormProps {
 }
 
 export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFormProps) {
-  const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
+  const [title, setTitle, clearTitleDraft] = useDraft('draft-thread-title-' + communityId)
+  const [body, setBody, clearBodyDraft] = useDraft('draft-thread-body-' + communityId)
   const [titleTouched, setTitleTouched] = useState(false)
   const [bodyTouched, setBodyTouched] = useState(false)
 
@@ -25,7 +26,12 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
     setTitleTouched(true)
     setBodyTouched(true)
     if (canSubmit) {
-      createThread({ title: title.trim(), body: body.trim() })
+      createThread({ title: title.trim(), body: body.trim() }, {
+        onSuccess: () => {
+          clearTitleDraft()
+          clearBodyDraft()
+        },
+      })
     }
   }
 

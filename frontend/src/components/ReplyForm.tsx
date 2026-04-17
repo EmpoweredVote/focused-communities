@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { AuthGate, SuspendedNotice } from './AuthGate'
 import { CharCounter } from './CharCounter'
 import { useCreateReply } from '../hooks/useCreateReply'
+import { useDraft } from '../hooks/useDraft'
 
 interface ReplyFormProps {
   threadId: string
 }
 
 export function ReplyForm({ threadId }: ReplyFormProps) {
-  const [body, setBody] = useState('')
+  const [body, setBody, clearDraft] = useDraft('draft-reply-' + threadId)
   const [suspended, setSuspended] = useState(false)
 
   const { mutate: createReply, isPending } = useCreateReply(threadId)
@@ -20,7 +21,7 @@ export function ReplyForm({ threadId }: ReplyFormProps) {
     if (!canSubmit) return
     createReply(body.trim(), {
       onSuccess: () => {
-        setBody('')
+        clearDraft()
         setSuspended(false)
       },
       onError: (err: Error & { status?: number; reason?: string }) => {
