@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 5 of 6 (Frontend UI) — In progress
-Plan: 4 of 5 complete in current phase
-Status: Plan 05-04 complete — thread creation form + reply form, mutation hooks, CharCounter, auth gating, optimistic updates
-Last activity: 2026-04-16 — Completed 05-04-PLAN.md (write forms)
+Phase: 5 of 6 (Frontend UI) — Checkpoint pending
+Plan: 5 of 5 auto tasks complete in current phase (human-verify checkpoint pending)
+Status: Plan 05-05 auto tasks done — edit workflow, edit history, draft preservation; awaiting human verify
+Last activity: 2026-04-17 — Completed 05-05 auto tasks, waiting at checkpoint:human-verify
 
-Progress: [███████████████████░] 86% (19/22 plans)
+Progress: [████████████████████] 90% (20/22 plans — checkpoint pending)
 
 ## Performance Metrics
 
@@ -118,6 +118,10 @@ Recent decisions affecting current work:
 - [05-04]: ReplyForm suspension state in component via per-call onError callback; ThreadCreateForm suspension state in useCreateThread hook via useState
 - [05-04]: canSubmit = trim().length >= min && !isPending — prevents whitespace-only submissions
 - [05-04]: Sticky Reply button uses document.getElementById scrollIntoView — no router side-effect
+- [05-05]: editedAt used for edit history timestamps (not createdAt) — matches types.ts ThreadEdit/PostEdit definitions
+- [05-05]: EditHistory receives edits as prop, parent controls lazy fetch — enabled:!!id in usePostEdits/useThreadEdits handles null
+- [05-05]: Thread inline edit uses raw controlled inputs (not two EditForm instances) — single mutate({ title, body }) saves both fields
+- [05-05]: useDraft key includes entityId to prevent draft leakage between different threads/communities
 
 ### Roadmap Evolution
 
@@ -134,6 +138,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T00:18:00Z
-Stopped at: Completed 05-04 — write forms (ThreadCreateForm + ReplyForm), mutation hooks (useCreateThread + useCreateReply), CharCounter, AuthGate integration on both forms, sticky Reply button on ThreadPage. Build: green (328 kB).
+Last session: 2026-04-17T02:46:14Z
+Stopped at: 05-05 checkpoint:human-verify — all auto tasks done, waiting for user to verify edit flow + draft preservation in browser
 Resume file: None
