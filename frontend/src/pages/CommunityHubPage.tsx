@@ -8,6 +8,7 @@ import { StanceCardSkeleton, ThreadListItemSkeleton } from '../components/Skelet
 import { BackNav } from '../components/BackNav'
 import { ThreadListItem } from '../components/ThreadListItem'
 import { ThreadCreateForm } from '../components/ThreadCreateForm'
+import { Header } from '../components/Header'
 
 export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -27,28 +28,36 @@ export default function CommunityHubPage() {
 
   if (communityLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <>
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="h-4 bg-gray-200 rounded w-24 mb-6 animate-pulse" />
         <div className="h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse" />
         <div className="h-4 bg-gray-200 rounded w-full mb-8 animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           {Array.from({ length: 5 }).map((_, i) => <StanceCardSkeleton key={i} />)}
         </div>
-      </div>
+        </div>
+      </>
     )
   }
 
   if (communityError || !community) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <BackNav to="/communities" label="Communities" />
-        <p className="text-gray-600">Community not found.</p>
-      </div>
+      <>
+        <Header />
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <BackNav to="/communities" label="Communities" />
+          <p className="text-gray-600">Community not found.</p>
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <>
+      <Header />
+      <div className="max-w-4xl mx-auto px-4 py-8">
       <BackNav to="/communities" label="Communities" />
 
       {/* Topic header */}
@@ -174,6 +183,7 @@ export default function CommunityHubPage() {
           <ThreadCreateForm communityId={community.id} communitySlug={slug!} />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

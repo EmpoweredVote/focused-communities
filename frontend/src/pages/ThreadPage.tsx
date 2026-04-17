@@ -12,6 +12,7 @@ import { CharCounter } from '../components/CharCounter'
 import { useAuth } from '../context/AuthContext'
 import { formatRelativeTime } from '../lib/formatTime'
 import { ReplyForm } from '../components/ReplyForm'
+import { Header } from '../components/Header'
 
 export default function ThreadPage() {
   const { slug, id } = useParams<{ slug: string; id: string }>()
@@ -52,28 +53,34 @@ export default function ThreadPage() {
 
   if (threadLoading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="h-4 bg-gray-200 rounded w-24 mb-6 animate-pulse" />
-        <div className="h-8 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
-        <div className="h-4 bg-gray-200 rounded w-1/3 mb-6 animate-pulse" />
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="py-4 border-t border-gray-200">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-3 animate-pulse" />
-              <div className="h-16 bg-gray-200 rounded animate-pulse" />
-            </div>
-          ))}
+      <>
+        <Header />
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <div className="h-4 bg-gray-200 rounded w-24 mb-6 animate-pulse" />
+          <div className="h-8 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-6 animate-pulse" />
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="py-4 border-t border-gray-200">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-3 animate-pulse" />
+                <div className="h-16 bg-gray-200 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   if (threadError || !thread) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <BackNav to={`/communities/${slug}`} label={community?.name ?? slug ?? 'Back'} />
-        <p className="text-gray-600">Thread not found.</p>
-      </div>
+      <>
+        <Header />
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <BackNav to={`/communities/${slug}`} label={community?.name ?? slug ?? 'Back'} />
+          <p className="text-gray-600">Thread not found.</p>
+        </div>
+      </>
     )
   }
 
@@ -86,7 +93,9 @@ export default function ThreadPage() {
     !editThread.isPending
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <>
+      <Header />
+      <div className="max-w-2xl mx-auto px-4 py-8">
       <BackNav to={`/communities/${slug}`} label={community?.name ?? slug ?? 'Back'} />
 
       {/* Thread header */}
@@ -229,6 +238,7 @@ export default function ThreadPage() {
       >
         Reply ↓
       </button>
-    </div>
+      </div>
+    </>
   )
 }
