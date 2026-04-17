@@ -54,6 +54,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.history.replaceState({}, '', window.location.pathname + window.location.search);
     }
     detectUserState().then(setAuth);
+
+    // When sign-in completes in a new tab, it writes ev_token to localStorage.
+    // Listen for that change so this tab re-authenticates automatically.
+    function handleStorage(e: StorageEvent) {
+      if (e.key === 'ev_token') {
+        detectUserState().then(setAuth);
+      }
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
   function signIn(redirectBack?: string) {
     const redirect = encodeURIComponent(redirectBack ?? window.location.href);
