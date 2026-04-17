@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 5 of 6 (Frontend UI) — In progress
-Plan: 3 of 5 complete in current phase
-Status: Plan 05-03 complete — thread list on CommunityHubPage, ThreadPage with flat replies, data hooks, formatTime
-Last activity: 2026-04-16 — Completed 05-03-PLAN.md (thread list and thread page)
+Plan: 4 of 5 complete in current phase
+Status: Plan 05-04 complete — thread creation form + reply form, mutation hooks, CharCounter, auth gating, optimistic updates
+Last activity: 2026-04-16 — Completed 05-04-PLAN.md (write forms)
 
-Progress: [██████████████████░] 82% (18/22 plans)
+Progress: [███████████████████░] 86% (19/22 plans)
 
 ## Performance Metrics
 
@@ -114,6 +114,10 @@ Recent decisions affecting current work:
 - [05-03]: ThreadPage is default export (named export changed) — matches CommunityHubPage/DirectoryPage page convention
 - [05-03]: isAuthor in ReplyItem uses authorName === post.authorPseudonym — pseudonym matching works because display_name is snapshotted at post time (trigger design from 01-02)
 - [05-03]: Sort toggle pill: bg-gray-900 text-white active, text-gray-600 hover inactive — established toggle pattern
+- [05-04]: useCreateReply optimistic update uses Post[] directly — matches usePosts queryFn which returns res.data.data (Post[]); cache shape must match for rollback
+- [05-04]: ReplyForm suspension state in component via per-call onError callback; ThreadCreateForm suspension state in useCreateThread hook via useState
+- [05-04]: canSubmit = trim().length >= min && !isPending — prevents whitespace-only submissions
+- [05-04]: Sticky Reply button uses document.getElementById scrollIntoView — no router side-effect
 
 ### Roadmap Evolution
 
@@ -130,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T00:08:00Z
-Stopped at: Completed 05-03 — thread list with sort toggle + cursor pagination on CommunityHubPage, ThreadPage with flat chronological replies, useThreads/useThread/usePosts hooks, formatRelativeTime, ThreadListItem, ReplyItem. Build: green (319 kB).
+Last session: 2026-04-16T00:18:00Z
+Stopped at: Completed 05-04 — write forms (ThreadCreateForm + ReplyForm), mutation hooks (useCreateThread + useCreateReply), CharCounter, AuthGate integration on both forms, sticky Reply button on ThreadPage. Build: green (328 kB).
 Resume file: None
