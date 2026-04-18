@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-15)
+See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Give every compass topic a home where citizens can understand all five perspectives and debate productively — without tribal noise.
-**Current focus:** Phase 6 — Entry Points + Deployment
+**Current focus:** Planning next milestone (v1.1)
 
 ## Current Position
 
-Phase: 6 of 6 (Entry Points + Deployment) — Complete
-Plan: 3 of 3 complete in current phase
-Status: ALL PHASES COMPLETE
-Last activity: 2026-04-17 — Completed Phase 6 (Entry Points + Deployment)
+Phase: v1.0 complete — ready for next milestone
+Plan: Not started
+Status: v1.0 SHIPPED 2026-04-17
+Last activity: 2026-04-17 — v1.0 milestone complete
 
-Progress: [█████████████████████████] 100% (25/25 plans)
+Progress: [✅ v1.0 complete] → [📋 v1.1 TBD]
 
 ## Performance Metrics
 
