@@ -55,15 +55,15 @@ export default function ThreadPage() {
     return (
       <>
         <Header />
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <div className="h-4 bg-gray-200 rounded w-24 mb-6 animate-pulse" />
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
-          <div className="h-4 bg-gray-200 rounded w-1/3 mb-6 animate-pulse" />
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          <div className="h-4 bg-surface-hover rounded w-24 mb-6 animate-pulse" />
+          <div className="h-8 bg-surface-hover rounded w-3/4 mb-3 animate-pulse" />
+          <div className="h-4 bg-surface-hover rounded w-1/3 mb-6 animate-pulse" />
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="py-4 border-t border-gray-200">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-3 animate-pulse" />
-                <div className="h-16 bg-gray-200 rounded animate-pulse" />
+              <div key={i} className="py-4 border-t border-border-light">
+                <div className="h-4 bg-surface-hover rounded w-1/4 mb-3 animate-pulse" />
+                <div className="h-16 bg-surface-hover rounded animate-pulse" />
               </div>
             ))}
           </div>
@@ -76,9 +76,9 @@ export default function ThreadPage() {
     return (
       <>
         <Header />
-        <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto px-4 py-8">
           <BackNav to={`/communities/${slug}`} label={community?.name ?? slug ?? 'Back'} />
-          <p className="text-gray-600">Thread not found.</p>
+          <p className="text-text-secondary">Thread not found.</p>
         </div>
       </>
     )
@@ -95,149 +95,149 @@ export default function ThreadPage() {
   return (
     <>
       <Header />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-      <BackNav to={`/communities/${slug}`} label={community?.name ?? slug ?? 'Back'} />
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <BackNav to={`/communities/${slug}`} label={community?.name ?? slug ?? 'Back'} />
 
-      {/* Thread header */}
-      <div className="mb-8">
-        {isThreadEditing ? (
-          <div>
-            <div className="mb-3">
-              <input
-                type="text"
-                value={editTitle}
-                onChange={e => setEditTitle(e.target.value)}
-                maxLength={150}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-xl"
-                autoFocus
-              />
-              <CharCounter value={editTitle} max={150} />
-            </div>
-            <div className="mb-3">
-              <textarea
-                value={editBody}
-                onChange={e => setEditBody(e.target.value)}
-                maxLength={5000}
-                rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-              <CharCounter value={editBody} max={5000} />
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsThreadEditing(false)}
-                disabled={editThread.isPending}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleThreadSave}
-                disabled={!canSaveThreadEdit}
-                className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-              >
-                {editThread.isPending ? (
-                  <>
-                    <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save'
-                )}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <h1 className="text-2xl font-bold text-gray-900">{thread.title}</h1>
-              {isThreadAuthor && (
+        {/* Thread header */}
+        <div className="mb-8">
+          {isThreadEditing ? (
+            <div>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  maxLength={150}
+                  className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal font-bold text-xl"
+                  autoFocus
+                />
+                <CharCounter value={editTitle} max={150} />
+              </div>
+              <div className="mb-3">
+                <textarea
+                  value={editBody}
+                  onChange={e => setEditBody(e.target.value)}
+                  maxLength={5000}
+                  rows={6}
+                  className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
+                />
+                <CharCounter value={editBody} max={5000} />
+              </div>
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={startThreadEdit}
-                  className="shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors mt-1"
+                  onClick={() => setIsThreadEditing(false)}
+                  disabled={editThread.isPending}
+                  className="px-3 py-1.5 text-sm border border-border-medium rounded-lg hover:bg-surface-hover disabled:opacity-50 transition-colors"
                 >
-                  Edit
+                  Cancel
                 </button>
+                <button
+                  type="button"
+                  onClick={handleThreadSave}
+                  disabled={!canSaveThreadEdit}
+                  className="px-3 py-1.5 bg-ev-coral text-white text-sm font-medium rounded-lg hover:bg-ev-coral-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {editThread.isPending ? (
+                    <>
+                      <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save'
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h1 className="text-2xl font-bold text-text-body">{thread.title}</h1>
+                {isThreadAuthor && (
+                  <button
+                    type="button"
+                    onClick={startThreadEdit}
+                    className="shrink-0 text-xs text-text-muted hover:text-text-primary transition-colors mt-1"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-text-muted mb-4">
+                <span>{thread.authorPseudonym}</span>
+                <span>·</span>
+                <span>{formatRelativeTime(thread.createdAt)}</span>
+                {thread.isEdited && <span className="italic">(edited)</span>}
+              </div>
+              <div className="text-text-body leading-relaxed whitespace-pre-wrap">{thread.body}</div>
+              {thread.isEdited && (
+                <EditHistory
+                  edits={threadEdits}
+                  isLoading={threadEditsLoading}
+                  isOpen={showThreadHistory}
+                  onToggle={() => setShowThreadHistory(prev => !prev)}
+                />
               )}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-              <span>{thread.authorPseudonym}</span>
-              <span>·</span>
-              <span>{formatRelativeTime(thread.createdAt)}</span>
-              {thread.isEdited && <span className="italic">(edited)</span>}
-            </div>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{thread.body}</div>
-            {thread.isEdited && (
-              <EditHistory
-                edits={threadEdits}
-                isLoading={threadEditsLoading}
-                isOpen={showThreadHistory}
-                onToggle={() => setShowThreadHistory(prev => !prev)}
-              />
-            )}
-          </>
+            </>
+          )}
+        </div>
+
+        {/* Reply count */}
+        <div className="border-t border-border-light pt-6 mb-2">
+          <span className="text-sm font-medium text-text-muted">
+            {thread.replyCount} {thread.replyCount === 1 ? 'reply' : 'replies'}
+          </span>
+        </div>
+
+        {/* Posts error */}
+        {postsError && (
+          <div className="py-4">
+            <p className="text-sm text-text-secondary mb-2">Failed to load replies</p>
+            <button onClick={() => refetchPosts()} className="text-sm text-ev-teal-light hover:text-ev-teal hover:underline">
+              Try Again
+            </button>
+          </div>
         )}
-      </div>
 
-      {/* Reply count */}
-      <div className="border-t border-gray-200 pt-6 mb-2">
-        <span className="text-sm font-medium text-gray-500">
-          {thread.replyCount} {thread.replyCount === 1 ? 'reply' : 'replies'}
-        </span>
-      </div>
+        {/* Posts loading */}
+        {postsLoading && (
+          <div className="py-4 text-sm text-text-muted">Loading replies...</div>
+        )}
 
-      {/* Posts error */}
-      {postsError && (
-        <div className="py-4">
-          <p className="text-sm text-gray-600 mb-2">Failed to load replies</p>
-          <button onClick={() => refetchPosts()} className="text-sm text-blue-600 hover:underline">
-            Try Again
-          </button>
+        {/* Empty replies */}
+        {posts && posts.length === 0 && !postsLoading && (
+          <p className="text-text-muted text-sm py-4">No replies yet.</p>
+        )}
+
+        {/* Reply list */}
+        {posts && posts.length > 0 && (
+          <div>
+            {posts.map((post, i) => (
+              <ReplyItem
+                key={post.id}
+                post={post}
+                isAuthor={authorName === post.authorPseudonym}
+                isFirst={i === 0}
+                threadId={id!}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Reply form */}
+        <div id="reply-form" className="mt-8 pt-8 border-t border-border-light">
+          <h3 className="text-base font-semibold text-text-body mb-4">Leave a Reply</h3>
+          <ReplyForm threadId={id!} />
         </div>
-      )}
 
-      {/* Posts loading */}
-      {postsLoading && (
-        <div className="py-4 text-sm text-gray-400">Loading replies...</div>
-      )}
-
-      {/* Empty replies */}
-      {posts && posts.length === 0 && !postsLoading && (
-        <p className="text-gray-500 text-sm py-4">No replies yet.</p>
-      )}
-
-      {/* Reply list */}
-      {posts && posts.length > 0 && (
-        <div>
-          {posts.map((post, i) => (
-            <ReplyItem
-              key={post.id}
-              post={post}
-              isAuthor={authorName === post.authorPseudonym}
-              isFirst={i === 0}
-              threadId={id!}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Reply form */}
-      <div id="reply-form" className="mt-8 pt-8 border-t border-gray-200">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">Leave a Reply</h3>
-        <ReplyForm threadId={id!} />
-      </div>
-
-      {/* Sticky reply shortcut button */}
-      <button
-        type="button"
-        onClick={() => document.getElementById('reply-form')?.scrollIntoView({ behavior: 'smooth' })}
-        className="fixed bottom-4 right-4 z-10 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-      >
-        Reply ↓
-      </button>
+        {/* Sticky reply shortcut button */}
+        <button
+          type="button"
+          onClick={() => document.getElementById('reply-form')?.scrollIntoView({ behavior: 'smooth' })}
+          className="fixed bottom-4 right-4 z-10 px-4 py-2 bg-ev-coral text-white text-sm font-medium rounded-full shadow-lg hover:bg-ev-coral-hover transition-colors"
+        >
+          Reply ↓
+        </button>
       </div>
     </>
   )

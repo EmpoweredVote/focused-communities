@@ -39,7 +39,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
     <AuthGate action="start a thread">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <label className="block text-sm font-medium text-text-secondary mb-1">Title</label>
           <input
             type="text"
             value={title}
@@ -47,14 +47,14 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
             onBlur={() => setTitleTouched(true)}
             maxLength={150}
             placeholder="What's your topic?"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal"
           />
           <CharCounter value={title} max={150} />
           {titleError && <p className="text-red-500 text-xs mt-1">{titleError}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Body</label>
+          <label className="block text-sm font-medium text-text-secondary mb-1">Body</label>
           <textarea
             value={body}
             onChange={e => setBody(e.target.value)}
@@ -62,7 +62,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
             maxLength={2000}
             rows={5}
             placeholder="Share your perspective..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
           />
           <CharCounter value={body} max={2000} />
           {bodyError && <p className="text-red-500 text-xs mt-1">{bodyError}</p>}
@@ -73,7 +73,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
         <button
           type="submit"
           disabled={!canSubmit}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-ev-coral text-white text-sm font-medium rounded-lg hover:bg-ev-coral-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
         >
           {isPending ? (
             <>

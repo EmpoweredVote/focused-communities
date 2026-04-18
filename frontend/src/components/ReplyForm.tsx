@@ -42,11 +42,11 @@ export function ReplyForm({ threadId }: ReplyFormProps) {
           maxLength={2000}
           rows={4}
           placeholder="Write a reply..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
         />
         <CharCounter value={body} max={2000} />
         {body.trim().length > 0 && body.trim().length < minLength && (
-          <p className="text-xs text-gray-400 mt-1">At least {minLength} characters required</p>
+          <p className="text-xs text-text-muted mt-1">At least {minLength} characters required</p>
         )}
 
         {suspended && <SuspendedNotice />}
@@ -55,7 +55,7 @@ export function ReplyForm({ threadId }: ReplyFormProps) {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-ev-coral text-white text-sm font-medium rounded-lg hover:bg-ev-coral-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             {isPending ? (
               <>

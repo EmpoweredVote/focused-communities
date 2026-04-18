@@ -14,7 +14,7 @@ export function EditHistory({ edits, isLoading, onToggle, isOpen }: EditHistoryP
       <button
         type="button"
         onClick={onToggle}
-        className="text-xs text-gray-400 hover:text-gray-600 underline-offset-2 hover:underline transition-colors"
+        className="text-xs text-text-muted hover:text-text-primary underline-offset-2 hover:underline transition-colors"
       >
         {isOpen ? 'Hide edit history' : `View edit history (${edits.length || ''})`}
       </button>
@@ -22,14 +22,14 @@ export function EditHistory({ edits, isLoading, onToggle, isOpen }: EditHistoryP
         <div className="mt-2 space-y-2">
           {isLoading && (
             <>
-              <div className="h-12 bg-gray-100 rounded animate-pulse" />
-              <div className="h-12 bg-gray-100 rounded animate-pulse" />
+              <div className="h-12 bg-surface-hover rounded animate-pulse" />
+              <div className="h-12 bg-surface-hover rounded animate-pulse" />
             </>
           )}
           {!isLoading &&
             edits.map((edit, i) => (
-              <div key={i} className="bg-gray-50 rounded p-3 text-sm text-gray-600">
-                <div className="text-xs text-gray-400 mb-1">
+              <div key={i} className="bg-surface-hover rounded p-3 text-sm text-text-secondary">
+                <div className="text-xs text-text-muted mb-1">
                   {formatRelativeTime(edit.editedAt)}
                 </div>
                 {'oldTitle' in edit && edit.oldTitle && (

@@ -30,7 +30,7 @@ export function EditForm({
           onChange={e => setValue(e.target.value)}
           maxLength={maxLength}
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
           autoFocus
         />
       ) : (
@@ -39,7 +39,7 @@ export function EditForm({
           value={value}
           onChange={e => setValue(e.target.value)}
           maxLength={maxLength}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal"
           autoFocus
         />
       )}
@@ -49,7 +49,7 @@ export function EditForm({
           type="button"
           onClick={onCancel}
           disabled={isPending}
-          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          className="px-3 py-1.5 text-sm border border-border-medium rounded-lg hover:bg-surface-hover disabled:opacity-50 transition-colors"
         >
           Cancel
         </button>
@@ -57,7 +57,7 @@ export function EditForm({
           type="button"
           onClick={() => onSave(value.trim())}
           disabled={!canSave}
-          className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          className="px-3 py-1.5 bg-ev-coral text-white text-sm font-medium rounded-lg hover:bg-ev-coral-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
         >
           {isPending ? (
             <>

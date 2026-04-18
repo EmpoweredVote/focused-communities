@@ -23,77 +23,77 @@ export default function DirectoryPage() {
   return (
     <>
       <Header />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Communities</h1>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-text-body mb-6">Communities</h1>
 
-      {/* Keyword filter */}
-      <div className="mb-6">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search communities..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      {/* Loading */}
-      {isLoading && (
-        <div>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <CommunityCardSkeleton key={i} />
-          ))}
+        {/* Keyword filter */}
+        <div className="mb-6">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search communities..."
+            className="w-full px-4 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal focus:border-transparent"
+          />
         </div>
-      )}
 
-      {/* Error */}
-      {isError && (
-        <div className="text-center py-8">
-          <p className="text-gray-600 mb-3">Failed to load communities</p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      )}
+        {/* Loading */}
+        {isLoading && (
+          <div>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CommunityCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
-      {/* Community list */}
-      {!isLoading && !isError && (
-        <>
-          {communities.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No communities match your search</p>
-          ) : (
-            <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 overflow-hidden">
-              {communities.map(community => (
-                <Link
-                  key={community.id}
-                  to={`/communities/${community.slug}`}
-                  className="block p-4 hover:bg-gray-50 transition-colors"
+        {/* Error */}
+        {isError && (
+          <div className="text-center py-8">
+            <p className="text-text-secondary mb-3">Failed to load communities</p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 text-sm bg-ev-coral text-white rounded-lg hover:bg-ev-coral-hover transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Community list */}
+        {!isLoading && !isError && (
+          <>
+            {communities.length === 0 ? (
+              <p className="text-text-muted text-center py-8">No communities match your search</p>
+            ) : (
+              <div className="border border-border-light rounded-lg divide-y divide-border-light overflow-hidden shadow-sm">
+                {communities.map(community => (
+                  <Link
+                    key={community.id}
+                    to={`/communities/${community.slug}`}
+                    className="block p-4 hover:bg-surface-hover transition-colors"
+                  >
+                    <div className="font-semibold text-text-body mb-1">{community.name}</div>
+                    <div className="text-sm text-text-secondary leading-relaxed">{community.description}</div>
+                    {/* TODO: calibrated stance indicator — requires compass data API */}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Load more */}
+            {hasNextPage && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={!hasNextPage || isFetchingNextPage}
+                  className="px-6 py-2 text-sm border border-border-medium rounded-lg hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <div className="font-semibold text-gray-900 mb-1">{community.name}</div>
-                  <div className="text-sm text-gray-600 leading-relaxed">{community.description}</div>
-                  {/* TODO: calibrated stance indicator — requires compass data API */}
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Load more */}
-          {hasNextPage && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => fetchNextPage()}
-                disabled={!hasNextPage || isFetchingNextPage}
-                className="px-6 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isFetchingNextPage ? 'Loading...' : 'Load more'}
-              </button>
-            </div>
-          )}
-        </>
-      )}
+                  {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </>
   )

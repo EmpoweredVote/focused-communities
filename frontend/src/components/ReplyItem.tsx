@@ -26,18 +26,18 @@ export function ReplyItem({ post, isAuthor, isFirst, threadId }: ReplyItemProps)
   }
 
   return (
-    <div className={`py-4 px-2 ${!isFirst ? 'border-t border-gray-200' : ''}`}>
+    <div className={`py-4 px-2 ${!isFirst ? 'border-t border-border-light' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
-        <span className="font-medium text-sm text-gray-900">{post.authorPseudonym}</span>
-        <span className="text-xs text-gray-400">{formatRelativeTime(post.createdAt)}</span>
+        <span className="font-medium text-sm text-text-body">{post.authorPseudonym}</span>
+        <span className="text-xs text-text-muted">{formatRelativeTime(post.createdAt)}</span>
         {post.isEdited && (
-          <span className="text-xs text-gray-400 italic">(edited)</span>
+          <span className="text-xs text-text-muted italic">(edited)</span>
         )}
         {isAuthor && !isEditing && (
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="ml-auto text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            className="ml-auto text-xs text-text-muted hover:text-text-primary transition-colors"
           >
             Edit
           </button>
@@ -51,7 +51,7 @@ export function ReplyItem({ post, isAuthor, isFirst, threadId }: ReplyItemProps)
           isPending={editPost.isPending}
         />
       ) : (
-        <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{post.body}</div>
+        <div className="text-sm text-text-body whitespace-pre-wrap leading-relaxed">{post.body}</div>
       )}
       {post.isEdited && !isEditing && (
         <EditHistory
