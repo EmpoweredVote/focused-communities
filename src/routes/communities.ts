@@ -9,7 +9,7 @@ export const communitiesRouter = Router();
 communitiesRouter.get('/communities', cacheMiddleware(TTL.COMMUNITIES), async (req: Request, res: Response) => {
   const q = req.query.q as string | undefined;
   const sort = (req.query.sort as string) === 'popular' ? 'popular' : 'newest';
-  const limit = parseLimit(req.query.limit as string | undefined, 20);
+  const limit = parseLimit(req.query.limit as string | undefined, 40);
   const cursor = req.query.cursor as string | undefined;
 
   let query = supabase
