@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
-import { useStances, shuffle } from '../hooks/useStances'
+import { useStances } from '../hooks/useStances'
 import type { DisplayStance } from '../hooks/useStances'
 import { useThreads } from '../hooks/useThreads'
 import { StanceCard } from '../components/StanceCard'
@@ -15,7 +15,7 @@ export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [sort, setSort] = useState<'active' | 'newest'>('active')
-  const [displayedStances, setDisplayedStances] = useState<DisplayStance[]>([])
+  const [isInverted, setIsInverted] = useState(false)
 
   const { data: community, isLoading: communityLoading, isError: communityError } = useCommunityBySlug(slug)
 
@@ -30,9 +30,9 @@ export default function CommunityHubPage() {
   const { data: stances, isLoading: stancesLoading, isError: stancesError, refetch: refetchStances } =
     useStances(community?.id)
 
-  useEffect(() => {
-    if (stances) setDisplayedStances(stances)
-  }, [stances])
+  const displayedStances: DisplayStance[] = stances
+    ? (isInverted ? [...stances].reverse() : stances)
+    : []
 
   const {
     threads,
@@ -43,10 +43,6 @@ export default function CommunityHubPage() {
     isFetchingNextPage,
     fetchNextPage,
   } = useThreads(community?.id, sort)
-
-  function handleShuffle() {
-    setDisplayedStances(prev => shuffle(prev))
-  }
 
   if (communityLoading) {
     return (
@@ -94,14 +90,18 @@ export default function CommunityHubPage() {
             <h2 className="text-lg font-semibold text-text-primary">Perspectives</h2>
             {displayedStances.length > 0 && (
               <button
-                onClick={handleShuffle}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border-light rounded-lg hover:bg-surface-hover transition-colors"
-                title="Shuffle order"
+                onClick={() => setIsInverted(prev => !prev)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors ${
+                  isInverted
+                    ? 'bg-ev-teal text-white border-ev-teal'
+                    : 'text-text-secondary border-border-light hover:bg-surface-hover'
+                }`}
+                title={isInverted ? 'Show regular order' : 'Invert order'}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.312.311a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.389Zm-11.073-3.96a.75.75 0 0 0 1.449.388A5.5 5.5 0 0 1 14.888 5.39l.311.31h-2.432a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V2.816a.75.75 0 0 0-1.5 0v2.033l-.312-.31A7 7 0 0 0 3.69 7.664a.75.75 0 0 0 .55-.2Z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M2.24 6.8a.75.75 0 0 0 1.06-.04l1.95-2.1v8.59a.75.75 0 0 0 1.5 0V4.66l1.95 2.1a.75.75 0 1 0 1.1-1.02L6.35 3.18a.75.75 0 0 0-1.1 0L2.28 5.74a.75.75 0 0 0-.04 1.06Zm10.5 6.4a.75.75 0 0 0-1.06.04l-1.95 2.1V6.75a.75.75 0 0 0-1.5 0v8.59l-1.95-2.1a.75.75 0 1 0-1.1 1.02l2.96 3.18a.75.75 0 0 0 1.1 0l2.96-3.18a.75.75 0 0 0 .04-1.06Z" clipRule="evenodd" />
                 </svg>
-                Shuffle
+                Invert
               </button>
             )}
           </div>

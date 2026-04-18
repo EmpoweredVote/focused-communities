@@ -4,24 +4,16 @@ import type { Stance } from '../types'
 
 export type DisplayStance = Omit<Stance, 'position'>
 
-export function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
-
 export function useStances(communityId: string | undefined) {
   return useQuery({
     queryKey: ['stances', communityId],
     queryFn: async () => {
       const res = await apiFetch<{ data: Stance[] }>(`/api/communities/${communityId}/stances`)
       if (!res.ok) throw new Error(res.error)
-      // Strip position field and shuffle — position MUST NEVER reach rendering code
-      const shuffled = shuffle(res.data.data)
-      return shuffled.map(({ position: _position, ...rest }): DisplayStance => rest)
+      // Sort by position (1→5) then strip — position MUST NEVER reach rendering code
+      return res.data.data
+        .sort((a, b) => a.position - b.position)
+        .map(({ position: _position, ...rest }): DisplayStance => rest)
     },
     staleTime: 30 * 60_000,
     enabled: !!communityId,
