@@ -4,7 +4,7 @@ import type { Stance } from '../types'
 
 export type DisplayStance = Omit<Stance, 'position'>
 
-function shuffle<T>(arr: T[]): T[] {
+export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
