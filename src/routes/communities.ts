@@ -98,14 +98,28 @@ communitiesRouter.get('/communities/:id', cacheMiddleware(TTL.COMMUNITIES), asyn
 });
 
 communitiesRouter.get('/communities/by-slug/:slug', cacheMiddleware(TTL.COMMUNITIES), async (req: Request, res: Response) => {
-  const { data, error } = await supabase
+  const { slug } = req.params;
+  const selectFields = 'id, slug, name, description, member_count, thread_count, topic_id, slice_label, created_at';
+
+  // Primary: exact slug match.
+  let { data } = await supabase
     .schema('connect')
     .from('communities')
-    .select('id, slug, name, description, member_count, thread_count, topic_id, slice_label, created_at')
-    .eq('slug', req.params.slug)
+    .select(selectFields)
+    .eq('slug', slug)
     .single();
 
-  if (error || !data) {
+  // Fallback: slug may have been renamed — check history.
+  if (!data) {
+    ({ data } = await supabase
+      .schema('connect')
+      .from('communities')
+      .select(selectFields)
+      .contains('slug_history', [slug])
+      .single());
+  }
+
+  if (!data) {
     res.status(404).json({ error: { code: 'COMMUNITY_NOT_FOUND', message: 'Community not found' } });
     return;
   }

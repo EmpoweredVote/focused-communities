@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams } from 'react-router'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
 import { useStances } from '../hooks/useStances'
 import { useThreads } from '../hooks/useThreads'
@@ -12,8 +12,17 @@ import { Header } from '../components/Header'
 
 export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const [sort, setSort] = useState<'active' | 'newest'>('active')
   const { data: community, isLoading: communityLoading, isError: communityError } = useCommunityBySlug(slug)
+
+  // If the slug was renamed, the API returns the canonical slug. Silently
+  // correct the URL so bookmarks and shared links self-heal going forward.
+  useEffect(() => {
+    if (community && slug && community.slug !== slug) {
+      navigate(`/communities/${community.slug}`, { replace: true })
+    }
+  }, [community, slug, navigate])
   const { data: stances, isLoading: stancesLoading, isError: stancesError, refetch: refetchStances } =
     useStances(community?.id)
   const {
