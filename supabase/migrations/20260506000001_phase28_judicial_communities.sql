@@ -37,49 +37,49 @@ BEGIN
     (
       'criminal-justice-philosophy',
       'Criminal Justice Philosophy',
-      'How should voters weigh a judge''s sentencing philosophy — leniency vs. accountability — when evaluating their fitness for the bench?',
+      'When someone breaks the law, should a judge focus on punishment — or on helping them change? How a judge answers that shapes every sentence they hand down.',
       v_criminal_justice_id
     ),
     (
       'access-to-justice',
       'Access to Justice',
-      'How should voters assess whether a judge''s record prioritizes equal access to the courts for all litigants, including those without resources?',
+      'Does it take money and a good lawyer to get a fair shot in court — or should the system work for everyone? Discuss how this candidate sees equal access.',
       v_access_to_justice_id
     ),
     (
       'government-deference',
       'Government Deference',
-      'How should voters evaluate whether a judge''s rulings show appropriate skepticism or deference toward government agencies and executive authority?',
+      'When the government says it has the power to do something, should judges take their word for it — or make them prove it? Where''s the line between trust and oversight?',
       v_gov_deference_id
     ),
     (
       'court-transparency',
       'Court Transparency',
-      'How should voters judge a legal candidate''s commitment to open proceedings, public access to rulings, and courtroom accountability?',
+      'Should court hearings be open for anyone to watch, and should rulings be easy for regular people to read and understand? Discuss how open the legal system should be.',
       v_transparency_id
     ),
     (
       'legal-interpretation',
       'Legal Interpretation',
-      'How should voters evaluate a judge''s interpretive approach — strict textualism vs. evolving standards — and what that means for future rulings?',
+      'Does the law mean exactly what it says — word for word — or what it should mean for how the world works today? How judges answer this shapes real outcomes.',
       v_interpretation_id
     ),
     (
       'bail-and-pretrial',
       'Bail and Pretrial',
-      'How should voters assess a judge''s bail-setting record — balancing public safety concerns against the presumption of innocence for defendants?',
+      'If you''re accused of a crime but not yet convicted, should you go home while you wait for trial — or stay in jail? How judges set bail changes who waits behind bars.',
       v_bail_pretrial_id
     ),
     (
       'prosecution-priorities',
       'Prosecution Priorities',
-      'How should voters evaluate how a prosecutor chooses which cases to pursue aggressively and which to resolve through diversion or dismissal?',
+      'Prosecutors can''t go after every case. Which crimes should they fight hardest — and when should they offer a deal or let something go? Their choices shape how justice works.',
       v_prosecution_id
     ),
     (
       'police-accountability',
       'Police Accountability',
-      'How should voters assess a prosecutor''s record on holding law enforcement accountable — including decisions to charge or decline cases involving officers?',
+      'When a police officer is accused of wrongdoing, should the prosecutor treat them the same as anyone else? Discuss how a DA or City Attorney should handle cases involving law enforcement.',
       v_police_acct_id
     )
   ON CONFLICT (slug) DO NOTHING;
