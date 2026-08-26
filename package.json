@@ -32,7 +32,7 @@
     "@types/remove-markdown": "^0.3.4",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.4",
-    "supabase": "^2.91.2",
+    "supabase": "^2.115.0",
     "supertest": "^7.2.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
