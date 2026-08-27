@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi, afterEach } from 'vitest';
 import express from 'express';
 import supertest from 'supertest';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
@@ -153,5 +153,109 @@ describe('optionalAuth', () => {
       .set('Authorization', 'Bearer invalid-jwt-token');
     expect(res.status).toBe(200);
     expect(res.body.user).toBeNull();
+  });
+});
+
+// ── WorkOS AuthKit second issuer (ev-accounts decision 0002) ─────────────────
+// The middleware captures WORKOS_CLIENT_ID at module load, so these tests
+// re-import it with the env stubbed. The top-level `requireAuth` import was
+// loaded WITHOUT it, which is exactly the not-configured build the last test
+// exercises.
+describe('WorkOS dual-issuer support', () => {
+  const WORKOS_CLIENT_ID = 'client_test_123';
+  const WORKOS_ISSUER = `https://api.workos.com/user_management/${WORKOS_CLIENT_ID}`;
+  let workosPrivateKey: CryptoKey;
+  let workosJwks: object;
+  let wRequireAuth: typeof requireAuth;
+
+  beforeAll(async () => {
+    const { privateKey: priv, publicKey } = await generateKeyPair('RS256');
+    workosPrivateKey = priv;
+    const jwk = await exportJWK(publicKey);
+    jwk.kid = 'workos-test-key';
+    workosJwks = { keys: [jwk] };
+
+    vi.stubEnv('WORKOS_CLIENT_ID', WORKOS_CLIENT_ID);
+    vi.resetModules();
+    ({ requireAuth: wRequireAuth } = await import('../auth.js'));
+  });
+
+  afterAll(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  function mockDualFetch(accountsResponse: { status: number; body: unknown }) {
+    vi.stubGlobal('fetch', async (url: string | URL | Request) => {
+      const urlStr = String(url instanceof URL ? url.href : url instanceof Request ? url.url : url);
+      if (urlStr.includes('api.workos.com/sso/jwks')) {
+        return new Response(JSON.stringify(workosJwks), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (urlStr.includes('account/me')) {
+        return new Response(JSON.stringify(accountsResponse.body), {
+          status: accountsResponse.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error(`Unmocked fetch: ${urlStr}`);
+    });
+  }
+
+  async function signWorkosToken(claims: Record<string, unknown>): Promise<string> {
+    return new SignJWT(claims)
+      .setProtectedHeader({ alg: 'RS256', kid: 'workos-test-key' })
+      .setIssuer(WORKOS_ISSUER)
+      .setSubject('user_01TESTWORKOSSUB')
+      .setIssuedAt()
+      .setExpirationTime('1h')
+      .sign(workosPrivateKey);
+  }
+
+  it('accepts a WorkOS token and uses external_id as the user id, never sub', async () => {
+    mockDualFetch({ status: 200, body: { ...mockConnectedUser, id: 'overwritten-by-middleware' } });
+    const token = await signWorkosToken({ role: 'authenticated', external_id: 'internal-uuid-9' });
+    const app = makeApp(wRequireAuth);
+    const res = await supertest(app).get('/test').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.user.id).toBe('internal-uuid-9');
+  });
+
+  it('rejects a WorkOS token without role=authenticated (JWT template missing)', async () => {
+    mockDualFetch({ status: 200, body: mockConnectedUser });
+    const token = await signWorkosToken({ external_id: 'internal-uuid-9' });
+    const app = makeApp(wRequireAuth);
+    const res = await supertest(app).get('/test').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects an unlinked WorkOS token (no external_id)', async () => {
+    mockDualFetch({ status: 200, body: mockConnectedUser });
+    const token = await signWorkosToken({ role: 'authenticated' });
+    const app = makeApp(wRequireAuth);
+    const res = await supertest(app).get('/test').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects WorkOS tokens entirely when WORKOS_CLIENT_ID is not configured', async () => {
+    mockDualFetch({ status: 200, body: mockConnectedUser });
+    const token = await signWorkosToken({ role: 'authenticated', external_id: 'internal-uuid-9' });
+    const app = makeApp(requireAuth);
+    const res = await supertest(app).get('/test').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('still accepts Supabase tokens when WorkOS is configured', async () => {
+    mockDualFetch({ status: 200, body: mockConnectedUser });
+    // Supabase-path JWKS fetch needs the supabase.co stub too — reuse the
+    // file-wide mock, which covers both hosts.
+    mockFetchWith({ status: 200, body: mockConnectedUser });
+    const token = await signToken();
+    const app = makeApp(wRequireAuth);
+    const res = await supertest(app).get('/test').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.user.id).toBe('test-user-uuid-123');
   });
 });
