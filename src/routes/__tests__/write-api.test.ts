@@ -219,7 +219,7 @@ describe('POST /api/threads/:id/posts', () => {
     const res = await request(app)
       .post('/api/threads/thread-p2/posts')
       .set('Authorization', `Bearer ${validToken}`)
-      .send({ body: 'Short' });
+      .send({ body: 'Shrt' }); // 4 chars — one below the 5-char reply minimum
     expect(res.status).toBe(422);
     expect(res.body.errors).toHaveProperty('body');
   });
@@ -343,7 +343,7 @@ describe('PATCH /api/posts/:id', () => {
     const res = await request(app)
       .patch('/api/posts/post-e2')
       .set('Authorization', `Bearer ${validToken}`)
-      .send({ body: 'Short' });
+      .send({ body: 'Shrt' }); // 4 chars — one below the 5-char edit minimum
     expect(res.status).toBe(422);
     expect(res.body.errors).toHaveProperty('body');
   });
