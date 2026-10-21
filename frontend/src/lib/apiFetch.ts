@@ -1,4 +1,9 @@
+import { demoThreadResponse } from '../mocks/demoThreads';
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+
+// Dev-only, opt-in synthetic threads (see src/mocks/demoThreads.ts).
+const DEMO_THREADS = import.meta.env.DEV && import.meta.env.VITE_DEMO_THREADS === '1';
 
 export type ApiResult<T> =
   | { ok: true; data: T }
@@ -8,6 +13,15 @@ export async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<ApiResult<T>> {
+  if (DEMO_THREADS) {
+    const method = (options?.method ?? 'GET').toUpperCase();
+    if (method !== 'GET') {
+      return { ok: false, error: 'Demo threads: writes are off', status: 0 };
+    }
+    const demo = demoThreadResponse(path);
+    if (demo === null) return { ok: false, error: 'Not found', status: 404 };
+    if (demo !== undefined) return { ok: true, data: demo as T };
+  }
   const token = localStorage.getItem('ev_token');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
