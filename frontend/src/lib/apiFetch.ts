@@ -1,6 +1,12 @@
 import { demoThreadResponse } from '../mocks/demoThreads';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+// The API now lives in the accounts engine under /fc (see FROZEN.md). Production builds set
+// VITE_API_BASE_URL; the fallback keeps a build that forgot it pointed at the engine instead of
+// at the static site itself, which would answer every /api call with index.html. In dev the
+// base stays empty so /api goes through the Vite proxy (vite.config.ts).
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ??
+  (import.meta.env.PROD ? 'https://accounts-api.empowered.vote/fc' : '');
 
 // Dev-only, opt-in synthetic threads (see src/mocks/demoThreads.ts).
 const DEMO_THREADS = import.meta.env.DEV && import.meta.env.VITE_DEMO_THREADS === '1';
