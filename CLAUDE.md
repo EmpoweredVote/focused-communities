@@ -5,7 +5,7 @@
 Volunteers and designers: build on live public data, never on invented data. Invented data in a
 component becomes rework for whoever merges the PR.
 
-- **`npm run dev` in `frontend/` with no `.env` reads the live public API** through the dev server's `/api` proxy (`frontend/vite.config.ts`, target https://fc.empowered.vote). No keys and no local backend; the backend needs a service-role key, so designers never run it.
+- **`npm run dev` in `frontend/` with no `.env` reads the live public API** through the dev server's `/api` proxy (`frontend/vite.config.ts`, target the accounts engine's `/fc/api`). No keys and no local backend. **The backend in `src/` is frozen** — it now lives in `ev-accounts/backend/src/focused_communities/` (see `FROZEN.md`); change API code there, not here.
 - **Fetch through `frontend/src/lib/apiFetch.ts` (the hooks in `frontend/src/hooks/`).** Never type real-looking names, numbers, dates, quotes or IDs into a
   component, not even as placeholders. Interface copy is fine.
 - **If a request fails, say so and stop.** Report the URL and status. Do not swap in invented data.
