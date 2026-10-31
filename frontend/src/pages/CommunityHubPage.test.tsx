@@ -296,4 +296,45 @@ describe('CommunityHubPage seasons', () => {
     expect(screen.getByText('Discussion')).toBeInTheDocument()
     expect(screen.getByText('forum-form')).toBeInTheDocument()
   })
+
+  it('renders each change marker beside its own chair, including after Invert', () => {
+    chairs = [
+      { ...plainChair, text: 'Chair A', changeSince: 'carried' },
+      { ...plainChair, text: 'Chair B', changeSince: 'reworded' },
+      { ...plainChair, text: 'Chair C', changeSince: null },
+    ]
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage()
+    const check = () => {
+      const card = (t: string) => screen.getByText(t).closest('div[class*="border"]') as HTMLElement
+      expect(card('Chair A')).toHaveTextContent('Carried from the previous season')
+      expect(card('Chair B')).toHaveTextContent('Reworded since the previous season')
+      expect(card('Chair C')).not.toHaveTextContent('previous season')
+    }
+    check()
+    fireEvent.click(screen.getByText('Invert'))
+    check()
+  })
+
+  it('says so when a loaded season has no chairs', () => {
+    chairs = []
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage()
+    expect(screen.getByText('No perspectives were recorded for this season.')).toBeInTheDocument()
+    expect(screen.queryByText(/No perspectives have been published for this topic yet/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Failed to load perspectives')).not.toBeInTheDocument()
+  })
+
+  it('does not show the error block above chairs when only the season list failed', () => {
+    chairs = [{ ...plainChair, text: 'Chair A' }]
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    vi.mocked(useSeasonList).mockReturnValue({
+      data: undefined, isPending: false, isError: true, isSuccess: false, refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useSeasonList>)
+    renderPage('/communities/test-slug?season=2')
+    expect(screen.getByText('Chair A')).toBeInTheDocument()
+    expect(screen.queryByText('Failed to load perspectives')).not.toBeInTheDocument()
+    expect(screen.queryByText('No perspectives were recorded for this season.')).not.toBeInTheDocument()
+  })
+
 })

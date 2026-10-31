@@ -55,7 +55,6 @@ export default function CommunityHubPage() {
   const seasonStale = seasonView.isPlaceholderData
   const seasonsLoading =
     seasonList.isPending || (selectedSeason !== undefined && seasonView.isPending)
-  const seasonsError = seasonList.isError || (selectedSeason !== undefined && seasonView.isError)
 
   function changeSeason(n: number) {
     setSearchParams(
@@ -81,6 +80,13 @@ export default function CommunityHubPage() {
   const displayedChairs: Chair[] = view
     ? (isInverted ? [...view.chairs].reverse() : view.chairs)
     : []
+
+  // Never show the error block above chairs that rendered (e.g. list failed but ?season=N detail loaded).
+  const seasonsError =
+    (seasonList.isError || (selectedSeason !== undefined && seasonView.isError)) &&
+    displayedChairs.length === 0
+  const emptySeason =
+    !seasonsLoading && !noSeasons && !seasonsError && view !== undefined && view.chairs.length === 0
 
   const {
     threads,
@@ -198,6 +204,10 @@ export default function CommunityHubPage() {
 
           {noSeasons && (
             <p className="text-text-muted text-sm">No perspectives have been published for this topic yet.</p>
+          )}
+
+          {emptySeason && (
+            <p className="text-text-muted text-sm">No perspectives were recorded for this season.</p>
           )}
 
           {seasonsError && (

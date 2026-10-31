@@ -10,13 +10,6 @@ export interface Community {
   createdAt: string
 }
 
-export interface Stance {
-  text: string
-  supportingPoints: string[]
-  description: string
-  examplePerspectives: string[]
-}
-
 export interface ThreadSummary {
   id: string
   title: string

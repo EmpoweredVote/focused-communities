@@ -12,6 +12,7 @@ const base = {
   description: null as string | null,
   supportingPoints: [] as string[],
   examplePerspectives: [] as string[],
+  changeSince: null as 'carried' | 'reworded' | null,
 }
 
 describe('StanceCard', () => {
@@ -87,4 +88,54 @@ describe('StanceCard', () => {
     expect(container.textContent).not.toMatch(/Supporting Points|Example Perspectives|▼|▲/)
     expect(container.querySelector('ul')).toBeNull()
   })
+
+  it('renders the carried copy for carried', () => {
+    render(<StanceCard stance={{ ...base, changeSince: 'carried' }} isHighlighted={false} />)
+    expect(screen.getByText('Carried from the previous season')).toBeInTheDocument()
+    expect(screen.queryByText('Reworded since the previous season')).not.toBeInTheDocument()
+  })
+
+  it('renders the reworded copy for reworded', () => {
+    render(<StanceCard stance={{ ...base, changeSince: 'reworded' }} isHighlighted={false} />)
+    expect(screen.getByText('Reworded since the previous season')).toBeInTheDocument()
+    expect(screen.queryByText('Carried from the previous season')).not.toBeInTheDocument()
+  })
+
+  it('renders neither marker when changeSince is null', () => {
+    render(<StanceCard stance={{ ...base, changeSince: null }} isHighlighted={false} />)
+    expect(screen.queryByText('Carried from the previous season')).not.toBeInTheDocument()
+    expect(screen.queryByText('Reworded since the previous season')).not.toBeInTheDocument()
+  })
+
+  it('shows the marker on a chair with no detail without making it expandable', () => {
+    const { container } = render(<StanceCard stance={{ ...base, changeSince: 'carried' }} isHighlighted={false} />)
+    expect(screen.getByText('Carried from the previous season')).toBeInTheDocument()
+    const card = container.firstElementChild!
+    expect(card.getAttribute('role')).toBeNull()
+    expect(card.getAttribute('tabindex')).toBeNull()
+    expect(card.className).not.toMatch(/cursor-pointer/)
+    expect(container.textContent).not.toMatch(/▼|▲/)
+  })
+
+  it('toggles with Enter and expands with Space, tracking aria-expanded', () => {
+    render(<StanceCard stance={{ ...base, description: 'Test deep dive', changeSince: null }} isHighlighted={false} />)
+    const card = screen.getByRole('button')
+    expect(card).toHaveAttribute('tabindex', '0')
+    expect(card).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.keyDown(card, { key: 'Enter' })
+    expect(card).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('Test deep dive')).toBeInTheDocument()
+    fireEvent.keyDown(card, { key: 'Enter' })
+    expect(card).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Test deep dive')).not.toBeInTheDocument()
+    const notPrevented = fireEvent.keyDown(card, { key: ' ' })
+    expect(notPrevented).toBe(false)
+    expect(card).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('has no button role or tabIndex when there is no detail', () => {
+    render(<StanceCard stance={{ ...base, changeSince: null }} isHighlighted={false} />)
+    expect(screen.queryByRole('button')).toBeNull()
+  })
+
 })

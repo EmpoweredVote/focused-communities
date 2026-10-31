@@ -2,8 +2,8 @@ import { useRef, useEffect, useState } from 'react'
 import type { Chair } from '../types'
 
 interface StanceCardProps {
-  // Chair.description is null for most chairs; a Stance is assignable here too.
-  stance: Pick<Chair, 'text' | 'description' | 'supportingPoints' | 'examplePerspectives'>
+  // Chair.description is null for most chairs.
+  stance: Pick<Chair, 'text' | 'description' | 'supportingPoints' | 'examplePerspectives' | 'changeSince'>
   isHighlighted: boolean
 }
 
@@ -30,9 +30,24 @@ export function StanceCard({ stance, isHighlighted }: StanceCardProps) {
     <div
       ref={cardRef}
       onClick={hasDetail ? () => setExpanded(prev => !prev) : undefined}
+      {...(hasDetail
+        ? {
+            role: 'button',
+            tabIndex: 0,
+            'aria-expanded': expanded,
+            onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setExpanded(prev => !prev)
+              }
+            },
+          }
+        : {})}
       className={[
         'border rounded-lg p-4 transition-all shadow-sm',
-        hasDetail ? 'cursor-pointer hover:shadow-md' : '',
+        hasDetail
+          ? 'cursor-pointer hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
+          : '',
         isHighlighted
           ? 'bg-ev-yellow-light border-ev-yellow'
           : 'bg-surface-card border-border-light border-l-4 border-l-transparent',
@@ -41,7 +56,15 @@ export function StanceCard({ stance, isHighlighted }: StanceCardProps) {
     >
       {/* Headline — always visible */}
       <div className="flex items-start justify-between gap-2">
-        <p className="font-medium text-text-body leading-snug flex-1">{stance.text}</p>
+        <div className="flex-1">
+          <p className="font-medium text-text-body leading-snug">{stance.text}</p>
+          {stance.changeSince === 'carried' && (
+            <p className="text-xs text-text-muted mt-1">Carried from the previous season</p>
+          )}
+          {stance.changeSince === 'reworded' && (
+            <p className="text-xs text-text-muted mt-1">Reworded since the previous season</p>
+          )}
+        </div>
         {hasDetail && (
           <span className="text-text-muted text-sm flex-shrink-0 mt-0.5" aria-hidden="true">
             {expanded ? '▲' : '▼'}
