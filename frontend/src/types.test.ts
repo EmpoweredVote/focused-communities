@@ -29,4 +29,9 @@ describe('season types', () => {
     const edited: SeasonView = { ...view, changeClass: 'editorial' }
     expect(edited.changeClass).toBe('editorial')
   })
+
+  it('exposes no position on a chair (array order carries the ladder)', () => {
+    // @ts-expect-error Chair must never carry a 1-5 position
+    expect(chair.position).toBeUndefined()
+  })
 })
