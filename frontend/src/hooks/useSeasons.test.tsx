@@ -1,13 +1,31 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, waitFor, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { apiFetch } from '../lib/apiFetch'
+import { useAuth } from '../context/AuthContext'
 import { useSeasonList, useSeasonView } from './useSeasons'
 import type { SeasonView } from '../types'
 
 vi.mock('../lib/apiFetch', () => ({ apiFetch: vi.fn() }))
+vi.mock('../context/AuthContext', () => ({ useAuth: vi.fn() }))
 const mockFetch = vi.mocked(apiFetch)
+const mockAuth = vi.mocked(useAuth)
+
+function signedInAs(id: string) {
+  mockAuth.mockReturnValue({
+    auth: {
+      state: 'connected',
+      user: { id, tier: 'connected', account_standing: 'active', completed_onboarding: true, display_name: 'Demo' },
+    },
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  })
+}
+
+function signedOut() {
+  mockAuth.mockReturnValue({ auth: { state: 'inform' }, signIn: vi.fn(), signOut: vi.fn() })
+}
 
 function wrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -31,7 +49,12 @@ function viewFor(n: number): SeasonView {
 
 beforeEach(() => {
   mockFetch.mockReset()
+  signedOut()
 })
+
+afterEach(cleanup)
+
+const emptyList = { ok: true as const, data: { data: [], meta: { defaultSeason: null } } }
 
 describe('useSeasonList', () => {
   it('requests the default season list and surfaces defaultSeason', async () => {
@@ -61,9 +84,71 @@ describe('useSeasonList', () => {
     expect(result.current.fetchStatus).toBe('idle')
     expect(mockFetch).not.toHaveBeenCalled()
   })
+
+  it('throws the apiFetch error message on failure', async () => {
+    mockFetch.mockResolvedValue({ ok: false, error: 'boom', status: 500 })
+    const { result } = renderHook(() => useSeasonList('c1'), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(result.current.error?.message).toBe('boom')
+  })
+
+  it('keys the query on the community id so switching refetches', async () => {
+    mockFetch.mockResolvedValue(emptyList)
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => useSeasonList(id),
+      { wrapper: wrapper(), initialProps: { id: 'c1' } },
+    )
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    rerender({ id: 'c2' })
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/communities/c2/seasons')
+  })
+
+  it('keys the query on the viewer so a different identity refetches', async () => {
+    mockFetch.mockResolvedValue(emptyList)
+    const { result, rerender } = renderHook(() => useSeasonList('c1'), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    signedInAs('u1')
+    rerender()
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+    signedInAs('u2')
+    rerender()
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3))
+  })
 })
 
 describe('useSeasonView', () => {
+  it('fetches season 0 rather than treating it as missing', async () => {
+    mockFetch.mockResolvedValue({ ok: true, data: { data: viewFor(0) } })
+    const { result } = renderHook(() => useSeasonView('c1', 0), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockFetch).toHaveBeenCalledWith('/api/communities/c1/seasons/0')
+  })
+
+  it('keys the query on the community id so switching refetches', async () => {
+    mockFetch.mockResolvedValue({ ok: true, data: { data: viewFor(2) } })
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => useSeasonView(id, 2),
+      { wrapper: wrapper(), initialProps: { id: 'c1' } },
+    )
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    rerender({ id: 'c2' })
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/communities/c2/seasons/2')
+  })
+
+  it('keys the query on the viewer so sign-in and sign-out refetch', async () => {
+    mockFetch.mockResolvedValue({ ok: true, data: { data: viewFor(2) } })
+    const { result, rerender } = renderHook(() => useSeasonView('c1', 2), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    signedInAs('u1')
+    rerender()
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+    signedInAs('u2')
+    rerender()
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3))
+  })
+
   it('requests the season by number and returns the view', async () => {
     mockFetch.mockResolvedValue({ ok: true, data: { data: viewFor(2) } })
     const { result } = renderHook(() => useSeasonView('c1', 2), { wrapper: wrapper() })

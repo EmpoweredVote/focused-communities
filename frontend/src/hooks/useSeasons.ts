@@ -1,11 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '../lib/apiFetch'
+import { useAuth } from '../context/AuthContext'
 import type {
   SeasonDetailResponse,
   SeasonListResponse,
   SeasonSummary,
   SeasonView,
 } from '../types'
+
+// The seasons API varies by caller (drafts and rationale for a maven, a fallback
+// view for everyone else), so the viewer is part of the cache key. 'loading' and
+// 'inform' carry no user and are requested as anonymous.
+function useViewerKey(): string {
+  const { auth } = useAuth()
+  return 'user' in auth ? auth.user.id : 'anon'
+}
+
+// Matches the server's TTL.SEASONS; a longer client window only widens staleness.
+const STALE_MS = 5 * 60_000
 
 export interface SeasonList {
   seasons: SeasonSummary[]
@@ -14,21 +26,23 @@ export interface SeasonList {
 }
 
 export function useSeasonList(communityId?: string) {
+  const viewer = useViewerKey()
   return useQuery<SeasonList>({
-    queryKey: ['seasons', communityId],
+    queryKey: ['seasons', viewer, communityId],
     queryFn: async () => {
       const res = await apiFetch<SeasonListResponse>(`/api/communities/${communityId}/seasons`)
       if (!res.ok) throw new Error(res.error)
       return { seasons: res.data.data, defaultSeason: res.data.meta.defaultSeason }
     },
-    staleTime: 30 * 60_000,
+    staleTime: STALE_MS,
     enabled: !!communityId,
   })
 }
 
 export function useSeasonView(communityId?: string, seasonNumber?: number) {
+  const viewer = useViewerKey()
   return useQuery<SeasonView>({
-    queryKey: ['season', communityId, seasonNumber],
+    queryKey: ['season', viewer, communityId, seasonNumber],
     queryFn: async () => {
       const res = await apiFetch<SeasonDetailResponse>(
         `/api/communities/${communityId}/seasons/${seasonNumber}`,
@@ -36,7 +50,7 @@ export function useSeasonView(communityId?: string, seasonNumber?: number) {
       if (!res.ok) throw new Error(res.error)
       return res.data.data
     },
-    staleTime: 30 * 60_000,
+    staleTime: STALE_MS,
     enabled: !!communityId && seasonNumber !== undefined,
   })
 }
