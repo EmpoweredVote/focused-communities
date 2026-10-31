@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '../lib/apiFetch'
 import { useAuth } from '../context/AuthContext'
 import type {
@@ -65,7 +65,11 @@ export function useSeasonView(communityId?: string, seasonNumber?: number) {
     // Hold the previous season on screen while the next loads, so a reader
     // comparing wording keeps their place. Callers must mark it stale
     // (isPlaceholderData) rather than present it as the new season.
-    placeholderData: keepPreviousData,
+    // Reuse only within the same viewer and community: a bare keepPreviousData
+    // would carry a maven's rationale across a sign-out, or one community's
+    // content under another's title. Key order: ['season', viewer, community, n].
+    placeholderData: (prev, q) =>
+      q && q.queryKey[1] === viewer && q.queryKey[2] === communityId ? prev : undefined,
     enabled: authReady && !!communityId && seasonNumber !== undefined,
   })
 }

@@ -219,3 +219,57 @@ describe('useSeasonView', () => {
     expect(result.current.error?.message).toBe('boom')
   })
 })
+
+describe('useSeasonView placeholder data', () => {
+  const never = () => new Promise<never>(() => {})
+  const withRationale = (n: number): SeasonView => ({ ...viewFor(n), rationale: 'INTERNAL-RATIONALE' })
+
+  it('shows the previous season while another season of the same community loads', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, data: { data: viewFor(1) } })
+    const { result, rerender } = renderHook(
+      ({ n }: { n: number }) => useSeasonView('c1', n),
+      { wrapper: wrapper(), initialProps: { n: 1 } },
+    )
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    mockFetch.mockImplementationOnce(never)
+    rerender({ n: 2 })
+    expect(result.current.isPlaceholderData).toBe(true)
+    expect(result.current.data?.season.number).toBe(1)
+  })
+
+  it('does not carry the previous viewer view across a viewer change', async () => {
+    signedInAs('maven')
+    mockFetch.mockResolvedValueOnce({ ok: true, data: { data: withRationale(1) } })
+    const { result, rerender } = renderHook(() => useSeasonView('c1', 1), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.data?.rationale).toBe('INTERNAL-RATIONALE'))
+    mockFetch.mockImplementationOnce(never)
+    signedOut()
+    rerender()
+    expect(result.current.data).toBeUndefined()
+    expect(result.current.isPlaceholderData).toBe(false)
+  })
+
+  it('does not carry another community view across a community change', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, data: { data: viewFor(1) } })
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => useSeasonView(id, 1),
+      { wrapper: wrapper(), initialProps: { id: 'c1' } },
+    )
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    mockFetch.mockImplementationOnce(never)
+    rerender({ id: 'c2' })
+    expect(result.current.data).toBeUndefined()
+  })
+
+  it('shows nothing for a community with no seasons (query disabled)', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, data: { data: viewFor(1) } })
+    const { result, rerender } = renderHook(
+      ({ id, n }: { id: string; n?: number }) => useSeasonView(id, n),
+      { wrapper: wrapper(), initialProps: { id: 'c1', n: 1 } as { id: string; n?: number } },
+    )
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    rerender({ id: 'c2', n: undefined })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(result.current.data).toBeUndefined()
+  })
+})

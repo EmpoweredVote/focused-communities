@@ -24,6 +24,15 @@ describe('StanceCard', () => {
     expect(container.querySelectorAll('p')).toHaveLength(1)
   })
 
+  it('offers no expand affordance at all when there is no detail', () => {
+    const { container } = render(<StanceCard stance={base} isHighlighted={false} />)
+    const before = container.innerHTML
+    fireEvent.click(screen.getByText('Test chair text'))
+    expect(container.innerHTML).toBe(before)
+    expect(container.querySelector('.mt-3')).toBeNull()
+    expect(container.textContent).not.toMatch(/▼|▲/)
+  })
+
   it('treats a whitespace-only description as absent', () => {
     const { container } = render(<StanceCard stance={{ ...base, description: '   ' }} isHighlighted={false} />)
     fireEvent.click(screen.getByText('Test chair text'))

@@ -163,6 +163,22 @@ describe('CommunityHubPage seasons', () => {
     expect(screen.getByTestId('loc')).toHaveTextContent('/communities/test-slug?season=1')
   })
 
+  it('replaces rather than pushes history on the slug redirect', () => {
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage('/communities/old-slug?season=1', ['/earlier'])
+    expect(screen.getByTestId('loc')).toHaveTextContent('/communities/test-slug?season=1')
+    fireEvent.click(screen.getByText('go-back'))
+    expect(screen.getByTestId('loc')).toHaveTextContent("/earlier")
+  })
+
+  it('does not mark fresh content as stale', () => {
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    const { container } = renderPage()
+    expect(screen.getByText('Question for Season Two')).toBeInTheDocument()
+    expect(container.querySelectorAll('[aria-busy="true"]')).toHaveLength(0)
+    expect(container.querySelectorAll('.opacity-50')).toHaveLength(0)
+  })
+
   it('does not unmount the forum band when the season changes', () => {
     mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
     renderPage()

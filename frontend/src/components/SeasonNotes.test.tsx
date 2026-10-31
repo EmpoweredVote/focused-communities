@@ -73,6 +73,14 @@ describe('SeasonNotes', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
+  it.each(['seasonNote', 'topicNote', 'rationale'] as const)(
+    'renders nothing for a whitespace-only %s on its own',
+    (field) => {
+      const { container } = render(<SeasonNotes view={makeView({ [field]: '  ' })} />)
+      expect(container).toBeEmptyDOMElement()
+    },
+  )
+
   it('tells the reader when the shown season is a fallback', () => {
     const { container, rerender } = render(<SeasonFallbackNotice view={makeView()} />)
     expect(container).toBeEmptyDOMElement()
