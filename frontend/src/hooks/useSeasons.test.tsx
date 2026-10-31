@@ -23,6 +23,10 @@ function signedInAs(id: string) {
   })
 }
 
+function authLoading() {
+  mockAuth.mockReturnValue({ auth: { state: 'loading' }, signIn: vi.fn(), signOut: vi.fn() })
+}
+
 function signedOut() {
   mockAuth.mockReturnValue({ auth: { state: 'inform' }, signIn: vi.fn(), signOut: vi.fn() })
 }
@@ -114,6 +118,32 @@ describe('useSeasonList', () => {
     signedInAs('u2')
     rerender()
     await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3))
+  })
+})
+
+describe('auth gating', () => {
+  it('useSeasonList fetches nothing while auth is loading, then once it resolves', async () => {
+    mockFetch.mockResolvedValue(emptyList)
+    authLoading()
+    const { result, rerender } = renderHook(() => useSeasonList('c1'), { wrapper: wrapper() })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(mockFetch).not.toHaveBeenCalled()
+    signedInAs('u1')
+    rerender()
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('useSeasonView fetches nothing while auth is loading, then once it resolves', async () => {
+    mockFetch.mockResolvedValue({ ok: true, data: { data: viewFor(2) } })
+    authLoading()
+    const { result, rerender } = renderHook(() => useSeasonView('c1', 2), { wrapper: wrapper() })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(mockFetch).not.toHaveBeenCalled()
+    signedInAs('u1')
+    rerender()
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockFetch).toHaveBeenCalledTimes(1)
   })
 })
 

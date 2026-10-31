@@ -8,12 +8,23 @@ import type {
   SeasonView,
 } from '../types'
 
-// The seasons API varies by caller (drafts and rationale for a maven, a fallback
-// view for everyone else), so the viewer is part of the cache key. 'loading' and
-// 'inform' carry no user and are requested as anonymous.
-function useViewerKey(): string {
+// The seasons API returns different data depending on who is asking: a maven
+// sees draft seasons and the rationale field, everyone else gets the default
+// season as a fallback. The cache must therefore be keyed on the viewer, or a
+// visitor who signs in (or a maven who signs out) would keep the other
+// identity's response until staleTime expires, with no invalidation to fix it.
+// 'inform' carries no user and is keyed as 'anon'.
+//
+// Queries also wait for auth to resolve. While auth is 'loading' the viewer is
+// unknown; fetching then would show a signed-in maven the anonymous view first
+// and silently swap it once their id arrives. A brief skeleton beats content
+// that is wrong for the viewer and then changes under them.
+function useViewer(): { viewer: string; authReady: boolean } {
   const { auth } = useAuth()
-  return 'user' in auth ? auth.user.id : 'anon'
+  return {
+    viewer: 'user' in auth ? auth.user.id : 'anon',
+    authReady: auth.state !== 'loading',
+  }
 }
 
 // Matches the server's TTL.SEASONS; a longer client window only widens staleness.
@@ -26,7 +37,7 @@ export interface SeasonList {
 }
 
 export function useSeasonList(communityId?: string) {
-  const viewer = useViewerKey()
+  const { viewer, authReady } = useViewer()
   return useQuery<SeasonList>({
     queryKey: ['seasons', viewer, communityId],
     queryFn: async () => {
@@ -35,12 +46,12 @@ export function useSeasonList(communityId?: string) {
       return { seasons: res.data.data, defaultSeason: res.data.meta.defaultSeason }
     },
     staleTime: STALE_MS,
-    enabled: !!communityId,
+    enabled: authReady && !!communityId,
   })
 }
 
 export function useSeasonView(communityId?: string, seasonNumber?: number) {
-  const viewer = useViewerKey()
+  const { viewer, authReady } = useViewer()
   return useQuery<SeasonView>({
     queryKey: ['season', viewer, communityId, seasonNumber],
     queryFn: async () => {
@@ -51,6 +62,6 @@ export function useSeasonView(communityId?: string, seasonNumber?: number) {
       return res.data.data
     },
     staleTime: STALE_MS,
-    enabled: !!communityId && seasonNumber !== undefined,
+    enabled: authReady && !!communityId && seasonNumber !== undefined,
   })
 }
