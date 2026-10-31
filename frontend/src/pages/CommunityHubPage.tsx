@@ -81,12 +81,17 @@ export default function CommunityHubPage() {
     ? (isInverted ? [...view.chairs].reverse() : view.chairs)
     : []
 
-  // Never show the error block above chairs that rendered (e.g. list failed but ?season=N detail loaded).
+  // Switching away from a season that had no chairs leaves nothing to dim, so the band shows
+  // the skeleton rather than describing the season being left behind.
+  const chairsLoading = seasonsLoading || (seasonStale && displayedChairs.length === 0)
+  // Never show the error block above chairs that rendered (e.g. list failed but ?season=N detail
+  // loaded), nor above the skeleton while the detail request is still in flight.
   const seasonsError =
     (seasonList.isError || (selectedSeason !== undefined && seasonView.isError)) &&
+    !seasonsLoading &&
     displayedChairs.length === 0
   const emptySeason =
-    !seasonsLoading && !noSeasons && !seasonsError && view !== undefined && view.chairs.length === 0
+    !chairsLoading && !noSeasons && !seasonsError && view !== undefined && view.chairs.length === 0
 
   const {
     threads,
@@ -196,7 +201,7 @@ export default function CommunityHubPage() {
             )}
           </div>
 
-          {seasonsLoading && (
+          {chairsLoading && (
             <div className="flex flex-col gap-3 max-w-2xl">
               {Array.from({ length: 5 }).map((_, i) => <StanceCardSkeleton key={i} />)}
             </div>

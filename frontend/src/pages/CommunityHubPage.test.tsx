@@ -337,4 +337,26 @@ describe('CommunityHubPage seasons', () => {
     expect(screen.queryByText('No perspectives were recorded for this season.')).not.toBeInTheDocument()
   })
 
+  it('shows the skeleton, not the empty-season copy, while switching away from an empty season', () => {
+    chairs = []
+    stale = true
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    const { container } = renderPage('/communities/test-slug?season=1')
+    expect(screen.queryByText('No perspectives were recorded for this season.')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('.react-loading-skeleton').length).toBeGreaterThan(0)
+  })
+
+  it('does not show the error block above the skeleton while the detail request is in flight', () => {
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    vi.mocked(useSeasonList).mockReturnValue({
+      data: undefined, isPending: false, isError: true, isSuccess: false, refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useSeasonList>)
+    vi.mocked(useSeasonView).mockReturnValue({
+      data: undefined, isPending: true, isError: false, isPlaceholderData: false, refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useSeasonView>)
+    const { container } = renderPage('/communities/test-slug?season=2')
+    expect(screen.queryByText('Failed to load perspectives')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('.react-loading-skeleton').length).toBeGreaterThan(0)
+  })
+
 })
