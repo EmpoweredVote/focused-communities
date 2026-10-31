@@ -30,7 +30,7 @@ export function EditForm({
           onChange={e => setValue(e.target.value)}
           maxLength={maxLength}
           rows={4}
-          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
+          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring resize-none"
           autoFocus
         />
       ) : (
@@ -39,7 +39,7 @@ export function EditForm({
           value={value}
           onChange={e => setValue(e.target.value)}
           maxLength={maxLength}
-          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal"
+          className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring"
           autoFocus
         />
       )}

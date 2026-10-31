@@ -33,7 +33,7 @@ export default function DirectoryPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search communities..."
-            className="w-full px-4 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal focus:border-transparent"
+            className="w-full px-4 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring"
           />
         </div>
 

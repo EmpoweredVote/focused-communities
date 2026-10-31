@@ -47,7 +47,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
             onBlur={() => setTitleTouched(true)}
             maxLength={150}
             placeholder="What's your topic?"
-            className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal"
+            className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring"
           />
           <CharCounter value={title} max={150} />
           {titleError && <p className="text-red-500 text-xs mt-1">{titleError}</p>}
@@ -62,7 +62,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
             maxLength={2000}
             rows={5}
             placeholder="Share your perspective..."
-            className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
+            className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring resize-none"
           />
           <CharCounter value={body} max={2000} />
           {bodyError && <p className="text-red-500 text-xs mt-1">{bodyError}</p>}

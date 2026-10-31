@@ -108,7 +108,7 @@ export default function ThreadPage() {
                   value={editTitle}
                   onChange={e => setEditTitle(e.target.value)}
                   maxLength={150}
-                  className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal font-bold text-xl"
+                  className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring font-bold text-xl"
                   autoFocus
                 />
                 <CharCounter value={editTitle} max={150} />
@@ -119,7 +119,7 @@ export default function ThreadPage() {
                   onChange={e => setEditBody(e.target.value)}
                   maxLength={5000}
                   rows={6}
-                  className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ev-teal resize-none"
+                  className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring resize-none"
                 />
                 <CharCounter value={editBody} max={5000} />
               </div>
