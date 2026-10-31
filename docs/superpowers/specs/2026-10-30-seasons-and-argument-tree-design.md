@@ -1,7 +1,9 @@
 # Focused Communities: Seasons and the Argument Tree
 
-**Date:** 2026-10-30 (revised 2026-10-31 after builder review)
-**Status:** Design, approved for planning
+**Date:** 2026-10-30
+**Revised:** 2026-10-31 — after builder review, and again after merging `origin/master`,
+which froze this repo's backend and moved the API into the accounts engine (§3, §9, §12).
+**Status:** Design, awaiting approval
 **Extends** v1.0 (shipped 2026-04-17).
 
 ---
@@ -90,8 +92,20 @@ done.** The builder does not self-certify these. *(Author's call.)*
 
 Inherited from the platform and v1.0. Not up for renegotiation here.
 
-- **Tech stack:** Supabase (DB/auth/RLS), Express/TypeScript on Render under `/api/`,
-  Upstash Redis with in-memory fallback, Vite/React frontend, TypeScript throughout.
+- **This repo is frontend-only. The API lives elsewhere.** `src/` was frozen on 2026-10-26
+  (see `FROZEN.md`). The Focused Communities API now lives in
+  `EmpoweredVote/ev-accounts → backend/src/focused_communities/`, served at
+  `https://accounts-api.empowered.vote/fc/api/...` — same paths, `/fc` in front. **Every
+  endpoint this design needs is built there, not here.** This repo holds the Vite/React
+  frontend, deployed as a Render static site. Do not add routes to `src/`.
+- **Use `@empoweredvote/ev-ui` components.** Do not copy or restyle them. The `ev-designer`
+  skill in `EmpoweredVote/ev-ui` (`plugins/ev-designer/`) indexes the public routes with
+  sample responses.
+- **Never invent data in a component** — no real-looking names, numbers, dates, quotes or
+  IDs, not even as placeholders. Interface copy is fine. Anything the API does not serve yet
+  goes in one module under `frontend/src/mocks/`, shaped like the response and headed
+  `// Stands in for: GET /api/<route> — not yet served by the API`. If a request fails, say
+  so and stop; do not substitute invented data.
 - **RLS always on.** Application checks are a second layer only.
 - **Migrations only.** All schema changes via Supabase CLI migrations. The Supabase project
   is shared with EV-Accounts — use the MCP `apply_migration`, never `db push`.
@@ -338,9 +352,15 @@ are the minimum viable version of that curation.
 visibility, `rationale` display, and hiding.
 
 **Interim mechanism:** a Maven/Admin user-id allowlist supplied by environment variable,
-checked by a new `requireMaven` guard alongside `requireConnected`. This unblocks every
-Maven surface in this document cheaply and is replaced by a real role claim when EV-Accounts
-exposes one. The guard's interface should not change when that happens. *(Author's call.)*
+checked by a new `requireMaven` guard alongside `requireConnected`. The guard's interface
+should not change when a real role claim replaces the allowlist. *(Author's call.)*
+
+**Revisit this before building it.** The guard now belongs in
+`ev-accounts/backend/src/focused_communities/`, which is the same codebase that owns
+accounts and roles. A real Maven/Admin role may already be reachable there, in which case
+the allowlist is unnecessary. Check the engine before implementing the interim mechanism —
+the `src/middleware/tierGuards.ts` limitation described above is a fact about the *frozen*
+backend and may not describe the engine at all.
 
 The tree can ship and be useful before curation exists — the user explicitly wants to see it
 before revising it — so build the tree first, with curation behind the guard.
@@ -392,9 +412,15 @@ The planning docs are stale. `frontend/src/index.css` is authoritative:
 ### Light and dark
 
 Already most of the way there. `index.css` carries a full semantic token set with an
-`html.dark` override and `@custom-variant dark`. A working `useTheme.ts` hook and header
-toggle exist **uncommitted in the working tree** — commit them as part of this work rather
-than rewriting them. Every new surface uses semantic tokens; no raw hex in components.
+`html.dark` override and `@custom-variant dark`. A `useTheme.ts` hook and header toggle
+were committed on 2026-10-31 (`b852cad`). Every new surface uses semantic tokens; no raw
+hex in components.
+
+**Check `@empoweredvote/ev-ui` first.** CLAUDE.md requires using its components rather than
+copying or restyling them, and a shared theme toggle may already exist there — in which
+case `useTheme.ts` should be replaced by it rather than extended. The claim card, the
+two-column split and the season selector should all be built from ev-ui primitives where
+they exist.
 
 ### Pro/con colour — author's call
 
@@ -424,6 +450,14 @@ New tables in `connect`:
 
 Notes for the builder:
 
+- **Where this lands.** The tables stay in the `connect` schema of the shared Supabase
+  instance, but the migration and all API code belong in `ev-accounts`, not here (§3).
+- **The engine's database role is deliberately narrow.** `FROZEN.md` records that the
+  `focused_communities` module uses a role limited to the five tables it needs
+  (migration CA_0323 in ev-accounts), explicitly replacing the broad service-role key the
+  old backend held. Adding `claims`, `claim_ratings` and `claim_edits` means **extending
+  that role's grants in an ev-accounts migration**. Leaving this out is the most likely way
+  for the tree to fail in production while passing locally.
 - **Do not copy `connect.log_post_edit()` verbatim.** It records `editor_id` as
   `OLD.author_id`, which would attribute every Maven move or merge to the claim's original
   author. Claim history must record the actual actor.
@@ -475,6 +509,14 @@ Review these; they were settled by the author, not stated by the user.
 
 ## 12. External dependencies
 
-- EV-Accounts must expose a Maven/Admin role to replace the interim allowlist.
+- **`EmpoweredVote/ev-accounts` owns the API.** All endpoint work for this design happens in
+  `backend/src/focused_communities/`, including the migration that creates the claim tables
+  and extends the module's database role to cover them.
+- **`EmpoweredVote/ev-ui`** supplies the components. Read its `ev-designer` skill for the
+  public route index and sample responses before building any surface.
+- EV-Accounts must expose a Maven/Admin role to replace the interim allowlist — check
+  whether one already exists in the engine (§6).
 - Compass-side authoring to fill `compass_stance_revisions` descriptions before band 2 can
   read revisions for the open season.
+- The static-site cutover in `FROZEN.md` is a founder task and is not part of this work,
+  but this design assumes it has happened.
