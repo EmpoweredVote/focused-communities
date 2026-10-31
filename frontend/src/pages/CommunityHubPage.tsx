@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
 import { useStances } from '../hooks/useStances'
-import type { DisplayStance } from '../hooks/useStances'
+import type { Stance } from '../types'
 import { useThreads } from '../hooks/useThreads'
 import { StanceCard } from '../components/StanceCard'
 import { StanceCardSkeleton, ThreadListItemSkeleton } from '../components/SkeletonCard'
@@ -30,7 +30,7 @@ export default function CommunityHubPage() {
   const { data: stances, isLoading: stancesLoading, isError: stancesError, refetch: refetchStances } =
     useStances(community?.id)
 
-  const displayedStances: DisplayStance[] = stances
+  const displayedStances: Stance[] = stances
     ? (isInverted ? [...stances].reverse() : stances)
     : []
 

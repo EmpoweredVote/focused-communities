@@ -11,8 +11,6 @@ export interface Community {
 }
 
 export interface Stance {
-  /** INTERNAL — never render to users. Display order is randomized. */
-  position: number
   text: string
   supportingPoints: string[]
   description: string

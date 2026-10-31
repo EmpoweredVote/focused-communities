@@ -1,8 +1,8 @@
 import { useRef, useEffect, useState } from 'react'
-import type { DisplayStance } from '../hooks/useStances'
+import type { Stance } from '../types'
 
 interface StanceCardProps {
-  stance: DisplayStance
+  stance: Stance
   isHighlighted: boolean
 }
 
