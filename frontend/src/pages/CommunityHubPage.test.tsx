@@ -129,11 +129,31 @@ describe('CommunityHubPage seasons', () => {
     expect(screen.getByText('Question for Season One')).toBeInTheDocument()
   })
 
-  it.each(['abc', '-1', '0', '1.5', ''])('treats ?season=%s as absent and never requests it', (bad) => {
+  it.each(['abc', '-1', '0', '1.5'])('never requests ?season=%s and says the requested season was not available', (bad) => {
     mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
     renderPage(`/communities/test-slug?season=${bad}`)
     expect(new Set(requestedSeasons())).toEqual(new Set([2]))
     expect(screen.getByText('Question for Season Two')).toBeInTheDocument()
+    const notice = screen.getByTestId('season-fallback')
+    expect(notice).toHaveTextContent('The season you asked for is not available. You are reading Season Two instead.')
+    const question = screen.getByText('Question for Season Two')
+    expect(notice.compareDocumentPosition(question) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('treats a bare ?season= as absent and shows no notice', () => {
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage('/communities/test-slug?season=')
+    expect(new Set(requestedSeasons())).toEqual(new Set([2]))
+    expect(screen.queryByTestId('season-fallback')).not.toBeInTheDocument()
+  })
+
+  it('shows no notice for a valid or absent ?season=', () => {
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage('/communities/test-slug?season=1')
+    expect(screen.queryByTestId('season-fallback')).not.toBeInTheDocument()
+    cleanup()
+    renderPage()
+    expect(screen.queryByTestId('season-fallback')).not.toBeInTheDocument()
   })
 
   it('passes an unknown positive season to the API and shows what is on screen', () => {
@@ -215,6 +235,21 @@ describe('CommunityHubPage seasons', () => {
     expect(screen.getByText('Chair with no description')).toBeInTheDocument()
     expect(container.textContent).not.toMatch(/null|▼|▲|Example Perspectives/)
   })
+
+  it.each([[0.9, ['Chair A', 'Chair B', 'Chair C']], [0.1, ['Chair C', 'Chair B', 'Chair A']]])(
+    'with Math.random()=%s lists the ladder in one of its two orders, then reverses on Invert',
+    (rand, expected) => {
+      vi.spyOn(Math, 'random').mockReturnValue(rand)
+      chairs = ['Chair A', 'Chair B', 'Chair C'].map((text) => ({ ...plainChair, text }))
+      mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+      renderPage()
+      const shown = () => screen.getAllByText(/^Chair [ABC]$/).map((e) => e.textContent)
+      expect(shown()).toEqual(expected)
+      fireEvent.click(screen.getByText('Invert'))
+      expect(shown()).toEqual([...expected].reverse())
+      vi.restoreAllMocks()
+    },
+  )
 
   it('keeps an expanded card on its own chair when Invert reorders the list', () => {
     chairs = [

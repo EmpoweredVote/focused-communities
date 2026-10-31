@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
 import { useSeasonList, useSeasonView } from '../hooks/useSeasons'
+import { useLadderDirection } from '../hooks/useLadderDirection'
 import type { Chair } from '../types'
 import { useThreads } from '../hooks/useThreads'
 import { StanceCard } from '../components/StanceCard'
@@ -18,7 +19,6 @@ export default function CommunityHubPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [sort, setSort] = useState<'active' | 'newest'>('active')
-  const [isInverted, setIsInverted] = useState(false)
 
   const { data: community, isLoading: communityLoading, isError: communityError } = useCommunityBySlug(slug)
 
@@ -41,11 +41,16 @@ export default function CommunityHubPage() {
     rawSeason !== null && /^\d+$/.test(rawSeason) && Number(rawSeason) >= 1
       ? Number(rawSeason)
       : null
+  // A present-but-unusable value (abc, -1, 0, 1.5) gets the same notice as an unknown season the API
+  // falls back from. A bare "?season=" is treated as absent.
+  const seasonParamRejected = rawSeason !== null && rawSeason !== '' && requestedSeason === null
   const noSeasons = seasonList.isSuccess && defaultSeason === null
   const selectedSeason = noSeasons ? undefined : (requestedSeason ?? defaultSeason ?? undefined)
 
   const seasonView = useSeasonView(community?.id, selectedSeason)
   const view = seasonView.data
+  // Which end of the ladder is on top is random per visit; the order itself is never shuffled.
+  const { flipped: isInverted, toggle: toggleDirection } = useLadderDirection(view?.chairs.length ?? 0)
   // With keepPreviousData, view is the previous season while the next loads.
   const seasonStale = seasonView.isPlaceholderData
   const seasonsLoading =
@@ -150,7 +155,7 @@ export default function CommunityHubPage() {
               className={`transition-opacity ${seasonStale ? 'opacity-50' : ''}`}
             >
               <div className="mt-4 max-w-2xl">
-                <SeasonFallbackNotice view={view} />
+                <SeasonFallbackNotice view={seasonParamRejected ? { ...view, isFallback: true } : view} />
               </div>
               <p className="mt-4 text-xl font-semibold text-text-body leading-snug">
                 {view.questionText}
@@ -168,7 +173,7 @@ export default function CommunityHubPage() {
             <h2 className="text-lg font-semibold text-text-primary">Perspectives</h2>
             {displayedChairs.length > 0 && (
               <button
-                onClick={() => setIsInverted(prev => !prev)}
+                onClick={toggleDirection}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors ${
                   isInverted
                     ? 'bg-ev-teal text-white border-ev-teal'
