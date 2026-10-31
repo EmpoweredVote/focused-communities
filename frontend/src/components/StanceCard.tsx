@@ -3,7 +3,7 @@ import type { Chair } from '../types'
 
 interface StanceCardProps {
   // Chair.description is null for most chairs; a Stance is assignable here too.
-  stance: Pick<Chair, 'text' | 'description' | 'examplePerspectives'>
+  stance: Pick<Chair, 'text' | 'description' | 'supportingPoints' | 'examplePerspectives'>
   isHighlighted: boolean
 }
 
@@ -11,10 +11,14 @@ export function StanceCard({ stance, isHighlighted }: StanceCardProps) {
   const [expanded, setExpanded] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  // A chair with no description and no examples has nothing to expand into,
+  // A chair with no description, supporting points or examples has nothing to expand into,
   // so it stays a plain, non-interactive card rather than opening an empty panel.
-  const hasExamples = !!stance.examplePerspectives && stance.examplePerspectives.length > 0
-  const hasDetail = !!stance.description || hasExamples
+  const examples = (stance.examplePerspectives ?? []).filter((e) => e.trim())
+  const points = (stance.supportingPoints ?? []).filter((p) => p.trim())
+  const hasExamples = examples.length > 0
+  const hasPoints = points.length > 0
+  const hasDescription = !!stance.description?.trim()
+  const hasDetail = hasDescription || hasPoints || hasExamples
 
   useEffect(() => {
     if (expanded && cardRef.current) {
@@ -27,11 +31,12 @@ export function StanceCard({ stance, isHighlighted }: StanceCardProps) {
       ref={cardRef}
       onClick={hasDetail ? () => setExpanded(prev => !prev) : undefined}
       className={[
-        'border rounded-lg p-4 transition-all shadow-sm hover:shadow-md',
-        hasDetail ? 'cursor-pointer' : '',
+        'border rounded-lg p-4 transition-all shadow-sm',
+        hasDetail ? 'cursor-pointer hover:shadow-md' : '',
         isHighlighted
           ? 'bg-ev-yellow-light border-ev-yellow'
-          : 'bg-surface-card border-border-light hover:border-border-medium border-l-4 border-l-transparent hover:border-l-ev-teal-light',
+          : 'bg-surface-card border-border-light border-l-4 border-l-transparent',
+        !isHighlighted && hasDetail ? 'hover:border-border-medium hover:border-l-ev-teal-light' : '',
       ].join(' ')}
     >
       {/* Headline — always visible */}
@@ -47,10 +52,25 @@ export function StanceCard({ stance, isHighlighted }: StanceCardProps) {
       {/* Expanded content */}
       {expanded && hasDetail && (
         <div className="mt-3 md:max-h-80 md:overflow-y-auto">
-          {stance.description && (
+          {hasDescription && (
             <p className="text-text-secondary text-sm leading-relaxed mb-3">
               {stance.description}
             </p>
+          )}
+          {hasPoints && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
+                Supporting Points
+              </p>
+              {/* Unordered on purpose: nothing here may read as a rung number. */}
+              <ul className="list-disc pl-5 space-y-1">
+                {points.map((point, i) => (
+                  <li key={i} className="text-sm text-text-secondary">
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {hasExamples && (
             <div>
@@ -58,7 +78,7 @@ export function StanceCard({ stance, isHighlighted }: StanceCardProps) {
                 Example Perspectives
               </p>
               <ul className="space-y-2">
-                {stance.examplePerspectives.map((perspective, i) => (
+                {examples.map((perspective, i) => (
                   <li key={i} className="text-sm text-text-secondary italic">
                     &ldquo;{perspective}&rdquo;
                   </li>

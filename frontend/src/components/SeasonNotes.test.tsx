@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
-import { SeasonNotes } from './SeasonNotes'
+import { SeasonNotes, SeasonFallbackNotice } from './SeasonNotes'
 import type { SeasonView } from '../types'
 
 afterEach(cleanup)
@@ -61,10 +61,22 @@ describe('SeasonNotes', () => {
     expect(screen.getByText('RATIONALE-X')).toBeInTheDocument()
   })
 
+  it('renders a rationale-only view', () => {
+    render(<SeasonNotes view={makeView({ rationale: 'RATIONALE-ONLY' })} />)
+    expect(screen.getByText('RATIONALE-ONLY')).toBeInTheDocument()
+  })
+
+  it('renders no block for empty or whitespace-only notes and rationale', () => {
+    const { container } = render(
+      <SeasonNotes view={makeView({ seasonNote: '', topicNote: '  ', rationale: '' })} />,
+    )
+    expect(container).toBeEmptyDOMElement()
+  })
+
   it('tells the reader when the shown season is a fallback', () => {
-    const { rerender } = render(<SeasonNotes view={makeView({ seasonNote: 'N' })} />)
-    expect(screen.queryByTestId('season-fallback')).not.toBeInTheDocument()
-    rerender(<SeasonNotes view={makeView({ isFallback: true })} />)
+    const { container, rerender } = render(<SeasonFallbackNotice view={makeView()} />)
+    expect(container).toBeEmptyDOMElement()
+    rerender(<SeasonFallbackNotice view={makeView({ isFallback: true })} />)
     expect(screen.getByTestId('season-fallback')).toHaveTextContent(/not available.*Test Season/)
   })
 })

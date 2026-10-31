@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { apiFetch } from '../lib/apiFetch'
 import { useAuth } from '../context/AuthContext'
 import type {
@@ -62,6 +62,10 @@ export function useSeasonView(communityId?: string, seasonNumber?: number) {
       return res.data.data
     },
     staleTime: STALE_MS,
+    // Hold the previous season on screen while the next loads, so a reader
+    // comparing wording keeps their place. Callers must mark it stale
+    // (isPlaceholderData) rather than present it as the new season.
+    placeholderData: keepPreviousData,
     enabled: authReady && !!communityId && seasonNumber !== undefined,
   })
 }

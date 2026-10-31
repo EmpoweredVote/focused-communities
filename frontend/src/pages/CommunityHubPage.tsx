@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router'
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
 import { useSeasonList, useSeasonView } from '../hooks/useSeasons'
 import type { Chair } from '../types'
 import { useThreads } from '../hooks/useThreads'
 import { StanceCard } from '../components/StanceCard'
 import { SeasonSelector } from '../components/SeasonSelector'
-import { SeasonNotes } from '../components/SeasonNotes'
+import { SeasonNotes, SeasonFallbackNotice } from '../components/SeasonNotes'
 import { StanceCardSkeleton, ThreadListItemSkeleton } from '../components/SkeletonCard'
 import { BackNav } from '../components/BackNav'
 import { ThreadListItem } from '../components/ThreadListItem'
@@ -16,6 +16,7 @@ import { Header } from '../components/Header'
 export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const [sort, setSort] = useState<'active' | 'newest'>('active')
   const [isInverted, setIsInverted] = useState(false)
 
@@ -25,9 +26,10 @@ export default function CommunityHubPage() {
   // correct the URL so bookmarks and shared links self-heal going forward.
   useEffect(() => {
     if (community && slug && community.slug !== slug) {
-      navigate(`/communities/${community.slug}`, { replace: true })
+      // Keep the query string and hash: ?season= is what makes a shared link worth sharing.
+      navigate(`/communities/${community.slug}${location.search}${location.hash}`, { replace: true })
     }
-  }, [community, slug, navigate])
+  }, [community, slug, navigate, location.search, location.hash])
 
   // Bands 1 and 2 are season-scoped. The chosen season lives in ?season= so a
   // link shows the same wording; an absent or unparseable value means "default".
@@ -36,12 +38,16 @@ export default function CommunityHubPage() {
   const defaultSeason = seasonList.data?.defaultSeason ?? null
   const rawSeason = searchParams.get('season')
   const requestedSeason =
-    rawSeason !== null && /^\d+$/.test(rawSeason) ? Number(rawSeason) : null
+    rawSeason !== null && /^\d+$/.test(rawSeason) && Number(rawSeason) >= 1
+      ? Number(rawSeason)
+      : null
   const noSeasons = seasonList.isSuccess && defaultSeason === null
   const selectedSeason = noSeasons ? undefined : (requestedSeason ?? defaultSeason ?? undefined)
 
   const seasonView = useSeasonView(community?.id, selectedSeason)
   const view = seasonView.data
+  // With keepPreviousData, view is the previous season while the next loads.
+  const seasonStale = seasonView.isPlaceholderData
   const seasonsLoading =
     seasonList.isPending || (selectedSeason !== undefined && seasonView.isPending)
   const seasonsError = seasonList.isError || (selectedSeason !== undefined && seasonView.isError)
@@ -55,6 +61,15 @@ export default function CommunityHubPage() {
       },
       { replace: true },
     )
+  }
+
+  // Keys come from the chair, not its position, so an expanded card follows its
+  // chair when Invert reorders the list. Repeated texts get an occurrence suffix.
+  const seen = new Map<string, number>()
+  function chairKey(text: string): string {
+    const n = seen.get(text) ?? 0
+    seen.set(text, n + 1)
+    return `${view?.season.number}|${text}|${n}`
   }
 
   // Ladder order is array order; never derive or show a 1-5 number.
@@ -124,20 +139,26 @@ export default function CommunityHubPage() {
             <div className="mt-6 max-w-2xl">
               <SeasonSelector
                 seasons={seasonList.data.seasons}
-                value={selectedSeason ?? -1}
+                value={(view && !seasonStale ? view.season.number : selectedSeason) ?? -1}
                 onChange={changeSeason}
               />
             </div>
           )}
           {view && (
-            <>
+            <div
+              aria-busy={seasonStale}
+              className={`transition-opacity ${seasonStale ? 'opacity-50' : ''}`}
+            >
+              <div className="mt-4 max-w-2xl">
+                <SeasonFallbackNotice view={view} />
+              </div>
               <p className="mt-4 text-xl font-semibold text-text-body leading-snug">
                 {view.questionText}
               </p>
               <div className="max-w-2xl">
                 <SeasonNotes view={view} />
               </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -189,11 +210,14 @@ export default function CommunityHubPage() {
           )}
 
           {displayedChairs.length > 0 && (
-            <div className="flex flex-col gap-3 max-w-2xl">
-              {displayedChairs.map((stance, i) => (
+            <div
+              aria-busy={seasonStale}
+              className={`flex flex-col gap-3 max-w-2xl transition-opacity ${seasonStale ? 'opacity-50' : ''}`}
+            >
+              {displayedChairs.map((stance) => (
                 // TODO: calibrated stance highlight — requires compass data API
                 <StanceCard
-                  key={`${view?.season.number}-${i}`}
+                  key={chairKey(stance.text)}
                   stance={stance}
                   isHighlighted={false}
                 />

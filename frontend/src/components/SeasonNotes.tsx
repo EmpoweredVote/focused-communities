@@ -21,26 +21,35 @@ const CHANGE_LABEL: Record<Exclude<ChangeClass, null>, { title: string; detail: 
   },
 }
 
-export function SeasonNotes({ view }: SeasonNotesProps) {
-  const { changeClass, seasonNote, topicNote, rationale, isFallback, season } = view
-  const label = changeClass ? CHANGE_LABEL[changeClass] : undefined
+// Shown above the question: the reader must learn this is not the season they
+// asked for before reading the wording.
+export function SeasonFallbackNotice({ view }: SeasonNotesProps) {
+  if (!view.isFallback) return null
+  return (
+    <p
+      data-testid="season-fallback"
+      className="text-sm text-text-body bg-ev-yellow-light border border-ev-yellow rounded px-2 py-1"
+    >
+      The season you asked for is not available. You are reading {view.season.name} instead.
+    </p>
+  )
+}
 
-  if (!label && !seasonNote && !topicNote && !rationale && !isFallback) return null
+export function SeasonNotes({ view }: SeasonNotesProps) {
+  const { changeClass } = view
+  const label = changeClass ? CHANGE_LABEL[changeClass] : undefined
+  // Explicit non-empty checks: an empty string must not render a titled, empty block.
+  const seasonNote = view.seasonNote?.trim() ? view.seasonNote : null
+  const topicNote = view.topicNote?.trim() ? view.topicNote : null
+  const rationale = view.rationale?.trim() ? view.rationale : null
+
+  if (!label && !seasonNote && !topicNote && !rationale) return null
 
   return (
     <section
       aria-label="Season notes"
       className="mt-4 flex flex-col gap-3 border border-border-light bg-surface-card rounded-lg p-4 text-sm"
     >
-      {isFallback && (
-        <p
-          data-testid="season-fallback"
-          className="text-text-body bg-ev-yellow-light border border-ev-yellow rounded px-2 py-1"
-        >
-          The season you asked for is not available. You are reading {season.name} instead.
-        </p>
-      )}
-
       {label && (
         <p className="text-text-body">
           <span className="font-semibold">{label.title}.</span> {label.detail}
