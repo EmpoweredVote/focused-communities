@@ -1,9 +1,45 @@
-import { jwtVerify } from 'jose';
+import { jwtVerify, decodeJwt, type JWTPayload } from 'jose';
 import type { Request, Response, NextFunction } from 'express';
-import { JWKS } from '../lib/jwks.js';
+import { JWKS, WORKOS_JWKS, WORKOS_ISSUER } from '../lib/jwks.js';
 
 const SUPABASE_ISSUER = 'https://kxsdzaojfaibhuzmclfq.supabase.co/auth/v1';
 const SUPABASE_AUDIENCE = 'authenticated';
+
+/**
+ * Verify a Bearer token from either issuer and resolve the internal user id
+ * (Supabase -> WorkOS migration, ev-accounts decision 0002). A WorkOS token
+ * carries the internal id in its external_id claim, set at import/provision
+ * time — the WorkOS sub (user_01…) is never the user id. WorkOS tokens have
+ * no aud claim; the dashboard JWT template's role=authenticated stands in
+ * for it. Without WORKOS_CLIENT_ID the WorkOS branch is disabled and this is
+ * exactly the old Supabase-only verification. Throws on anything invalid.
+ */
+async function verifyAccessToken(
+  token: string
+): Promise<{ payload: JWTPayload; userId: string }> {
+  const iss = decodeJwt(token).iss;
+  let payload: JWTPayload;
+  let userId: unknown;
+  if (iss === SUPABASE_ISSUER) {
+    ({ payload } = await jwtVerify(token, JWKS, {
+      issuer: SUPABASE_ISSUER,
+      audience: SUPABASE_AUDIENCE,
+    }));
+    userId = payload.sub;
+  } else if (WORKOS_JWKS !== null && iss === WORKOS_ISSUER) {
+    ({ payload } = await jwtVerify(token, WORKOS_JWKS, { issuer: WORKOS_ISSUER }));
+    if (payload.role !== 'authenticated') {
+      throw new Error('WorkOS token missing role=authenticated (JWT template not applied)');
+    }
+    userId = payload.external_id; // unlinked accounts don't resolve
+  } else {
+    throw new Error('Unknown token issuer');
+  }
+  if (typeof userId !== 'string' || userId === '') {
+    throw new Error('Token does not resolve to a user id');
+  }
+  return { payload, userId };
+}
 
 function getAccountsApiUrl(): string {
   return process.env.ACCOUNTS_API_URL ?? 'https://accounts.empowered.vote';
@@ -23,10 +59,7 @@ export interface AccountUser {
  */
 async function verifyToken(token: string): Promise<AccountUser | null> {
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: SUPABASE_ISSUER,
-      audience: SUPABASE_AUDIENCE,
-    });
+    const { userId } = await verifyAccessToken(token);
 
     const accountRes = await fetch(
       `${getAccountsApiUrl()}/api/account/me`,
@@ -40,7 +73,7 @@ async function verifyToken(token: string): Promise<AccountUser | null> {
     }
 
     const user = (await accountRes.json()) as AccountUser;
-    user.id = payload.sub as string;
+    user.id = userId;
     return user;
   } catch {
     return null;
@@ -66,10 +99,7 @@ export async function requireAuth(
   const token = authHeader.slice(7);
 
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: SUPABASE_ISSUER,
-      audience: SUPABASE_AUDIENCE,
-    });
+    const { userId } = await verifyAccessToken(token);
 
     const accountRes = await fetch(
       `${getAccountsApiUrl()}/api/account/me`,
@@ -84,7 +114,7 @@ export async function requireAuth(
     }
 
     const user = (await accountRes.json()) as AccountUser;
-    user.id = payload.sub as string;
+    user.id = userId;
     res.setHeader('Cache-Control', 'private, no-store');
     req.user = user;
     next();
