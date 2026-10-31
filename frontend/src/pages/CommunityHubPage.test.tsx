@@ -116,6 +116,7 @@ beforeEach(() => {
 })
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
   vi.clearAllMocks()
 })
 
@@ -247,9 +248,30 @@ describe('CommunityHubPage seasons', () => {
       expect(shown()).toEqual(expected)
       fireEvent.click(screen.getByText('Invert'))
       expect(shown()).toEqual([...expected].reverse())
-      vi.restoreAllMocks()
     },
   )
+
+  it.each([0.1, 0.9])('shows the Invert button inactive on a fresh mount whichever way the seed landed (%s)', (rand) => {
+    vi.spyOn(Math, 'random').mockReturnValue(rand)
+    chairs = ['Chair A', 'Chair B'].map((text) => ({ ...plainChair, text }))
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage()
+    const btn = screen.getByRole('button', { name: /Invert/ })
+    expect(btn).toHaveAttribute('aria-pressed', 'false')
+    expect(btn.className).not.toMatch(/bg-ev-teal/)
+    expect(btn).toHaveAttribute('title', 'Flip the order')
+    fireEvent.click(btn)
+    expect(btn).toHaveAttribute('aria-pressed', 'true')
+    expect(btn.className).toMatch(/bg-ev-teal/)
+    expect(btn).toHaveAttribute('title', 'Restore the order shown')
+    expect(btn.getAttribute('title')).not.toMatch(/regular/i)
+  })
+
+  it('offers no Invert button for a single chair', () => {
+    mockSeasons({ seasons: [s1, s2], defaultSeason: 2 })
+    renderPage()
+    expect(screen.queryByText('Invert')).not.toBeInTheDocument()
+  })
 
   it('keeps an expanded card on its own chair when Invert reorders the list', () => {
     chairs = [

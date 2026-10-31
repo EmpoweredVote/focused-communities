@@ -66,4 +66,40 @@ describe('useLadderDirection', () => {
     act(() => result.current.toggle())
     expect(result.current.flipped).toBe(false)
   })
+
+  it('holds its direction when the chair count changes (a season switch)', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.1)
+    const { result, rerender } = renderHook(({ n }) => useLadderDirection(n), { initialProps: { n: 5 } })
+    expect(result.current.flipped).toBe(true)
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    rerender({ n: 4 })
+    expect(result.current.flipped).toBe(true)
+    rerender({ n: 5 })
+    expect(result.current.flipped).toBe(true)
+  })
+
+  it('reports changed only when the reader flipped it away from the mount direction', () => {
+    for (const r of [0.1, 0.9]) {
+      vi.spyOn(Math, 'random').mockReturnValue(r)
+      const { result, unmount } = renderHook(() => useLadderDirection(5))
+      expect(result.current.changed).toBe(false)
+      act(() => result.current.toggle())
+      expect(result.current.changed).toBe(true)
+      act(() => result.current.toggle())
+      expect(result.current.changed).toBe(false)
+      unmount()
+    }
+  })
+
+  it('keeps no hidden state when there is nothing to flip', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    const { result, rerender } = renderHook(({ n }) => useLadderDirection(n), { initialProps: { n: 1 } })
+    act(() => result.current.toggle())
+    act(() => result.current.toggle())
+    act(() => result.current.toggle())
+    expect(result.current.flipped).toBe(false)
+    expect(result.current.changed).toBe(false)
+    rerender({ n: 5 })
+    expect(result.current.flipped).toBe(false)
+  })
 })
