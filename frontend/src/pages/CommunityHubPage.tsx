@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router'
+import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useCommunityBySlug } from '../hooks/useCommunityBySlug'
-import { useStances } from '../hooks/useStances'
-import type { Stance } from '../types'
+import { useSeasonList, useSeasonView } from '../hooks/useSeasons'
+import type { Chair } from '../types'
 import { useThreads } from '../hooks/useThreads'
 import { StanceCard } from '../components/StanceCard'
+import { SeasonSelector } from '../components/SeasonSelector'
+import { SeasonNotes } from '../components/SeasonNotes'
 import { StanceCardSkeleton, ThreadListItemSkeleton } from '../components/SkeletonCard'
 import { BackNav } from '../components/BackNav'
 import { ThreadListItem } from '../components/ThreadListItem'
@@ -27,11 +29,37 @@ export default function CommunityHubPage() {
     }
   }, [community, slug, navigate])
 
-  const { data: stances, isLoading: stancesLoading, isError: stancesError, refetch: refetchStances } =
-    useStances(community?.id)
+  // Bands 1 and 2 are season-scoped. The chosen season lives in ?season= so a
+  // link shows the same wording; an absent or unparseable value means "default".
+  const [searchParams, setSearchParams] = useSearchParams()
+  const seasonList = useSeasonList(community?.id)
+  const defaultSeason = seasonList.data?.defaultSeason ?? null
+  const rawSeason = searchParams.get('season')
+  const requestedSeason =
+    rawSeason !== null && /^\d+$/.test(rawSeason) ? Number(rawSeason) : null
+  const noSeasons = seasonList.isSuccess && defaultSeason === null
+  const selectedSeason = noSeasons ? undefined : (requestedSeason ?? defaultSeason ?? undefined)
 
-  const displayedStances: Stance[] = stances
-    ? (isInverted ? [...stances].reverse() : stances)
+  const seasonView = useSeasonView(community?.id, selectedSeason)
+  const view = seasonView.data
+  const seasonsLoading =
+    seasonList.isPending || (selectedSeason !== undefined && seasonView.isPending)
+  const seasonsError = seasonList.isError || (selectedSeason !== undefined && seasonView.isError)
+
+  function changeSeason(n: number) {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('season', String(n))
+        return next
+      },
+      { replace: true },
+    )
+  }
+
+  // Ladder order is array order; never derive or show a 1-5 number.
+  const displayedChairs: Chair[] = view
+    ? (isInverted ? [...view.chairs].reverse() : view.chairs)
     : []
 
   const {
@@ -82,13 +110,42 @@ export default function CommunityHubPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-text-body mb-2">{community.name}</h1>
           <p className="text-text-secondary leading-relaxed">{community.description}</p>
+
+          {/* Band 1: the season's question */}
+          {seasonsLoading && (
+            <div className="mt-6 h-6 bg-surface-hover rounded w-3/4 animate-pulse" />
+          )}
+          {noSeasons && (
+            <p className="mt-6 text-text-muted text-sm">
+              This topic has no published question yet.
+            </p>
+          )}
+          {seasonList.data && (
+            <div className="mt-6 max-w-2xl">
+              <SeasonSelector
+                seasons={seasonList.data.seasons}
+                value={selectedSeason ?? -1}
+                onChange={changeSeason}
+              />
+            </div>
+          )}
+          {view && (
+            <>
+              <p className="mt-4 text-xl font-semibold text-text-body leading-snug">
+                {view.questionText}
+              </p>
+              <div className="max-w-2xl">
+                <SeasonNotes view={view} />
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Perspectives section */}
+        {/* Band 2: the season's chairs */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-text-primary">Perspectives</h2>
-            {displayedStances.length > 0 && (
+            {displayedChairs.length > 0 && (
               <button
                 onClick={() => setIsInverted(prev => !prev)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors ${
@@ -106,17 +163,24 @@ export default function CommunityHubPage() {
             )}
           </div>
 
-          {stancesLoading && (
+          {seasonsLoading && (
             <div className="flex flex-col gap-3 max-w-2xl">
               {Array.from({ length: 5 }).map((_, i) => <StanceCardSkeleton key={i} />)}
             </div>
           )}
 
-          {stancesError && (
+          {noSeasons && (
+            <p className="text-text-muted text-sm">No perspectives have been published for this topic yet.</p>
+          )}
+
+          {seasonsError && (
             <div className="text-center py-6">
               <p className="text-text-secondary mb-3">Failed to load perspectives</p>
               <button
-                onClick={() => refetchStances()}
+                onClick={() => {
+                  if (seasonList.isError) seasonList.refetch()
+                  else seasonView.refetch()
+                }}
                 className="px-4 py-2 text-sm bg-ev-coral text-white rounded-lg hover:bg-ev-coral-hover transition-colors"
               >
                 Try Again
@@ -124,12 +188,12 @@ export default function CommunityHubPage() {
             </div>
           )}
 
-          {displayedStances.length > 0 && (
+          {displayedChairs.length > 0 && (
             <div className="flex flex-col gap-3 max-w-2xl">
-              {displayedStances.map((stance, i) => (
+              {displayedChairs.map((stance, i) => (
                 // TODO: calibrated stance highlight — requires compass data API
                 <StanceCard
-                  key={i}
+                  key={`${view?.season.number}-${i}`}
                   stance={stance}
                   isHighlighted={false}
                 />
