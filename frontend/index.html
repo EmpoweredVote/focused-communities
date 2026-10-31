@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Focused Communities</title>
     <script>
-      (function(){var t=localStorage.getItem('fc-theme');if(t==='dark'||(t===null&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')})();
+      (function(){var s=localStorage.getItem('ev:color-scheme');if(s==='dark'||(!s&&!window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('dark')})();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
