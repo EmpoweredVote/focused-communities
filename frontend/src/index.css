@@ -43,6 +43,7 @@
 }
 
 html {
+  color-scheme: light;
   font-family: var(--font-sans);
   background-color: var(--color-surface-secondary);
   color: var(--color-text-body);
@@ -50,6 +51,9 @@ html {
 
 /* Dark mode overrides via CSS custom properties */
 html.dark {
+  color-scheme: dark;
+  --color-ev-yellow-light: #4A3A05;
+  --color-focus-ring: #59B0C4;
   --color-surface-primary: #0F1A1E;
   --color-surface-secondary: #05262E;
   --color-surface-hover: #03303A;

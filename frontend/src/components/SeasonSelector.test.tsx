@@ -19,7 +19,8 @@ describe('SeasonSelector', () => {
   it('marks a draft season as draft when one is present', () => {
     render(<SeasonSelector seasons={[closed, open, draft]} value={3} onChange={vi.fn()} />)
     expect(screen.getByRole('option', { name: /Season 3.*draft/ })).toBeInTheDocument()
-    expect(screen.getByText(/not visible to the public/)).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/not visible to the public/)
+    expect(screen.getByLabelText('Season')).toHaveAccessibleDescription(/not visible to the public/)
   })
 
   it('does not show the draft notice when a published season is selected', () => {
@@ -39,5 +40,38 @@ describe('SeasonSelector', () => {
   it('renders nothing when only one season is available', () => {
     const { container } = render(<SeasonSelector seasons={[open]} value={2} onChange={vi.fn()} />)
     expect(container).toBeEmptyDOMElement()
+  })
+  it('does not show the draft notice when a closed season is selected', () => {
+    render(<SeasonSelector seasons={[closed, open, draft]} value={1} onChange={vi.fn()} />)
+    expect(screen.queryByText(/not visible to the public/)).not.toBeInTheDocument()
+  })
+
+  it('shows a neutral placeholder when value matches no season', () => {
+    render(<SeasonSelector seasons={[closed, open]} value={3} onChange={vi.fn()} />)
+    const select = screen.getByLabelText('Season') as HTMLSelectElement
+    expect(select.value).toBe('')
+    expect(screen.getByRole('option', { name: 'Choose a season' })).toBeDisabled()
+  })
+
+  it('has no placeholder when value matches a season', () => {
+    render(<SeasonSelector seasons={[closed, open]} value={2} onChange={vi.fn()} />)
+    expect(screen.queryByRole('option', { name: 'Choose a season' })).not.toBeInTheDocument()
+  })
+
+  it('shows the draft notice without a control when the only season is a draft', () => {
+    render(<SeasonSelector seasons={[draft]} value={3} onChange={vi.fn()} />)
+    expect(screen.queryByLabelText('Season')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/not visible to the public/)
+  })
+
+  it('renders nothing when there are no seasons', () => {
+    const { container } = render(<SeasonSelector seasons={[]} value={1} onChange={vi.fn()} />)
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('still renders a readable option for an unexpected status', () => {
+    const odd = { ...open, number: 4, name: 'Season 4', status: 'archived' } as unknown as SeasonSummary
+    render(<SeasonSelector seasons={[closed, odd]} value={1} onChange={vi.fn()} />)
+    expect(screen.getByRole('option', { name: 'Season 4' })).toBeInTheDocument()
   })
 })
