@@ -18,7 +18,15 @@
 // the hook's own tests could not see it because they use uuid-shaped ids.
 // `dddddddd-dddd-4ddd-8ddd-…` keeps them unmistakably synthetic while passing
 // the validator; the trailing digits carry the old readable labels.
-import type { BreadcrumbItem, Claim, ClaimEdit, ClaimNode, ClaimNodeMeta, ShapeNode } from '../types'
+import type {
+  BreadcrumbItem,
+  Claim,
+  ClaimEdit,
+  ClaimNode,
+  ClaimNodeMeta,
+  ColumnPage,
+  ShapeNode,
+} from '../types'
 
 const daysAgo = (d: number, h = 0) =>
   new Date(Date.now() - (d * 24 + h) * 3600_000).toISOString()
@@ -45,7 +53,7 @@ const claims: DemoClaim[] = [
     authorPseudonym: null,
     impact: 5,
     ratingCount: 0,
-    childSupports: 2,
+    childSupports: 4,
     childOpposes: 2,
   },
   {
@@ -73,6 +81,33 @@ const claims: DemoClaim[] = [
     childSupports: 0,
     childOpposes: 1,
     updatedAt: daysAgo(6),
+  },
+  // The two lowest-rated supporting children. Impact leads the column sort, so
+  // these are the ones that fall onto page two — and the ones a client that
+  // ignores the cursor drops without saying so.
+  {
+    ...base,
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000013',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000000',
+    side: 'supports',
+    body: 'Waiting another season costs more than getting part of this wrong would.',
+    authorPseudonym: 'Demo Linnet',
+    impact: 4.8,
+    ratingCount: 6,
+    childSupports: 0,
+    childOpposes: 0,
+  },
+  {
+    ...base,
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000014',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000000',
+    side: 'supports',
+    body: 'The proposal can be undone next season if it turns out not to work.',
+    authorPseudonym: 'Demo Bramble',
+    impact: 3.9,
+    ratingCount: 8,
+    childSupports: 0,
+    childOpposes: 0,
   },
   {
     ...base,
@@ -176,11 +211,42 @@ function strip(demo: DemoClaim): Claim {
   return claim
 }
 
-const childrenOf = (id: string, side: 'supports' | 'opposes'): Claim[] =>
+// Small on purpose: the live route pages at 20, and a demo nobody can page is
+// a demo of a feature nobody can see. Three of the root's four supporting
+// children arrive first and the fourth — the lowest-rated one, which is
+// exactly what silently disappears when a client ignores the cursor — is on
+// page two.
+const DEMO_PAGE_SIZE = 3
+
+const sortedChildren = (id: string, side: 'supports' | 'opposes'): Claim[] =>
   claims
     .filter((c) => c.parentId === id && c.side === side)
     .sort((a, b) => b.impact - a.impact)
     .map(strip)
+
+/**
+ * One page of one side, after `cursor`.
+ *
+ * The cursor here is the previous page's last id, NOT the server's three-term
+ * keyset token — this module stands in for the route's shape, not for its
+ * encoding, and a client that reads a cursor as anything but an opaque string
+ * it echoes back is already wrong.
+ */
+function pageOf(
+  id: string,
+  side: 'supports' | 'opposes',
+  cursor: string | null,
+): { claims: Claim[]; page: ColumnPage } {
+  const all = sortedChildren(id, side)
+  const from = cursor ? all.findIndex((c) => c.id === cursor) + 1 : 0
+  const slice = all.slice(from, from + DEMO_PAGE_SIZE)
+  const hasMore = from + DEMO_PAGE_SIZE < all.length
+  const last = slice[slice.length - 1]
+  return {
+    claims: slice,
+    page: { cursor: hasMore && last ? last.id : null, hasMore },
+  }
+}
 
 function breadcrumbOf(claim: DemoClaim): BreadcrumbItem[] {
   const trail: BreadcrumbItem[] = []
@@ -192,18 +258,24 @@ function breadcrumbOf(claim: DemoClaim): BreadcrumbItem[] {
   return trail
 }
 
-function nodeFor(claim: DemoClaim): { data: ClaimNode; meta: ClaimNodeMeta } {
+function nodeFor(
+  claim: DemoClaim,
+  cursors: { supports: string | null; opposes: string | null } = { supports: null, opposes: null },
+): { data: ClaimNode; meta: ClaimNodeMeta } {
+  // Each side is paged independently, exactly as the route does it: a request
+  // that names only supportsCursor gets page two of supports and page one of
+  // opposes back, and the client is expected to keep only the side it asked to
+  // advance.
+  const supports = pageOf(claim.id, 'supports', cursors.supports)
+  const opposes = pageOf(claim.id, 'opposes', cursors.opposes)
   return {
     data: {
       claim: strip(claim),
       breadcrumb: breadcrumbOf(claim),
-      supports: childrenOf(claim.id, 'supports'),
-      opposes: childrenOf(claim.id, 'opposes'),
+      supports: supports.claims,
+      opposes: opposes.claims,
     },
-    meta: {
-      supports: { cursor: null, hasMore: false },
-      opposes: { cursor: null, hasMore: false },
-    },
+    meta: { supports: supports.page, opposes: opposes.page },
   }
 }
 
@@ -248,9 +320,14 @@ export function isDemoClaimPath(path: string): boolean {
 
 /** The demo response for a GET path, or undefined when the path is not a claim route. */
 export function demoClaimResponse(path: string): unknown {
-  const p = path.split('?')[0]
+  const [p, search] = path.split('?')
+  const query = new URLSearchParams(search ?? '')
+  const cursors = {
+    supports: query.get('supportsCursor'),
+    opposes: query.get('opposesCursor'),
+  }
   let m: RegExpMatchArray | null
-  if (ROOT_PATH.test(p)) return nodeFor(claims[0])
+  if (ROOT_PATH.test(p)) return nodeFor(claims[0], cursors)
   if (SHAPE_PATH.test(p)) {
     // completeThroughDepth is the deepest level described completely; this demo
     // tree is whole, so nothing is cut.
@@ -259,7 +336,7 @@ export function demoClaimResponse(path: string): unknown {
   if ((m = p.match(EDITS_PATH))) return { data: edits[m[1]] ?? [] }
   if ((m = p.match(NODE_PATH))) {
     const claim = byId(m[1])
-    return claim ? nodeFor(claim) : null
+    return claim ? nodeFor(claim, cursors) : null
   }
   return undefined
 }

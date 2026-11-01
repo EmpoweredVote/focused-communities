@@ -5,13 +5,14 @@ import { useFocusedClaim } from '../../hooks/useFocusedClaim'
 import {
   claimNodePath,
   rootClaimPath,
+  useClaimColumn,
   useClaimNode,
   useRootClaim,
   useTreeShape,
 } from '../../hooks/useClaims'
 import { ClaimCardSkeleton } from '../SkeletonCard'
 import { ClaimBreadcrumb, ClaimParamNotice } from './ClaimBreadcrumb'
-import { ClaimColumns } from './ClaimColumns'
+import { ClaimColumns, type ColumnFeed } from './ClaimColumns'
 import { ClaimComposer } from './ClaimComposer'
 import { ImpactControl } from './ImpactControl'
 import { TreeMinimap } from './TreeMinimap'
@@ -81,11 +82,32 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
 
   const shapeQuery = useTreeShape(communityId)
 
+  // One response carries page one of both columns and a separate
+  // { cursor, hasMore } for each. The two advance independently, so each side
+  // gets its own paging query; neither fetches anything until the reader asks.
+  const supportsPages = useClaimColumn(requestPath, 'supports', query.data?.meta.supports)
+  const opposesPages = useClaimColumn(requestPath, 'opposes', query.data?.meta.opposes)
+
   const node = query.data?.node
   // With placeholderData the previous claim stays on screen while the next
   // one loads. It is the previous claim, not the one that was asked for, so
   // it is dimmed and marked busy rather than presented as the answer.
   const stale = query.isPlaceholderData
+
+  // Page one comes with the node; the pages after it come from the side's own
+  // query. `total` is the server's count for the side, so the column can tell
+  // "this side is empty" from "this side is the top of a longer list".
+  function feed(side: ClaimSide, pages: typeof supportsPages): ColumnFeed {
+    return {
+      claims: node ? [...node[side], ...pages.extra] : [],
+      total: node ? (side === 'supports' ? node.claim.childSupports : node.claim.childOpposes) : 0,
+      hasMore: pages.hasMore,
+      isFetching: pages.isFetching,
+      error: pages.error,
+      requestPath: pages.requestPath,
+      onShowMore: pages.showMore,
+    }
+  }
 
   return (
     <section data-band="arguments" aria-labelledby={headingId} className="mb-10">
@@ -232,16 +254,27 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
             </div>
           )}
 
-          {/* True only because the request succeeded. This is the sentence the
-              failed branch above must never be allowed to print. */}
-          {node.supports.length === 0 && node.opposes.length === 0 && (
-            <p data-testid="argument-tree-empty" className="mt-4 text-sm text-text-muted">
-              Nobody has answered this claim yet.
-            </p>
-          )}
+          {/* True only because the request succeeded — and only because both
+              columns came back whole. A column with a cursor behind it, or
+              with a non-zero count above it, is not an argument nobody has
+              answered; it is one this client has not finished reading. */}
+          {node.supports.length === 0 &&
+            node.opposes.length === 0 &&
+            node.claim.childSupports === 0 &&
+            node.claim.childOpposes === 0 &&
+            !supportsPages.hasMore &&
+            !opposesPages.hasMore && (
+              <p data-testid="argument-tree-empty" className="mt-4 text-sm text-text-muted">
+                Nobody has answered this claim yet.
+              </p>
+            )}
 
           <div className="mt-4">
-            <ClaimColumns supports={node.supports} opposes={node.opposes} onOpen={focusClaim} />
+            <ClaimColumns
+              supports={feed('supports', supportsPages)}
+              opposes={feed('opposes', opposesPages)}
+              onOpen={focusClaim}
+            />
           </div>
 
           <div className="mt-6">

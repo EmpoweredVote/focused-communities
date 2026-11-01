@@ -24,6 +24,15 @@ const connectedUser: AccountUser = {
   display_name: 'Demo Reader',
 }
 
+interface ColumnStub {
+  extra: Claim[]
+  hasMore: boolean
+  showMore: () => void
+  isFetching: boolean
+  error: string | null
+  requestPath: string | null
+}
+
 interface QueryStub {
   data?: unknown
   isPending: boolean
@@ -47,6 +56,13 @@ const h = vi.hoisted(() => ({
   },
   rate: { mutate: vi.fn(), isPending: false, isError: false, error: undefined, variables: undefined },
   calls: { root: [] as (string | undefined)[], node: [] as (string | undefined)[] },
+  // One per side. The band owns which column asked for more, so the hook is
+  // stubbed per side and the test drives it the way a reader's click would.
+  columns: {
+    supports: null as unknown as ColumnStub,
+    opposes: null as unknown as ColumnStub,
+  },
+  columnArgs: [] as { path: string | undefined; side: string }[],
   mounts: { seasonSelector: 0, stanceCard: 0, threadForm: 0 },
 }))
 
@@ -66,6 +82,10 @@ vi.mock('../../hooks/useClaims', async (importOriginal) => {
       return h.node
     },
     useTreeShape: () => h.shape,
+    useClaimColumn: (path: string | undefined, side: 'supports' | 'opposes') => {
+      h.columnArgs.push({ path, side })
+      return h.columns[side]
+    },
   }
 })
 
@@ -295,8 +315,23 @@ function renderPage(url = `/communities/test-slug`) {
   )
 }
 
+/** A column with nothing behind it: whatever the node carried is the side. */
+function wholeColumn(over: Partial<ColumnStub> = {}): ColumnStub {
+  return {
+    extra: [],
+    hasMore: false,
+    showMore: vi.fn(),
+    isFetching: false,
+    error: null,
+    requestPath: null,
+    ...over,
+  }
+}
+
 beforeEach(() => {
   h.auth = { state: 'inform' }
+  h.columns = { supports: wholeColumn(), opposes: wholeColumn() }
+  h.columnArgs = []
   h.root = loaded(nodeOf({ supports: [supportChild], opposes: [opposeChild] }))
   h.node = loaded(
     nodeOf({
@@ -414,6 +449,22 @@ describe('ArgumentTree — loading, failed and empty are three different things'
     expect(screen.queryByTestId('argument-tree-empty')).not.toBeInTheDocument()
   })
 
+  it('does not call an argument empty while either column has more behind it (C2)', () => {
+    // Page one of both columns came back empty, and the claim's own counts say
+    // the sides are not. "Nobody has answered this claim yet" would be a
+    // statement about the world that this response does not support.
+    h.root = loaded(nodeOf({ claim: claim({ childSupports: 23, childOpposes: 4 }) }))
+    h.columns.supports = wholeColumn({ hasMore: true })
+    renderTree()
+    expect(screen.queryByTestId('argument-tree-empty')).not.toBeInTheDocument()
+  })
+
+  it('still says an argument is empty when every side is genuinely whole and empty', () => {
+    h.root = loaded(nodeOf())
+    renderTree()
+    expect(screen.getByTestId('argument-tree-empty')).toBeInTheDocument()
+  })
+
   it('marks a claim held over from the previous view as busy, not as the answer', () => {
     h.root = { ...loaded(nodeOf()), isPlaceholderData: true }
     renderTree()
@@ -426,6 +477,46 @@ describe('ArgumentTree — loading, failed and empty are three different things'
     expect(screen.getByTestId('tree-minimap-error')).toBeInTheDocument()
     expect(screen.queryByTestId('tree-minimap')).not.toBeInTheDocument()
     expect(screen.getByText('Demo root claim body.')).toBeInTheDocument()
+  })
+})
+
+describe('ArgumentTree — both columns page independently (C2)', () => {
+  it('pages each side from the URL the node came from, one query per side', () => {
+    renderTree()
+    const asked = h.columnArgs.map((a) => `${a.side} ${a.path}`)
+    expect(asked).toContain(`supports /api/communities/${COMMUNITY_ID}/claims/root`)
+    expect(asked).toContain(`opposes /api/communities/${COMMUNITY_ID}/claims/root`)
+  })
+
+  it('pages the focused claim rather than the root once one is open', () => {
+    renderTree(`/communities/test-slug?claim=${SUPPORT_ID}`)
+    const paths = new Set(h.columnArgs.map((a) => a.path))
+    expect(paths).toEqual(new Set([`/api/claims/${SUPPORT_ID}`]))
+  })
+
+  it('appends a later page to the column it came from and to no other', () => {
+    const later = claim({
+      id: '00000000-0000-4000-8000-000000000004',
+      side: 'supports',
+      body: 'Demo argument from the second page.',
+      authorPseudonym: 'Demo Linnet',
+    })
+    h.columns.supports = wholeColumn({ extra: [later] })
+    const { container } = renderTree()
+    const supports = container.querySelector('[data-column="supports"]')!
+    const opposes = container.querySelector('[data-column="opposes"]')!
+    expect(supports.textContent).toContain('Demo argument from the second page.')
+    expect(supports.textContent).toContain('Demo supporting argument.')
+    expect(opposes.textContent).not.toContain('Demo argument from the second page.')
+  })
+
+  it('offers the rest of a side to the reader and asks for it on that side only', () => {
+    const showMore = vi.fn()
+    h.columns.supports = wholeColumn({ hasMore: true, showMore })
+    renderTree()
+    fireEvent.click(screen.getByRole('button', { name: 'Show more supporting arguments' }))
+    expect(showMore).toHaveBeenCalledTimes(1)
+    expect(h.columns.opposes.showMore).not.toHaveBeenCalled()
   })
 })
 

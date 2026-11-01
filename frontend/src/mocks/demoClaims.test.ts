@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { demoClaimResponse, isDemoClaimPath } from './demoClaims'
-import type { ClaimNode, ShapeNode } from '../types'
+import type { ClaimNode, ClaimNodeMeta, ShapeNode } from '../types'
 
 // The uuid shape `useFocusedClaim` validates `?claim=` against, and the one the
 // API's own route guards use. Copied rather than imported so this test keeps
@@ -57,5 +57,53 @@ describe('the demo tree is navigable through the real code path', () => {
     const child = node(`/api/claims/${ROOT}`).supports[0]
     expect(isDemoClaimPath(`/api/claims/${child.id}`)).toBe(true)
     expect(node(`/api/claims/${child.id}`).claim.id).toBe(child.id)
+  })
+})
+
+describe('the demo tree pages a column the way the route does', () => {
+  function meta(path: string) {
+    const body = demoClaimResponse(path) as { meta: ClaimNodeMeta }
+    return body.meta
+  }
+
+  // Without this the feature is unreachable before the API is deployed: the
+  // live route pages at 20, and the whole demo tree is smaller than that.
+  it('leaves the lowest-rated supporting arguments behind a cursor', () => {
+    const first = node(`/api/claims/${ROOT}`)
+    const page = meta(`/api/claims/${ROOT}`)
+    expect(page.supports.hasMore).toBe(true)
+    expect(page.supports.cursor).not.toBeNull()
+    // Impact leads the sort, so page one is the top of the column and the rest
+    // is what a client ignoring the cursor would drop.
+    const impacts = first.supports.map((c) => c.impact)
+    expect([...impacts].sort((a, b) => b - a)).toEqual(impacts)
+    expect(first.supports.length).toBeLessThan(first.claim.childSupports)
+  })
+
+  it('advances only the side whose cursor was sent', () => {
+    const cursor = meta(`/api/claims/${ROOT}`).supports.cursor!
+    const first = node(`/api/claims/${ROOT}`)
+    const second = node(`/api/claims/${ROOT}?supportsCursor=${encodeURIComponent(cursor)}`)
+
+    const firstIds = first.supports.map((c) => c.id)
+    const secondIds = second.supports.map((c) => c.id)
+    expect(secondIds.length).toBeGreaterThan(0)
+    expect(secondIds.filter((id) => firstIds.includes(id))).toEqual([])
+    expect(meta(`/api/claims/${ROOT}?supportsCursor=${encodeURIComponent(cursor)}`).supports.hasMore).toBe(
+      false,
+    )
+
+    // The opposing column of that same response is page one over again, which
+    // is exactly why the client keeps only the side it asked to advance.
+    expect(second.opposes.map((c) => c.id)).toEqual(first.opposes.map((c) => c.id))
+  })
+
+  it('together, the pages are the whole side and nothing twice', () => {
+    const root = node(`/api/claims/${ROOT}`)
+    const cursor = meta(`/api/claims/${ROOT}`).supports.cursor!
+    const rest = node(`/api/claims/${ROOT}?supportsCursor=${encodeURIComponent(cursor)}`)
+    const ids = [...root.supports, ...rest.supports].map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids).toHaveLength(root.claim.childSupports)
   })
 })

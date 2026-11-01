@@ -4,9 +4,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { apiFetch, type ApiResult } from '../lib/apiFetch'
 import { useAuth } from '../context/AuthContext'
-import { useClaimNode, useRootClaim, useTreeShape, type ClaimNodeResult } from './useClaims'
+import {
+  useClaimColumn,
+  useClaimNode,
+  useRootClaim,
+  useTreeShape,
+  type ClaimNodeResult,
+} from './useClaims'
 import { useCreateClaim, useEditClaim, useRateClaim } from './useClaimMutations'
-import type { Claim, ClaimNode } from '../types'
+import type { Claim, ClaimNode, ColumnPage } from '../types'
 
 vi.mock('../lib/apiFetch', () => ({ apiFetch: vi.fn() }))
 vi.mock('../context/AuthContext', () => ({ useAuth: vi.fn() }))
@@ -82,6 +88,21 @@ const emptyMeta = {
 }
 
 const nodeResponse = (node: ClaimNode) => ({ ok: true as const, data: { data: node, meta: emptyMeta } })
+
+/** A node response whose named side has another page behind it. */
+const pagedResponse = (
+  node: ClaimNode,
+  pages: { supports?: { cursor: string | null; hasMore: boolean }; opposes?: { cursor: string | null; hasMore: boolean } },
+) => ({
+  ok: true as const,
+  data: {
+    data: node,
+    meta: {
+      supports: pages.supports ?? { cursor: null, hasMore: false },
+      opposes: pages.opposes ?? { cursor: null, hasMore: false },
+    },
+  },
+})
 
 const shapeResponse = {
   ok: true as const,
@@ -233,6 +254,116 @@ describe('useClaimNode and useRootClaim', () => {
   })
 })
 
+describe('useClaimColumn', () => {
+  const firstPage: ColumnPage = { cursor: 'cur-s1', hasMore: true }
+
+  function renderColumn(client = newClient(), page: ColumnPage = firstPage) {
+    return renderHook(() => useClaimColumn('/api/claims/cl-1', 'supports', page), {
+      wrapper: wrap(client),
+    })
+  }
+
+  it('asks for nothing until the reader asks, and says the side is not whole', () => {
+    const { result } = renderColumn()
+    expect(mockFetch).not.toHaveBeenCalled()
+    expect(result.current.extra).toEqual([])
+    // The column is a prefix and the hook says so from the node's own meta,
+    // before any extra page exists to count.
+    expect(result.current.hasMore).toBe(true)
+  })
+
+  it('reports a side the node said was whole as whole, and never fetches it', async () => {
+    const { result } = renderColumn(newClient(), { cursor: null, hasMore: false })
+    await act(async () => {
+      result.current.showMore()
+    })
+    expect(mockFetch).not.toHaveBeenCalled()
+    expect(result.current.hasMore).toBe(false)
+  })
+
+  it('sends only the side being advanced and keeps only that side of the answer', async () => {
+    mockFetch.mockResolvedValue(
+      pagedResponse(
+        nodeFor(claimFor('cl-1'), {
+          supports: [claimFor('s-4')],
+          // Page one of the other column, because the request named no
+          // opposesCursor. Appending it would show these twice.
+          opposes: [claimFor('o-1')],
+        }),
+        { supports: { cursor: null, hasMore: false } },
+      ),
+    )
+    const { result } = renderColumn()
+    await act(async () => {
+      result.current.showMore()
+    })
+    await waitFor(() => expect(result.current.extra).toHaveLength(1))
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockFetch).toHaveBeenCalledWith('/api/claims/cl-1?supportsCursor=cur-s1')
+    expect(result.current.extra.map((c) => c.id)).toEqual(['s-4'])
+    expect(result.current.hasMore).toBe(false)
+  })
+
+  it('walks on from the newest page’s own cursor, not the first one', async () => {
+    mockFetch.mockResolvedValueOnce(
+      pagedResponse(nodeFor(claimFor('cl-1'), { supports: [claimFor('s-4')] }), {
+        supports: { cursor: 'cur-s2', hasMore: true },
+      }),
+    )
+    const { result } = renderColumn()
+    await act(async () => {
+      result.current.showMore()
+    })
+    await waitFor(() => expect(result.current.extra).toHaveLength(1))
+    expect(result.current.hasMore).toBe(true)
+
+    mockFetch.mockResolvedValueOnce(
+      pagedResponse(nodeFor(claimFor('cl-1'), { supports: [claimFor('s-5')] }), {
+        supports: { cursor: null, hasMore: false },
+      }),
+    )
+    await act(async () => {
+      result.current.showMore()
+    })
+    await waitFor(() => expect(result.current.extra).toHaveLength(2))
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/claims/cl-1?supportsCursor=cur-s2')
+    expect(result.current.extra.map((c) => c.id)).toEqual(['s-4', 's-5'])
+    expect(result.current.hasMore).toBe(false)
+  })
+
+  it('reports a failed page with the URL it asked for and does not call the side whole', async () => {
+    mockFetch.mockResolvedValue({ ok: false, error: 'Request failed (500)', status: 500 })
+    const { result } = renderColumn()
+    await act(async () => {
+      result.current.showMore()
+    })
+    await waitFor(() => expect(result.current.error).toBe('Request failed (500)'))
+    expect(result.current.requestPath).toBe('/api/claims/cl-1?supportsCursor=cur-s1')
+    expect(result.current.extra).toEqual([])
+    expect(result.current.hasMore).toBe(true)
+  })
+
+  it('never hands one viewer’s paged ratings to the next (R71)', async () => {
+    signedInAs('u1')
+    mockFetch.mockResolvedValue(
+      pagedResponse(nodeFor(claimFor('cl-1'), { supports: [claimFor('s-4', { myRating: 9 })] }), {
+        supports: { cursor: null, hasMore: false },
+      }),
+    )
+    const { result, rerender } = renderColumn()
+    await act(async () => {
+      result.current.showMore()
+    })
+    await waitFor(() => expect(result.current.extra[0]?.myRating).toBe(9))
+
+    // Signing out re-keys the column exactly as it re-keys the node: page two
+    // holds Claims, and a Claim carries myRating.
+    signedOut()
+    rerender()
+    expect(result.current.extra).toEqual([])
+  })
+})
+
 describe('useTreeShape', () => {
   it('requests the shape and returns its truncation meta', async () => {
     mockFetch.mockResolvedValue({
@@ -317,6 +448,43 @@ describe('useRateClaim', () => {
     await waitFor(() => expect(node.result.current.data?.node.claim.impact).toBe(9.87))
     expect(node.result.current.data?.node.claim.ratingCount).toBe(7)
     expect(node.result.current.data?.node.claim.myRating).toBe(1)
+  })
+
+  it('rates a claim that is only on a later page, and only for this viewer', async () => {
+    const client = newClient()
+    const w = wrap(client)
+    // Another identity's copy of the same column, already in the cache.
+    const otherKey = ['claimColumn', 'u-other', '/api/claims/cl-1', 'supports', 'cur-s1']
+    client.setQueryData(otherKey, {
+      pages: [{ node: nodeFor(claimFor('cl-1'), { supports: [claimFor('s-4', { myRating: null })] }), meta: emptyMeta }],
+      pageParams: ['cur-s1'],
+    })
+
+    mockFetch.mockResolvedValueOnce(
+      pagedResponse(nodeFor(claimFor('cl-1'), { supports: [claimFor('s-4')] }), {
+        supports: { cursor: null, hasMore: false },
+      }),
+    )
+    const column = renderHook(
+      () => useClaimColumn('/api/claims/cl-1', 'supports', { cursor: 'cur-s1', hasMore: true }),
+      { wrapper: w },
+    )
+    await act(async () => {
+      column.result.current.showMore()
+    })
+    await waitFor(() => expect(column.result.current.extra).toHaveLength(1))
+
+    mockFetch.mockResolvedValueOnce({ ok: true, data: { data: { impact: 6, ratingCount: 1 } } })
+    const rate = renderHook(() => useRateClaim(), { wrapper: w })
+    await act(async () => {
+      await rate.result.current.mutateAsync({ claimId: 's-4', rating: 9 })
+    })
+
+    // The optimistic write reaches a claim that lives in a page, not in a node.
+    await waitFor(() => expect(column.result.current.extra[0].myRating).toBe(9))
+    expect(column.result.current.extra[0].impact).toBe(6)
+    const other = client.getQueryData<{ pages: ClaimNodeResult[] }>(otherKey)
+    expect(other?.pages[0].node.supports[0].myRating).toBeNull()
   })
 
   it('does not write a rating into another viewer’s cached claim', async () => {
