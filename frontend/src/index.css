@@ -24,6 +24,20 @@
   --color-text-secondary: #4A5568;
   --color-text-muted: #718096;
 
+  /* Semantic argument-side colors.
+     "supports" and "opposes" are roles, not brand paint. Components reference
+     only these two, so recolouring a side is a change here, not a hunt through
+     every card. Contrast measured against the card surface of each mode:
+       light  supports #00657C on #FFFFFF = 6.66:1   opposes #FF5740 on #FFFFFF = 3.14:1
+       dark   supports #59B0C4 on #0F1A1E = 7.10:1   opposes #FF5740 on #0F1A1E = 5.64:1
+     The dark override below exists because #00657C on #0F1A1E is 2.66:1 —
+     under the 3:1 a non-text UI part needs, and barely visible beside a coral
+     that reads at 5.64:1. Opposes at 3.14:1 clears 3:1 for a border or a rule
+     and fails 4.5:1 for text, so neither token may ever set `color:` on
+     something a reader has to read. */
+  --color-claim-supports: var(--color-ev-teal);
+  --color-claim-opposes: var(--color-ev-coral);
+
   /* Semantic border colors */
   --color-border-light: #E2EBEF;
   --color-border-medium: #C9CFD1;
@@ -54,6 +68,8 @@ html.dark {
   color-scheme: dark;
   --color-ev-yellow-light: #4A3A05;
   --color-focus-ring: #59B0C4;
+  /* 2.66:1 -> 7.10:1 on the dark card. Opposes needs no override (5.64:1). */
+  --color-claim-supports: var(--color-ev-teal-light);
   --color-surface-primary: #0F1A1E;
   --color-surface-secondary: #05262E;
   --color-surface-hover: #03303A;
