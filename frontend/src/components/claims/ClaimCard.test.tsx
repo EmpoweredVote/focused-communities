@@ -108,6 +108,18 @@ describe('ClaimCard', () => {
     expect(bar.getAttribute('aria-label')).not.toMatch(/\d/)
   })
 
+  it('renders exactly one impact bar, and no control nested in its button', () => {
+    // The card draws no bar of its own any more; it renders ImpactControl, and
+    // there must be one of those and one bar inside it. A second readout of the
+    // same quantity is the failure this pins.
+    const { container } = render(<ClaimCard claim={claim({ ratingCount: 3 })} onOpen={vi.fn()} />)
+    expect(container.querySelectorAll('[data-impact-control]')).toHaveLength(1)
+    expect(container.querySelectorAll('[role="img"]')).toHaveLength(1)
+    // A card is itself a <button>, so it may hold no interactive descendant.
+    const card = screen.getByRole('button')
+    expect(card.querySelectorAll('input, fieldset, button, a, select, textarea')).toHaveLength(0)
+  })
+
   it('describes impact qualitatively across the band', () => {
     render(<ClaimCard claim={claim({ impact: 2, ratingCount: 1 })} onOpen={vi.fn()} />)
     expect(screen.getByRole('img').getAttribute('aria-label')).toBe('Impact so far: low')

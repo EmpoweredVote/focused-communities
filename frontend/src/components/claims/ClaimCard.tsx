@@ -1,5 +1,5 @@
 import type { Claim, ClaimSide } from '../../types'
-import { impactWord } from '../../lib/impact'
+import { ImpactControl } from './ImpactControl'
 
 interface ClaimCardProps {
   claim: Claim
@@ -23,26 +23,12 @@ const SIDE_BORDER: Record<ClaimSide, string> = {
   opposes: 'border-l-claim-opposes [border-left-style:dashed]',
 }
 
-const SIDE_FILL: Record<ClaimSide, string> = {
-  supports: 'bg-claim-supports',
-  opposes: 'bg-claim-opposes',
-}
-
-function impactPercent(impact: number): number {
-  const clamped = Math.min(9, Math.max(1, impact))
-  return ((clamped - 1) / 8) * 100
-}
-
 export function ClaimCard({ claim, onOpen }: ClaimCardProps) {
   // `side` is null on a root. A root is never asked for inside a column, but it
   // must render rather than crash if it is.
   const side = claim.side
   // `body` is '' on a hidden claim — that is the tombstone, not missing data.
   const isTombstone = claim.isHidden || claim.body.trim() === ''
-  // ratingCount === 0 is the only honest way to say nobody has rated this;
-  // impact is still 5 in that case, so a bar alone could not tell the reader
-  // "unrated" apart from "opinion is split".
-  const isRated = claim.ratingCount > 0
 
   return (
     <button
@@ -77,25 +63,22 @@ export function ClaimCard({ claim, onOpen }: ClaimCardProps) {
 
       {!isTombstone && (
         <>
-          {isRated ? (
-            <div className="mt-2 flex items-center gap-2">
-              <div
-                role="img"
-                aria-label={`Impact so far: ${impactWord(claim.impact)}`}
-                className="h-1.5 flex-1 overflow-hidden rounded-full bg-border-light"
-              >
-                <div
-                  className={`h-full rounded-full ${side ? SIDE_FILL[side] : 'bg-border-medium'}`}
-                  style={{ width: `${impactPercent(claim.impact)}%` }}
-                />
-              </div>
-              <span className="shrink-0 text-xs text-text-muted">
-                {claim.ratingCount} {claim.ratingCount === 1 ? 'rating' : 'ratings'}
-              </span>
-            </div>
-          ) : (
-            <p className="mt-2 text-xs text-text-muted">Not yet rated</p>
-          )}
+          {/* The one impact readout on a card, and it lives in ImpactControl so
+              that a card and an opened claim cannot drift into two different
+              bars. `canRate` is false here, and is not a prop of the card: a
+              card is itself a <button>, an interactive control may not nest
+              inside one, and a column card is for moving to a claim rather than
+              rating it. The scale belongs to the claim the reader has opened. */}
+          <div className="mt-2">
+            <ImpactControl
+              claimId={claim.id}
+              side={side}
+              impact={claim.impact}
+              ratingCount={claim.ratingCount}
+              myRating={claim.myRating}
+              canRate={false}
+            />
+          </div>
 
           {(claim.authorPseudonym || claim.mergedInto) && (
             <p className="mt-1 flex items-center gap-2 text-xs text-text-muted">
