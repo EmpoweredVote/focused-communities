@@ -330,6 +330,43 @@ describe('TreeMinimap', () => {
     expect(byId('test-node-0')).toHaveAttribute('data-side', 'none')
   })
 
+  // The fill and the announced word are two renderings of one fact. Nothing tied
+  // them together until this test: swapping the low and high entries of the fill
+  // map passed all 170 tests, so a high-impact node could have been painted as a
+  // low one while its accessible name still said "high impact" — a sighted reader
+  // and a screen-reader user shown opposite things about the same claim.
+  it('paints each node the tone its accessible name announces', () => {
+    const shape = [
+      node(0, { depth: 0, side: null, impact: 1.2 }),
+      node(1, { depth: 1, impact: 5 }),
+      node(2, { depth: 1, impact: 8.8, side: 'opposes' }),
+    ]
+    render(
+      <TreeMinimap
+        shape={shape}
+        focusedId="test-node-0"
+        meta={meta({ completeThroughDepth: 1 })}
+        onJump={vi.fn()}
+      />,
+    )
+    const byId = (id: string) => map().querySelector<HTMLElement>(`[data-node="${id}"]`)
+
+    for (const [id, word] of [
+      ['test-node-0', 'low'],
+      ['test-node-1', 'moderate'],
+      ['test-node-2', 'high'],
+    ] as const) {
+      const el = byId(id)
+      expect(el?.getAttribute('aria-label')).toMatch(new RegExp(`${word} impact`, 'i'))
+      // The swatch is a child of the control, so search the subtree rather than
+      // assuming which element carries the class.
+      expect(el?.querySelector(`.bg-minimap-impact-${word}`)).not.toBeNull()
+      for (const other of ['low', 'moderate', 'high'].filter((w) => w !== word)) {
+        expect(el?.querySelector(`.bg-minimap-impact-${other}`)).toBeNull()
+      }
+    }
+  })
+
   it('never implies it can tell an unrated claim from a split one', () => {
     const shape = [
       node(0, { depth: 0, side: null, impact: 5 }),
