@@ -6,8 +6,18 @@
 //
 // Opt-in, dev only: `VITE_DEMO_CLAIMS=1 npm run dev`. Communities, stances and
 // seasons stay live; writes to claim routes are off. Everything here is
-// synthetic and says so: every author is a "Demo" pseudonym, every id starts
-// with "demo-". Never add real people, quotes, figures or account data.
+// synthetic and says so: every author is a "Demo" pseudonym and every id starts
+// with the all-d prefix below. Never add real people, quotes, figures or
+// account data.
+//
+// 🔴 EVERY ID MUST BE UUID-SHAPED. These ids travel through `?claim=`, and
+// useFocusedClaim validates that parameter against the same uuid shape the API
+// does — so a readable id like "demo-claim-s1" is REJECTED, and every zoom-in
+// click in demo mode lands on the "not available" notice and bounces to the
+// root. That made the one escape hatch for the undeployed API unnavigable, and
+// the hook's own tests could not see it because they use uuid-shaped ids.
+// `dddddddd-dddd-4ddd-8ddd-…` keeps them unmistakably synthetic while passing
+// the validator; the trailing digits carry the old readable labels.
 import type { BreadcrumbItem, Claim, ClaimEdit, ClaimNode, ClaimNodeMeta, ShapeNode } from '../types'
 
 const daysAgo = (d: number, h = 0) =>
@@ -28,7 +38,7 @@ const base = {
 const claims: DemoClaim[] = [
   {
     ...base,
-    id: 'demo-claim-root',
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000000',
     parentId: null,
     side: null,
     body: 'This community should adopt the proposal now under discussion.',
@@ -40,8 +50,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-s1',
-    parentId: 'demo-claim-root',
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000011',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000000',
     side: 'supports',
     body: 'The proposal addresses the problem the community said mattered most to it.',
     authorPseudonym: 'Demo Heron',
@@ -53,8 +63,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-s2',
-    parentId: 'demo-claim-root',
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000012',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000000',
     side: 'supports',
     body: 'Nearby communities that tried something similar did not see the harms predicted for it.',
     authorPseudonym: 'Demo Juniper',
@@ -66,8 +76,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-o1',
-    parentId: 'demo-claim-root',
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000021',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000000',
     side: 'opposes',
     body: 'The proposal asks for a commitment before anyone has costed the work it creates.',
     authorPseudonym: 'Demo Kestrel',
@@ -78,8 +88,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-o2',
-    parentId: 'demo-claim-root',
+    id: 'dddddddd-dddd-4ddd-8ddd-000000000022',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000000',
     side: 'opposes',
     // A tombstone: a hidden claim keeps its place in the tree and its children,
     // and its body comes back empty. Render the tombstone, not a blank card.
@@ -93,8 +103,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-s1a',
-    parentId: 'demo-claim-s1',
+    id: 'dddddddd-dddd-4ddd-8ddd-00000000011a',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000011',
     side: 'supports',
     body: 'The community named that problem first in its own list of priorities.',
     authorPseudonym: 'Demo Maple',
@@ -105,8 +115,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-s1b',
-    parentId: 'demo-claim-s1',
+    id: 'dddddddd-dddd-4ddd-8ddd-00000000011b',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000011',
     side: 'opposes',
     body: 'Naming a problem is not agreeing on this particular answer to it.',
     authorPseudonym: 'Demo Wren',
@@ -118,12 +128,12 @@ const claims: DemoClaim[] = [
     // target is not pinned to this community or above the truncation cut, and a
     // client that cannot find it must draw an ordinary node rather than treat
     // the absence as bad data.
-    mergedInto: 'demo-claim-elsewhere',
+    mergedInto: 'dddddddd-dddd-4ddd-8ddd-0000000000ee',
   },
   {
     ...base,
-    id: 'demo-claim-s2a',
-    parentId: 'demo-claim-s2',
+    id: 'dddddddd-dddd-4ddd-8ddd-00000000012a',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000012',
     side: 'opposes',
     body: 'Those communities differ from this one in ways that matter for the comparison.',
     authorPseudonym: 'Demo Otter',
@@ -134,8 +144,8 @@ const claims: DemoClaim[] = [
   },
   {
     ...base,
-    id: 'demo-claim-o1a',
-    parentId: 'demo-claim-o1',
+    id: 'dddddddd-dddd-4ddd-8ddd-00000000021a',
+    parentId: 'dddddddd-dddd-4ddd-8ddd-000000000021',
     side: 'supports',
     body: 'No one has yet said who would do the work the proposal creates.',
     authorPseudonym: 'Demo Alder',
@@ -147,7 +157,7 @@ const claims: DemoClaim[] = [
 ]
 
 const edits: Record<string, ClaimEdit[]> = {
-  'demo-claim-s2': [
+  'dddddddd-dddd-4ddd-8ddd-000000000012': [
     {
       id: 'demo-cedit-1',
       oldBody: 'Nearby communities that tried this did not see the predicted harms.',
