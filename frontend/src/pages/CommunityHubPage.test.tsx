@@ -23,6 +23,14 @@ vi.mock('../hooks/useThreads', () => ({
   }),
 }))
 vi.mock('../components/Header', () => ({ Header: () => null }))
+// Band 3 is exercised against this page, with its real hooks and its real
+// children, in src/components/claims/ArgumentTree.test.tsx. Here it is a stub:
+// this file's harness has neither a QueryClientProvider nor an AuthProvider,
+// and giving it both to test the seasons bands would couple twenty tests to
+// the claims API for nothing.
+vi.mock('../components/claims/ArgumentTree', () => ({
+  ArgumentTree: () => <div>argument-tree</div>,
+}))
 
 const lifecycle = vi.hoisted(() => ({ mounts: 0, unmounts: 0 }))
 vi.mock('../components/ThreadCreateForm', () => ({

@@ -13,6 +13,7 @@ import { BackNav } from '../components/BackNav'
 import { ThreadListItem } from '../components/ThreadListItem'
 import { ThreadCreateForm } from '../components/ThreadCreateForm'
 import { Header } from '../components/Header'
+import { ArgumentTree } from '../components/claims/ArgumentTree'
 
 export default function CommunityHubPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -246,6 +247,15 @@ export default function CommunityHubPage() {
             </div>
           )}
         </div>
+
+        {/* Reserved for a later milestone and deliberately empty (R100): a
+            placeholder badge would be invented data on a production page, and
+            a <section> with no accessible name and no children announces
+            nothing, which is the correct amount for a reservation. */}
+        <section data-slot="badges" />
+
+        {/* Band 3: the argument */}
+        <ArgumentTree communityId={community.id} />
 
         <div className="border-t border-border-light pt-8">
           <div className="flex items-center justify-between mb-4">

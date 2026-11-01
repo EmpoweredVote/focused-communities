@@ -34,6 +34,14 @@ export const CLAIM_KEY = 'claim'
 export const CLAIM_ROOT_KEY = 'claimRoot'
 export const CLAIM_SHAPE_KEY = 'claimShape'
 
+// The two request paths, exported so that a view reporting a failed request
+// quotes the URL it actually asked for rather than a second copy of it that
+// can drift. CLAUDE.md: "If a request fails, say so and stop. Report the URL
+// and status."
+export const claimNodePath = (claimId: string) => `/api/claims/${claimId}`
+export const rootClaimPath = (communityId: string) =>
+  `/api/communities/${communityId}/claims/root`
+
 async function fetchNode(path: string): Promise<ClaimNodeResult> {
   const res = await apiFetch<ClaimNodeResponse>(path)
   // A failed request is reported as a failure. The claims routes are not on the
@@ -48,7 +56,7 @@ export function useClaimNode(claimId?: string) {
   const { viewer, authReady } = useViewer()
   return useQuery<ClaimNodeResult>({
     queryKey: [CLAIM_KEY, viewer, claimId],
-    queryFn: () => fetchNode(`/api/claims/${claimId}`),
+    queryFn: () => fetchNode(claimNodePath(claimId!)),
     // Hold the previous claim on screen while the next one loads so a reader
     // walking the tree keeps their place; callers must mark it stale
     // (isPlaceholderData) rather than present it as the new claim. Reuse only
@@ -65,7 +73,7 @@ export function useRootClaim(communityId?: string) {
   const { viewer, authReady } = useViewer()
   return useQuery<ClaimNodeResult>({
     queryKey: [CLAIM_ROOT_KEY, viewer, communityId],
-    queryFn: () => fetchNode(`/api/communities/${communityId}/claims/root`),
+    queryFn: () => fetchNode(rootClaimPath(communityId!)),
     // Same narrowing as useClaimNode, plus the community: a root holds child
     // claims with myRating on them, and one community's root must not stand in
     // for another's. Key order: [CLAIM_ROOT_KEY, viewer, communityId].

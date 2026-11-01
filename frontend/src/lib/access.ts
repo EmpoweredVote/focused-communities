@@ -27,3 +27,34 @@ export function canRateClaims(auth: AccessState): boolean {
   if (user.tier !== 'connected' && user.tier !== 'empowered') return false
   return user.account_standing === 'active'
 }
+
+export type ClaimGateReason = 'ok' | 'loading' | 'not-connected' | 'suspended'
+
+/**
+ * WHY the gate said no, for the surface that has to word the invitation.
+ *
+ * It is deliberately a thin wrapper around `canRateClaims` rather than a
+ * second copy of the rule: 'ok' is defined as "canRateClaims said yes", so the
+ * two cannot drift apart, and everything below only explains a refusal.
+ *
+ * The same server gate (`requireConnected`) guards rating and adding a claim,
+ * so one reason serves both surfaces.
+ *
+ * 'not-connected' covers two cases the client cannot tell apart and does not
+ * need to: `detectUserState()` collapses a signed-out visitor and an `inform`
+ * tier account into the same `{ state: 'inform' }`. Both are answered by the
+ * same invitation, which is why the wording names the tier rather than
+ * asserting the reader is signed out.
+ */
+export function claimGateReason(auth: AccessState): ClaimGateReason {
+  if (canRateClaims(auth)) return 'ok'
+  if (auth.state === 'loading') return 'loading'
+  const user: AccountUser | null = 'user' in auth ? auth.user : null
+  // A suspended account is one that HAS a usable tier and lost its standing.
+  // An inform-tier account that is also suspended is told about the tier,
+  // because restoring standing alone would not open the control.
+  if (user && (user.tier === 'connected' || user.tier === 'empowered')) {
+    if (user.account_standing !== 'active') return 'suspended'
+  }
+  return 'not-connected'
+}
