@@ -186,7 +186,7 @@ in Chris's voice, and writing seventeen more would be invented content shipped t
 | R54 | A move that would breach the depth cap is 422, not the 500 the constraint produces. |
 | R55 | Hide does not touch descendants — an existing child stays readable under a tombstone; a **new** one may not be added. |
 | R56 / R57 | Merge moves children, never ratings, never the aggregate columns, and deletes nothing. |
-| R58 – R61 | Hidden, unreachable or already-merged destinations refuse; an already-merged claim cannot be merged again; merging *into* a root is refused; curation takes no connected-profile gate. |
+| R58 – R61 | A hidden or unreachable destination refuses; an already-merged claim cannot itself be merged again; merging *into* a root is refused; curation takes no connected-profile gate. **A merged claim may be a merge *target*, deliberately** — R28 says the target may be absent from a payload, so a client walks the chain a hop at a time, which is the whole reason the bounded chain walk exists. An earlier draft of this line said otherwise and was wrong; the final review caught it. |
 | R67 | The cache delete is awaited before the response — it closes the read-after-write window, which is what a reader would actually notice. *(My own addendum had contradicted itself here.)* |
 | R68 | Two deliberate over-invalidations, one of them labelled belt-and-braces rather than pretended to be tested. |
 
@@ -246,6 +246,29 @@ implementer built against the route rather than the ruling, which is right.
 - **The seventeen new communities have NULL descriptions** awaiting editorial copy.
 - **"Immigration & Treatment of Immigrants"** has a community whose topic appears only in the
   closed Season 1, so its page shows a single past season with no explanation.
+
+## What the final review found
+
+Two reviewers, one per repo, each given this file as **claims to test rather than settled fact**.
+
+**API — 0 Critical, 4 Important, 9 Minor.** One was a real hole and is fixed: the rating upsert
+guarded visibility and merge state but not parentage, so any connected account could rate a
+community's **root** — whose id is one public GET away — and that impact was served on the root
+node and drawn as the depth-0 dot on the minimap, reading as a rating of the question itself.
+Every other write already refused a root; rating was the one gap, and no test covered it.
+
+The reviewer also corrected this document, which is why it is written down above: an earlier
+draft of the R58–R61 line claimed already-merged *destinations* refuse. They do not, deliberately.
+
+**UI — 2 Critical, 9 Important, 10 Minor.** The first Critical is fixed: every id in the demo
+fixture read `demo-claim-s1`, which the `?claim=` uuid validator rejects, so in demo mode every
+zoom-in click bounced to the root — the one escape hatch for the undeployed API could not be
+navigated. Nothing caught it because the hook's tests build their own uuid-shaped ids rather than
+using the fixture: two correct halves with no test holding them together.
+
+All fifteen contrast ratios recorded in `index.css` and in this file reproduced exactly under
+independent recomputation. The three contrast findings are ratios nobody had written down, not
+ones written down wrong.
 
 ## 🔴 One thing that is open and should not stay that way
 
