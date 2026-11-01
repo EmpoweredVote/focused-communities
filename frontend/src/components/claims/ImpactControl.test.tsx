@@ -272,6 +272,19 @@ describe('ImpactControl refusals (R91)', () => {
     expect(status.textContent).toMatch(/refused/i)
     expect(status.textContent).not.toMatch(/suspended|connected account/i)
   })
+
+  it('names rate limiting rather than inviting an immediate retry', async () => {
+    const status = await rateAndFail({ error: 'Too many requests', status: 429 })
+    expect(status.textContent).toMatch(/a lot of ratings at once/i)
+    expect(status.textContent).not.toMatch(/suspended|connected account|refused/i)
+  })
+
+  it('falls back to a plain retry for a failure it cannot name', async () => {
+    // A network drop carries status 0 and no reason. There is nothing honest
+    // to say about why, so the control says only what happened.
+    const status = await rateAndFail({ error: 'Network error', status: 0 })
+    expect(status.textContent).toBe('That rating was not saved. Try again.')
+  })
 })
 
 describe('canRateClaims (R91)', () => {
