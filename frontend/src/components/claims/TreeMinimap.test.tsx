@@ -143,6 +143,27 @@ describe('TreeMinimap', () => {
     expect(nodeButtons()).toHaveLength(0)
     expect(rowDepths()).toEqual([])
     expect(summaryText()).not.toMatch(/\d/)
+    // completeThroughDepth null says the response did not describe even depth
+    // 0 completely. "This map has nothing to draw" is then the one thing the
+    // client may not say, and the caveat is the one thing it must (I8). The
+    // old assertion above passes either way, which is why this is here.
+    expect(summaryText()).not.toMatch(/nothing to draw/i)
+    expect(summaryText()).toMatch(/no level of this map is complete/i)
+    // And a sighted reader gets the same sentence, not a bare empty box.
+    expect(screen.getByTestId('tree-minimap-cutoff')).toHaveTextContent(
+      /no level of this map is complete/i,
+    )
+  })
+
+  it('does say a map is empty when the response describes it as empty', () => {
+    // The other half of I8: completeThroughDepth 0 over an empty shape is a
+    // response that describes depth 0 completely and has nothing in it. There
+    // the absence is the server's statement, not the client's guess.
+    render(
+      <TreeMinimap shape={[]} focusedId="" meta={meta({ completeThroughDepth: 0 })} onJump={vi.fn()} />,
+    )
+    expect(summaryText()).toMatch(/nothing to draw/i)
+    expect(screen.queryByTestId('tree-minimap-cutoff')).not.toBeInTheDocument()
   })
 
   it('draws no balance, no count and no absence below completeThroughDepth', () => {
@@ -237,6 +258,66 @@ describe('TreeMinimap', () => {
     expect(nodeButtons().filter((b) => b.getAttribute('data-focused') === 'true')).toHaveLength(0)
     expect(screen.queryByTestId('tree-minimap-focus-missing')).not.toBeInTheDocument()
     expect(screen.queryByTestId('tree-minimap-cutoff')).not.toBeInTheDocument()
+  })
+
+  it('splits only the level whose sides are all taken against the same parent (I2)', () => {
+    // Depth 2 is described completely here, so the old code split it across
+    // the same axis as depth 1 and counted it in the same words. A supporting
+    // child of an opposing parent argues AGAINST the question and was drawn
+    // left of the axis and announced as "supporting".
+    render(
+      <TreeMinimap
+        shape={CUT_SHAPE}
+        focusedId="test-node-0"
+        meta={meta({ completeThroughDepth: 2 })}
+        onJump={vi.fn()}
+      />,
+    )
+    const d1 = row(1)
+    expect(d1).toHaveAttribute('data-split', 'true')
+    expect(within(d1).getByTestId('balance-axis')).toBeInTheDocument()
+
+    const d2 = row(2)
+    expect(d2).toHaveAttribute('data-complete', 'true')
+    expect(d2).toHaveAttribute('data-split', 'false')
+    expect(within(d2).queryByTestId('balance-axis')).not.toBeInTheDocument()
+    expect(within(d2).queryByTestId('side-group-supports')).not.toBeInTheDocument()
+    expect(within(d2).queryByTestId('side-group-opposes')).not.toBeInTheDocument()
+    // Every node is still drawn and still carries its own side, which is the
+    // part that is true per node.
+    expect(nodeButtons(d2)).toHaveLength(2)
+    expect(nodeButtons(d2)[0].getAttribute('aria-label')).toMatch(/a supporting claim at level 2/)
+  })
+
+  it('counts a deep level without tallying it into sides (I2)', () => {
+    render(
+      <TreeMinimap
+        shape={CUT_SHAPE}
+        focusedId="test-node-0"
+        meta={meta({ completeThroughDepth: 2 })}
+        onJump={vi.fn()}
+      />,
+    )
+    expect(summaryText()).toContain('Level 1: 3 supporting, 2 opposing.')
+    expect(summaryText()).toContain('Level 2: 2 claims, each supporting or opposing its own parent.')
+    expect(summaryText()).not.toMatch(/Level 2: \d+ supporting/)
+    // And the reason the picture stops splitting is said out loud, once.
+    expect(summaryText()).toMatch(/relative to its own parent/)
+    expect(screen.getByTestId('tree-minimap-axis-note')).toHaveTextContent(/relative to its own parent/)
+  })
+
+  it('says nothing about the axis when nothing below level 1 is drawn', () => {
+    render(
+      <TreeMinimap
+        shape={CUT_SHAPE.filter((n) => n.depth < 2)}
+        focusedId="test-node-0"
+        meta={meta({ completeThroughDepth: 1 })}
+        onJump={vi.fn()}
+      />,
+    )
+    expect(screen.queryByTestId('tree-minimap-axis-note')).not.toBeInTheDocument()
+    expect(summaryText()).not.toMatch(/relative to its own parent/)
+    expect(within(row(1)).getByTestId('balance-axis')).toBeInTheDocument()
   })
 
   it('draws a merged node as an ordinary node whether or not its target is on the map', () => {
