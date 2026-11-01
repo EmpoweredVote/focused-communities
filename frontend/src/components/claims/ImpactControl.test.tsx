@@ -148,7 +148,9 @@ describe('ImpactControl', () => {
     await waitFor(() => expect(screen.getByRole('radio', { name: 'High weight' })).toBeChecked())
     expect(screen.getByRole('radio', { name: 'Well above low weight' })).not.toBeChecked()
 
-    expect(mockApiFetch).toHaveBeenCalledTimes(1)
+    // The request follows once the choice has settled; the mark did not wait
+    // for it (see the assertion above).
+    await waitFor(() => expect(mockApiFetch).toHaveBeenCalledTimes(1))
     expect(mockApiFetch).toHaveBeenCalledWith('/api/claims/test-claim-a/rating', {
       method: 'PUT',
       body: JSON.stringify({ rating: 9 }),
@@ -240,6 +242,76 @@ describe('ImpactControl', () => {
       expect(el.className).not.toMatch(/ev-teal|ev-coral/)
       expect(el.className).not.toMatch(/text-claim-/)
     }
+  })
+})
+
+describe('ImpactControl — one sweep is one rating (I4)', () => {
+  // An arrow-key sweep across a native radio group checks each radio it
+  // passes, firing `change` every time. These tests drive the change events a
+  // sweep produces; what they pin is that eight choices are one request, not
+  // eight ratings and a 429 for the keyboard reader alone.
+  function sweep(names: string[]) {
+    for (const name of names) {
+      fireEvent.click(screen.getByRole('radio', { name }))
+    }
+  }
+
+  it('sends one request for a sweep across the whole scale', async () => {
+    mockApiFetch.mockResolvedValue({ ok: true, data: { data: { impact: 6, ratingCount: 3 } } })
+    render(<ImpactControl {...props({ myRating: null })} />, { wrapper: makeWrapper() })
+
+    sweep(STEP_NAMES)
+
+    // Nothing has gone yet, and the reader can already see where they are.
+    expect(mockApiFetch).not.toHaveBeenCalled()
+    expect(screen.getByRole('radio', { name: 'High weight' })).toBeChecked()
+
+    await waitFor(() => expect(mockApiFetch).toHaveBeenCalledTimes(1))
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/claims/test-claim-a/rating', {
+      method: 'PUT',
+      body: JSON.stringify({ rating: 9 }),
+    })
+  })
+
+  it('sends the settled choice at once when focus leaves the group', async () => {
+    mockApiFetch.mockResolvedValue({ ok: true, data: { data: { impact: 6, ratingCount: 3 } } })
+    render(
+      <>
+        <ImpactControl {...props({ myRating: null })} />
+        <button type="button">Somewhere else</button>
+      </>,
+      { wrapper: makeWrapper() },
+    )
+
+    const chosen = screen.getByRole('radio', { name: 'Moderate weight' })
+    fireEvent.click(chosen)
+    expect(mockApiFetch).not.toHaveBeenCalled()
+
+    // focusOut, not blur: React attaches onBlur to the bubbling focusout.
+    fireEvent.focusOut(screen.getByRole('radiogroup'), {
+      relatedTarget: screen.getByRole('button', { name: 'Somewhere else' }),
+    })
+    // One turn of the microtask queue, no clock time: if this needed the
+    // timer it would still be waiting.
+    await act(async () => {})
+    expect(mockApiFetch).toHaveBeenCalledTimes(1)
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/claims/test-claim-a/rating', {
+      method: 'PUT',
+      body: JSON.stringify({ rating: 5 }),
+    })
+  })
+
+  it('puts the mark back where the server has it when a sweep is refused', async () => {
+    mockApiFetch.mockResolvedValue({ ok: false, error: 'Forbidden', status: 403, reason: 'tier' })
+    render(<ImpactControl {...props({ myRating: 5 })} />, { wrapper: makeWrapper() })
+
+    sweep(['Slightly above moderate weight', 'Well above moderate weight', 'High weight'])
+    await screen.findByRole('status')
+
+    // One request, and the local choice does not outlive its refusal.
+    expect(mockApiFetch).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('radio', { name: 'Moderate weight' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'High weight' })).not.toBeChecked()
   })
 })
 

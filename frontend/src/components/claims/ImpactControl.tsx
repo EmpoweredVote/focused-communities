@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { impactWord } from '../../lib/impact'
 import { useRateClaim } from '../../hooks/useClaimMutations'
 import type { ClaimSide } from '../../types'
@@ -107,6 +107,26 @@ interface RatingScaleProps {
 }
 
 /**
+ * How long a choice sits before it is sent (I4).
+ *
+ * In a native radio group the arrow keys move focus AND check the radio they
+ * land on, firing `change` each time. A keyboard reader tabbing into the scale
+ * at "Low weight" and pressing the right arrow eight times to reach "High
+ * weight" was therefore sending eight PUTs, landing eight ratings, and meeting
+ * the rate limiter (R36) somewhere in the middle — where they were told "That
+ * was a lot of ratings at once, so this one was not saved." A mouse reader
+ * doing the identical thing sent one request and succeeded. Choosing with the
+ * keyboard is not a different act from choosing with a mouse and may not have
+ * a different outcome.
+ *
+ * So the choice is local and the request is the settled one. The delay is long
+ * enough to cover a deliberate press-by-press sweep and short enough to be
+ * imperceptible after a click; focus leaving the group, and the control being
+ * taken off screen, both send it at once rather than waiting it out.
+ */
+const COMMIT_DELAY_MS = 400
+
+/**
  * Split out so the hooks it needs are only mounted when the scale is. A card
  * renders the aggregate half with `canRate={false}` and must not require a
  * QueryClientProvider or an AuthProvider to do it.
@@ -116,16 +136,76 @@ function RatingScale({ claimId, side, myRating }: RatingScaleProps) {
   const legendId = useId()
   const rate = useRateClaim()
 
+  // The choice the reader has made and this component has not yet sent. It is
+  // cleared the moment the request settles, so a refused rating reverts to
+  // whatever the server says rather than staying marked (R70's revert must not
+  // be silent, and must not be undone by a local copy of the failed value).
+  const [choice, setChoice] = useState<number | null>(null)
+  // A Timeout handle, not a number: this runs under jsdom as well as in a
+  // browser, and the two do not agree on what setTimeout returns.
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pending = useRef<number | null>(null)
+
+  function send(rating: number) {
+    rate.mutate({ claimId, rating }, { onSettled: () => setChoice(null) })
+  }
+
+  function choose(rating: number) {
+    setChoice(rating)
+    pending.current = rating
+    if (timer.current !== null) clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      timer.current = null
+      pending.current = null
+      send(rating)
+    }, COMMIT_DELAY_MS)
+  }
+
+  // Send a waiting choice now. Nothing waiting, nothing sent.
+  function flush() {
+    if (timer.current === null) return
+    clearTimeout(timer.current)
+    timer.current = null
+    const rating = pending.current
+    pending.current = null
+    if (rating !== null) send(rating)
+  }
+
+  // A waiting choice is not sent from an unmount. It cannot be: React Query
+  // drops a mutate() from an observer that has already been torn down, so the
+  // request would be swallowed rather than sent, and under StrictMode the
+  // extra mount/unmount would fire a spurious one. What carries a choice made
+  // at the end of a visit is the blur below — moving focus anywhere, including
+  // clicking a claim card or tabbing on, settles it first. The gap is a reader
+  // whose page goes away without the focus moving: a back button, a closed
+  // tab. The timer is cleared so nothing fires into a dead component.
+  useEffect(
+    () => () => {
+      if (timer.current !== null) clearTimeout(timer.current)
+    },
+    [],
+  )
+
   // The reader's own choice is the part they are watching, so it registers at
-  // once. useRateClaim patches myRating optimistically into the cache, but the
-  // parent may not have re-read it yet; showing the in-flight choice keeps the
-  // mark from snapping back for a frame. No arithmetic on impact happens here
-  // or anywhere else on the client — impact and ratingCount arrive from the
-  // mutation's response.
-  const selected = rate.isPending ? (rate.variables?.rating ?? myRating) : myRating
+  // once, before it is sent. useRateClaim patches myRating optimistically into
+  // the cache, but the parent may not have re-read it yet; showing the
+  // in-flight choice keeps the mark from snapping back for a frame. No
+  // arithmetic on impact happens here or anywhere else on the client — impact
+  // and ratingCount arrive from the mutation's response.
+  const selected =
+    choice ?? (rate.isPending ? (rate.variables?.rating ?? myRating) : myRating)
 
   return (
-    <fieldset role="radiogroup" aria-labelledby={legendId} className="mt-3">
+    <fieldset
+      role="radiogroup"
+      aria-labelledby={legendId}
+      className="mt-3"
+      // Focus leaving the group settles the choice at once: a reader who
+      // tabs onward should not have to wait out a timer to be saved.
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) flush()
+      }}
+    >
       <legend id={legendId} className="text-xs font-medium text-text-secondary">
         How much weight does this argument deserve?
       </legend>
@@ -138,7 +218,7 @@ function RatingScale({ claimId, side, myRating }: RatingScaleProps) {
                 type="radio"
                 name={groupName}
                 checked={checked}
-                onChange={() => rate.mutate({ claimId, rating: step.rating })}
+                onChange={() => choose(step.rating)}
                 className="peer sr-only"
               />
               {/* The step's whole accessible name. The mark beside it is
