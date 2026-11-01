@@ -34,13 +34,18 @@ interface ImpactControlProps {
 }
 
 // Semantic side tokens only, never the brand tokens and never raw hex. The
-// contrast notes and the dark-mode remap for supports live with the tokens in
-// index.css; a bar is a non-text part, so 3:1 against the card surface is the
-// floor and both sides clear it in both modes.
+// contrast notes and the dark-mode remaps live with the tokens in index.css; a
+// bar is a non-text part, so 3:1 is the floor. All three fills are measured
+// against the bar's interior, which is the card surface, and all three clear
+// it in both modes — including the no-side fill, which used to borrow a
+// hairline colour and was invisible (I5).
 const SIDE_FILL: Record<ClaimSide, string> = {
   supports: 'bg-claim-supports',
   opposes: 'bg-claim-opposes',
 }
+const NO_SIDE_FILL = 'bg-claim-neutral'
+
+const fillFor = (side: ClaimSide | null) => (side ? SIDE_FILL[side] : NO_SIDE_FILL)
 
 function impactPercent(impact: number): number {
   const clamped = Math.min(9, Math.max(1, impact))
@@ -232,7 +237,7 @@ function RatingScale({ claimId, side, myRating }: RatingScaleProps) {
                 className={[
                   'block rounded-sm border',
                   checked
-                    ? `border-transparent ${side ? SIDE_FILL[side] : 'bg-border-medium'}`
+                    ? `border-transparent ${fillFor(side)}`
                     : 'border-border-medium bg-surface-card hover:bg-surface-hover',
                   'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus-ring',
                 ].join(' ')}
@@ -283,10 +288,14 @@ export function ImpactControl({
           <div
             role="img"
             aria-label={`Impact so far: ${impactWord(impact)}`}
-            className="h-1.5 flex-1 overflow-hidden rounded-full bg-border-light"
+            // An outlined groove with the card showing through it, not a
+            // filled track: the outline says how long the bar is and the fill
+            // reads against the card, which is the only arrangement where
+            // both clear 3:1 in both modes (I6).
+            className="h-2 flex-1 overflow-hidden rounded-full border border-impact-track bg-surface-card"
           >
             <div
-              className={`h-full rounded-full ${side ? SIDE_FILL[side] : 'bg-border-medium'}`}
+              className={`h-full rounded-full ${fillFor(side)}`}
               style={{ width: `${impactPercent(impact)}%` }}
             />
           </div>

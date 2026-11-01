@@ -107,6 +107,17 @@ describe('ImpactControl', () => {
     expect(group.textContent).not.toMatch(/\d/)
   })
 
+  it('draws the bar as an outline the fill reads against, not a filled track (I6)', () => {
+    render(<ImpactControl {...props({ impact: 9, ratingCount: 4, canRate: false })} />)
+    const bar = screen.getByRole('img')
+    // The old track was bg-border-light, against which coral read 2.60:1 in
+    // light mode and 2.20:1 in dark — under the 3:1 this file's own comment
+    // claimed. The interior is the card now and the extent is an outline.
+    expect(bar.className).not.toMatch(/bg-border-/)
+    expect(bar.className).toContain('border-impact-track')
+    expect(bar.className).toContain('bg-surface-card')
+  })
+
   it('shows the aggregate as a bar', () => {
     // Length is the only variable carrying impact, so length is what the test
     // reads. No provider here: the aggregate half must render inside a card,
@@ -231,10 +242,19 @@ describe('ImpactControl', () => {
     expect(fill()).not.toContain('bg-claim-supports')
 
     // A root claim has no side, so the bar takes a neutral fill rather than
-    // picking one.
+    // picking one — and a neutral fill a reader can see. This used to be
+    // bg-border-medium, a hairline colour at 1.58:1 on the card and 1.30:1
+    // inside the old track, which made the bar and the checked step invisible
+    // on the default landing view (I5). The ratios themselves are checked in
+    // index.contrast.test.ts; what this pins is that the component asks for
+    // the token that has them.
     rerender(<ImpactControl {...props({ side: null, myRating: 9 })} />)
-    expect(fill()).toContain('bg-border-medium')
-    expect(fill()).not.toMatch(/bg-claim-/)
+    expect(fill()).toContain('bg-claim-neutral')
+    expect(fill()).not.toMatch(/bg-border-/)
+    const neutralStep = screen.getByRole('radio', { name: 'High weight' }).closest('label')!
+    expect(neutralStep.querySelector('[aria-hidden="true"]')!.className).toContain(
+      'bg-claim-neutral',
+    )
 
     // Semantic tokens only, and never a colour on text: opposes reads 3.14:1 on
     // white, which clears 3:1 for a bar and fails 4.5:1 for anything to read.

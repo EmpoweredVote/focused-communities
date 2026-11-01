@@ -237,7 +237,10 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
               <button
                 type="button"
                 onClick={() => signIn()}
-                className="cursor-pointer border-none bg-transparent p-0 text-ev-teal-light underline hover:text-ev-teal"
+                // The semantic link token, not the brand one: --color-ev-teal-light
+                // is 2.49:1 on the card and 2.31:1 on the page background, and
+                // this is the one control a signed-out reader can act on (I9).
+                className="cursor-pointer border-none bg-transparent p-0 text-link underline hover:text-link-hover"
               >
                 Sign in
               </button>
