@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ACCOUNTS_API_BASE = import.meta.env.VITE_ACCOUNTS_API_URL ?? 'https://accounts-api.empowered.vote';
 
@@ -44,8 +45,11 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Must be mounted inside a QueryClientProvider, as it is in main.tsx: signing
+// out has to be able to drop what the previous reader's requests brought back.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [auth, setAuth] = useState<AccessState>({ state: 'loading' });
+  const queryClient = useQueryClient();
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const token = hashParams.get('access_token');
@@ -71,6 +75,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
   function signOut() {
     localStorage.removeItem('ev_token');
+    // Everything in the cache was fetched as the reader who is leaving, and
+    // some of it — any claim body — carries their own ratings. The viewer key
+    // already stops it being served back, so this is the second lock rather
+    // than the only one: clear() drops the bodies themselves rather than
+    // leaving them in memory under a key nobody asks for any more.
+    queryClient.clear();
     setAuth({ state: 'inform' });
   }
   return (

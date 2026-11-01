@@ -129,6 +129,9 @@ const pathsEnding = (suffix: string) =>
 
 beforeEach(() => {
   mockFetch.mockReset()
+  // The viewer key reads the token for a caller with no account object, so a
+  // token left behind by one test would key the next one's cache entries.
+  localStorage.clear()
   signedOut()
 })
 
@@ -239,6 +242,48 @@ describe('useClaimNode and useRootClaim', () => {
     rerender()
     expect(result.current.data).toBeUndefined()
     expect(result.current.isPlaceholderData).toBe(false)
+  })
+
+  it('does not key two different inform-tier accounts alike (I3)', async () => {
+    // detectUserState() returns a bare { state: 'inform' } for a signed-out
+    // visitor AND for a signed-in account whose tier is inform — and apiFetch
+    // sends the bearer token either way, so the body that comes back for the
+    // second one is that account's, myRating included. Keying both as 'anon'
+    // served one reader's ratings to the next with nothing to trigger a
+    // refetch, because the key was identical.
+    localStorage.setItem('ev_token', 'test-token-a')
+    mockFetch.mockResolvedValueOnce(nodeResponse(nodeFor(claimFor('cl-1', { myRating: 9 }))))
+    const { result, rerender } = renderHook(() => useClaimNode('cl-1'), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.data?.node.claim.myRating).toBe(9))
+
+    mockFetch.mockImplementationOnce(never)
+    localStorage.setItem('ev_token', 'test-token-b')
+    rerender()
+    expect(result.current.data).toBeUndefined()
+    expect(result.current.isPlaceholderData).toBe(false)
+  })
+
+  it('keys a visitor with no token apart from one with a token (I3)', async () => {
+    localStorage.setItem('ev_token', 'test-token-a')
+    mockFetch.mockResolvedValueOnce(nodeResponse(nodeFor(claimFor('cl-1', { myRating: 4 }))))
+    const { result, rerender } = renderHook(() => useClaimNode('cl-1'), { wrapper: wrapper() })
+    await waitFor(() => expect(result.current.data?.node.claim.myRating).toBe(4))
+
+    mockFetch.mockImplementationOnce(never)
+    localStorage.removeItem('ev_token')
+    rerender()
+    expect(result.current.data).toBeUndefined()
+  })
+
+  it('puts no bearer token in a query key', async () => {
+    const client = newClient()
+    localStorage.setItem('ev_token', 'test-token-a')
+    mockFetch.mockResolvedValue(nodeResponse(nodeFor(claimFor('cl-1'))))
+    const { result } = renderHook(() => useClaimNode('cl-1'), { wrapper: wrap(client) })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    const keys = JSON.stringify(client.getQueryCache().getAll().map((q) => q.queryKey))
+    expect(keys).not.toContain('test-token-a')
+    expect(keys).toContain('token:')
   })
 
   it('does not carry one community’s root into another', async () => {

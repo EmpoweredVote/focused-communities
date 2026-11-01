@@ -14,19 +14,65 @@ import type {
   ShapeResponse,
 } from '../types'
 
-// Same viewer rule as useSeasons: a claim body carries myRating, the one
-// per-caller field, so every key that can hold one carries the viewer. Without
-// it a reader who signs out keeps the previous reader's ratings until staleTime
-// expires, with no invalidation to fix it. 'inform' carries no user and keys as
-// 'anon'. Queries also wait for auth to resolve: fetching while the viewer is
-// unknown shows a signed-in reader the anonymous ratings first and then swaps
-// them under them.
+/**
+ * A short, stable, non-reversible stand-in for a bearer token.
+ *
+ * FNV-1a, because this needs to be synchronous (a cache key is computed during
+ * render and SubtleCrypto is not) and because the token itself must not end up
+ * in a query key, where React Query's devtools would print it. A collision
+ * would have to be between two tokens used on the same device, and the cost of
+ * one is a stale body rather than a wrong one; the token is not a secret this
+ * hash is protecting, it is a value this hash is keeping out of a log.
+ */
+function tokenFingerprint(token: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < token.length; i++) {
+    h ^= token.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0).toString(36)
+}
+
+/**
+ * Who the cached bodies belong to.
+ *
+ * Same viewer rule as useSeasons: a claim body carries myRating, the one
+ * per-caller field, so every key that can hold one carries the viewer. Without
+ * it a reader who signs out keeps the previous reader's ratings until staleTime
+ * expires, with no invalidation to fix it.
+ *
+ * `'anon'` for everyone without a `user` was not enough (I3). `detectUserState`
+ * returns a bare `{ state: 'inform' }` both for a signed-out visitor and for a
+ * signed-in account whose tier is inform — while `apiFetch` attaches the
+ * `ev_token` bearer header regardless of auth state, so the inform account's
+ * request is authenticated and what comes back is that account's body,
+ * `myRating` included. Two inform accounts on one device, or one account
+ * demoted to inform, keyed identically: React Query served the cached bodies
+ * straight back and the identical key meant nothing triggered a refetch either.
+ * `types.ts` says any key that can hold a Claim must carry the viewer, and
+ * 'anon' is not a viewer. So: the account id when there is one, a fingerprint
+ * of the token when there is a token but no account, and 'anon' only when
+ * there is genuinely nobody.
+ *
+ * localStorage is read during render rather than subscribed to, which is sound
+ * here only because every path that changes the token also changes `auth`:
+ * sign-in through the hash, the `storage` listener in AuthProvider, and
+ * signOut() all call setAuth, and that is what re-runs this.
+ *
+ * Queries also wait for auth to resolve: fetching while the viewer is unknown
+ * shows a signed-in reader the anonymous ratings first and then swaps them
+ * under them.
+ */
 export function useViewer(): { viewer: string; authReady: boolean } {
   const { auth } = useAuth()
-  return {
-    viewer: 'user' in auth ? auth.user.id : 'anon',
-    authReady: auth.state !== 'loading',
+  let viewer = 'anon'
+  if ('user' in auth) {
+    viewer = auth.user.id
+  } else {
+    const token = localStorage.getItem('ev_token')
+    if (token) viewer = `token:${tokenFingerprint(token)}`
   }
+  return { viewer, authReady: auth.state !== 'loading' }
 }
 
 export interface ClaimNodeResult {
