@@ -38,6 +38,25 @@
   --color-claim-supports: var(--color-ev-teal);
   --color-claim-opposes: var(--color-ev-coral);
 
+  /* Minimap impact ramp.
+     Impact ("how much weight readers gave this") and side ("which side of its
+     parent this takes") are two different meanings, so they get two different
+     channels: the side is a node's shape and which half of the axis it sits on,
+     the impact is this neutral ramp. Reusing --color-claim-* for impact would
+     put both meanings in one palette, where a teal dot tells the reader
+     nothing. Neutral greys also stay clearly off teal and coral at dot size.
+     A dot is a non-text part, so 3:1 against the card surface is the floor, and
+     --color-ev-teal reading 2.66:1 on the dark card is the standing reminder to
+     measure both surfaces rather than one:
+       light  low #8C8C8C 3.36:1  moderate #636363 6.01:1  high #333333 12.63:1
+       dark   low #6D7C81 4.09:1  moderate #9FAFB4 7.81:1  high #D7E3E7 13.51:1
+     The light ramp measured on the DARK card runs 5.26 / 2.95 / 1.40, so the
+     override below is not cosmetic: two of its three steps would sit under 3:1
+     without it. */
+  --color-minimap-impact-low: #8C8C8C;
+  --color-minimap-impact-moderate: #636363;
+  --color-minimap-impact-high: #333333;
+
   /* Semantic border colors */
   --color-border-light: #E2EBEF;
   --color-border-medium: #C9CFD1;
@@ -70,6 +89,10 @@ html.dark {
   --color-focus-ring: #59B0C4;
   /* 2.66:1 -> 7.10:1 on the dark card. Opposes needs no override (5.64:1). */
   --color-claim-supports: var(--color-ev-teal-light);
+  /* 5.26 / 2.95 / 1.40 -> 4.09 / 7.81 / 13.51 on the dark card. */
+  --color-minimap-impact-low: #6D7C81;
+  --color-minimap-impact-moderate: #9FAFB4;
+  --color-minimap-impact-high: #D7E3E7;
   --color-surface-primary: #0F1A1E;
   --color-surface-secondary: #05262E;
   --color-surface-hover: #03303A;
