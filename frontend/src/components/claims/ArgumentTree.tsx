@@ -67,6 +67,14 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
   // arrives as { state: 'connected_no_compass' } (R98).
   const canWrite = canRateClaims(auth)
   const gate = claimGateReason(auth)
+  // Two states the server will always refuse a write on, and the UI already
+  // holds both facts: a merged parent answers 409 (R34) and a hidden one — or
+  // any claim under a hidden ancestor — answers 404 (R33/R55/R103). Offering
+  // the buttons anyway costs the reader a draft's worth of effort for a trip
+  // that cannot succeed, and offering the rating scale on a merged claim feeds
+  // ratings into a claim that by construction collects nothing further.
+  const noWritesReason = (claim: { isHidden: boolean; mergedInto: string | null }) =>
+    claim.mergedInto ? ('merged' as const) : claim.isHidden ? ('removed' as const) : null
 
   // Which composer is open, carried WITH the claim it belongs to rather than
   // reset by an effect when the focus moves. An open composer for a claim the
@@ -115,7 +123,11 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
         Arguments
       </h2>
 
-      <ClaimParamNotice rejected={claimParamRejected} />
+      {/* Only on a branch where "you are reading the top of this argument
+          instead" is true. Beside the failure block it contradicts it: that
+          block says none of the argument is shown, and this says which part of
+          it the reader got. */}
+      <ClaimParamNotice rejected={claimParamRejected && !query.isError} />
 
       {query.isError ? (
         <div
@@ -181,17 +193,34 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
             <p className="mt-2 text-xs text-text-secondary">
               {node.claim.childSupports} supporting {'·'} {node.claim.childOpposes} opposing
             </p>
+            {/* The same mark the card and the map give this claim. Without it,
+                zooming in is where a merged claim turns back into an ordinary
+                one — exactly where the reader is looking hardest. The target
+                may be outside this payload, so it is named nowhere. */}
+            {node.claim.mergedInto && (
+              <p data-testid="focused-claim-merged" className="mt-1 text-xs text-text-muted">
+                Merged into another claim
+              </p>
+            )}
           </article>
 
           {!node.claim.isHidden && node.claim.body.trim() !== '' && (
             <div className="mt-2">
               <ImpactControl
+                // Re-keyed per claim so the control is rebuilt rather than
+                // reused. It holds its own mutation, and the displayed
+                // selection falls back to the in-flight one: without this, a
+                // rating still in flight for claim A shows as checked under
+                // claim B, which is a statement about this reader's rating of
+                // B and is false. The same instance would also announce A's
+                // refusal under B through role="status".
+                key={node.claim.id}
                 claimId={node.claim.id}
                 side={node.claim.side}
                 impact={node.claim.impact}
                 ratingCount={node.claim.ratingCount}
                 myRating={node.claim.myRating}
-                canRate={canWrite}
+                canRate={canWrite && !noWritesReason(node.claim)}
               />
             </div>
           )}
@@ -220,7 +249,19 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
             </p>
           )}
 
-          {canWrite && (
+          {/* Said once, to a reader who could otherwise write: the buttons are
+              gone and this is why. A reader who may not write already has the
+              gate sentence above, and two notices saying nearly the same thing
+              is what that comment warns against. */}
+          {canWrite && noWritesReason(node.claim) && (
+            <p data-testid="claim-closed-to-writes" className="mt-3 text-sm text-text-secondary">
+              {noWritesReason(node.claim) === 'merged'
+                ? 'This claim was merged into another one, so it takes no new arguments or ratings.'
+                : 'This claim was removed, so it takes no new arguments.'}
+            </p>
+          )}
+
+          {canWrite && !noWritesReason(node.claim) && (
             <div className="mt-3">
               <div className="flex flex-wrap gap-2">
                 {SIDES.map((side) => (

@@ -64,6 +64,10 @@ const h = vi.hoisted(() => ({
   },
   columnArgs: [] as { path: string | undefined; side: string }[],
   mounts: { seasonSelector: 0, stanceCard: 0, threadForm: 0 },
+  // Every claim id an ImpactControl with a live scale was mounted against, in
+  // order. A counter is the only thing that can tell "React kept this
+  // instance" from "React threw it away and built an identical one" (R97).
+  impactMounts: [] as string[],
 }))
 
 // The three queries are stubbed; everything else in useClaims — the exported
@@ -85,6 +89,25 @@ vi.mock('../../hooks/useClaims', async (importOriginal) => {
     useClaimColumn: (path: string | undefined, side: 'supports' | 'opposes') => {
       h.columnArgs.push({ path, side })
       return h.columns[side]
+    },
+  }
+})
+
+// The real control, with a mount spy around it: the tests below still need
+// its radiogroup, and this one needs to know when it was rebuilt.
+vi.mock('./ImpactControl', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./ImpactControl')>()
+  return {
+    ImpactControl: (props: Parameters<typeof actual.ImpactControl>[0]) => {
+      const { claimId, canRate } = props
+      useEffect(() => {
+        if (canRate) h.impactMounts.push(claimId)
+      // Empty deps on purpose: this counts MOUNTS, not renders. With the
+      // dependency list it would fire on a prop change too, and a prop change
+      // is exactly what a reused instance looks like.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [])
+      return <actual.ImpactControl {...props} />
     },
   }
 })
@@ -348,6 +371,7 @@ beforeEach(() => {
   h.mounts.seasonSelector = 0
   h.mounts.stanceCard = 0
   h.mounts.threadForm = 0
+  h.impactMounts = []
   localStorage.clear()
 })
 
@@ -378,6 +402,16 @@ describe('ArgumentTree — first load', () => {
   it('surfaces a mangled ?claim= rather than quietly serving the root', () => {
     renderTree('/communities/test-slug?claim=not-a-uuid')
     expect(screen.getByTestId('claim-param-rejected')).toBeInTheDocument()
+  })
+
+  it('does not promise the top of the argument on a branch that shows none of it', () => {
+    // A mangled link and a failed root request at once — today's state against
+    // production. "You are reading the top of this argument instead" directly
+    // above "none of it is shown here" is one of the two that has to be wrong.
+    h.root = failed('Request failed (404)')
+    renderTree('/communities/test-slug?claim=not-a-uuid')
+    expect(screen.getByTestId('argument-tree-error')).toBeInTheDocument()
+    expect(screen.queryByTestId('claim-param-rejected')).not.toBeInTheDocument()
   })
 
   it('keeps ?season= when the reader zooms into a claim', () => {
@@ -477,6 +511,62 @@ describe('ArgumentTree — loading, failed and empty are three different things'
     expect(screen.getByTestId('tree-minimap-error')).toBeInTheDocument()
     expect(screen.queryByTestId('tree-minimap')).not.toBeInTheDocument()
     expect(screen.getByText('Demo root claim body.')).toBeInTheDocument()
+  })
+})
+
+describe('ArgumentTree — a merged or removed claim in focus (I1)', () => {
+  const merged = claim({ mergedInto: '00000000-0000-4000-8000-00000000000e' })
+
+  it('keeps the merge mark the card and the map both give it', () => {
+    h.root = loaded(nodeOf({ claim: merged }))
+    renderTree()
+    expect(screen.getByTestId('focused-claim-merged')).toHaveTextContent('Merged into another claim')
+    // The target may be outside the payload, so it is named nowhere.
+    expect(screen.getByTestId('focused-claim-merged').textContent).not.toContain(
+      '00000000-0000-4000-8000-00000000000e',
+    )
+  })
+
+  it('offers no rating scale and no add buttons on a claim the server will refuse', () => {
+    h.auth = { state: 'connected', user: connectedUser }
+    h.root = loaded(nodeOf({ claim: merged }))
+    const { container } = renderTree()
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('[data-add-side]')).toHaveLength(0)
+    expect(screen.getByTestId('claim-closed-to-writes').textContent).toMatch(/merged into another one/)
+  })
+
+  it('offers no add buttons on a tombstone either, and says which refusal it is', () => {
+    h.auth = { state: 'connected', user: connectedUser }
+    h.root = loaded(nodeOf({ claim: claim({ isHidden: true, body: '' }) }))
+    const { container } = renderTree()
+    expect(container.querySelectorAll('[data-add-side]')).toHaveLength(0)
+    expect(screen.getByTestId('claim-closed-to-writes').textContent).toMatch(/was removed/)
+    expect(screen.getByTestId('claim-closed-to-writes').textContent).not.toMatch(/merged/)
+  })
+
+  it('leaves an ordinary claim alone', () => {
+    h.auth = { state: 'connected', user: connectedUser }
+    const { container } = renderTree()
+    expect(screen.queryByTestId('focused-claim-merged')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('claim-closed-to-writes')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('[data-add-side]')).toHaveLength(2)
+    expect(screen.getByRole('radiogroup')).toBeInTheDocument()
+  })
+})
+
+describe('ArgumentTree — the rating control belongs to one claim (I7)', () => {
+  it('rebuilds the scale when the reader moves to another claim', () => {
+    // RatingScale holds its own mutation, and what it shows falls back to the
+    // in-flight choice and renders the last error. Reused across a claim
+    // change, it tells the reader their rating of claim B is a value they in
+    // fact gave claim A. Only a mount counter can tell a rebuild from a reuse.
+    h.auth = { state: 'connected', user: connectedUser }
+    renderTree()
+    expect(h.impactMounts).toEqual([ROOT_ID])
+
+    fireEvent.click(screen.getByRole('button', { name: /Demo supporting argument/ }))
+    expect(h.impactMounts).toEqual([ROOT_ID, SUPPORT_ID])
   })
 })
 
