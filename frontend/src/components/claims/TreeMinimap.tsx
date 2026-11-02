@@ -86,12 +86,35 @@ interface Row {
   roots: ShapeNode[]
 }
 
-function buildRows(shape: ShapeNode[], completeThroughDepth: number | null): Row[] {
+/**
+ * 🔴 `truncated` AND `completeThroughDepth` ARE READ TOGETHER OR NOT AT ALL.
+ *
+ * The API says so in as many words, and this component used to read the second one alone:
+ * `completeThroughDepth !== null && node.depth <= completeThroughDepth`. That inverts the
+ * common case. When nothing was cut the server sends `{ truncated: false,
+ * completeThroughDepth: null }` — null meaning "the question does not apply", not "nothing is
+ * complete" — so every row was marked incomplete and the map suppressed its counts and balance
+ * on a tree that was whole. Caught on the first live response after deploy, where a one-node
+ * community came back exactly that way.
+ *
+ * The three states, in full:
+ *   truncated false                        → nothing was cut; every depth present is complete.
+ *   truncated true,  completeThroughDepth N → depths <= N are whole, deeper ones are a subset.
+ *   truncated true,  completeThroughDepth null → cannot happen (a cut always names a depth),
+ *                                            and if it ever does, claim nothing.
+ */
+function buildRows(shape: ShapeNode[], completeThroughDepth: number | null, truncated: boolean): Row[] {
   const byDepth = new Map<number, Row>()
   for (const node of shape) {
     let row = byDepth.get(node.depth)
     if (!row) {
-      const complete = completeThroughDepth !== null && node.depth <= completeThroughDepth
+      // Nothing cut AND no depth named is the only state that means "all of it is here".
+      // Any other combination falls through to the depth test, so a server that somehow
+      // disagrees with itself makes this map claim LESS, never more.
+      const complete =
+        !truncated && completeThroughDepth === null
+          ? true
+          : completeThroughDepth !== null && node.depth <= completeThroughDepth
       row = {
         depth: node.depth,
         complete,
@@ -201,7 +224,7 @@ function Node({
 }
 
 export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps) {
-  const rows = buildRows(shape, meta.completeThroughDepth)
+  const rows = buildRows(shape, meta.completeThroughDepth, meta.truncated)
   const focusedOnMap = focusedId !== '' && shape.some((n) => n.id === focusedId)
 
   // An empty shape with completeThroughDepth null is the one state where the
@@ -209,7 +232,10 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
   // false, so without this the caveat was dropped and what remained was
   // "This map has nothing to draw." — the opposite of the truth, said on the
   // branch least able to support it (I8).
-  const nothingDescribed = rows.length === 0 && meta.completeThroughDepth === null
+  // An empty shape is only "we know nothing" when the server also says it cut something.
+  // With `truncated: false` an empty shape means the community genuinely has no claims —
+  // a different sentence, and the honest one.
+  const nothingDescribed = rows.length === 0 && meta.truncated && meta.completeThroughDepth === null
 
   // Cut off when the server says so, and also when a drawn depth is one this
   // response does not describe completely — which is the same thing seen from

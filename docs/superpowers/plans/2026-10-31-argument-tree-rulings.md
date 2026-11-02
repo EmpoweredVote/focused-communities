@@ -90,6 +90,25 @@ An absence counts: *"this claim has no opposing arguments"* is a claim about the
 the cut you do not know it. The screen-reader summary is bound by the same rule — a text
 alternative more confident than the picture is worse than none.
 
+🔴 **This ruling stated `null` the wrong way round, and the first live call after deploy caught
+it.** It said `null` means "not even depth 0 is complete". It does not. The API documents the
+opposite — *"null is the one encoding of 'the question does not apply', and the two fields are
+read together or not at all"* — and sends `{ truncated: false, completeThroughDepth: null }`
+whenever **nothing was cut**, which is every community today.
+
+Read alone, that inverted the common case: every row was marked incomplete and the minimap
+suppressed counts and balance on a whole tree. The component had implemented this ruling
+faithfully, so the defect is the ruling's, not the code's.
+
+**The correct rule:** nothing cut *and* no depth named is the only combination meaning "all of it
+is here". Anything else falls through to the depth test, so a server disagreeing with itself
+makes the map claim less rather than more. Fixed in focused-communities #72, with the live
+response pinned as a test.
+
+The lesson worth keeping: a ruling written from the spec and never exercised against a real
+response is a hypothesis. Three reviewers and a mutation suite all passed over this one, because
+every test encoded the same wrong premise the ruling did.
+
 ### R51 / R52 / R53 — what curation refuses
 
 Three refusals the plan did not ask for, each closing something the schema permits:

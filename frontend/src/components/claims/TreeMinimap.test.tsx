@@ -136,17 +136,24 @@ describe('TreeMinimap', () => {
       <TreeMinimap
         shape={[]}
         focusedId=""
-        meta={meta({ completeThroughDepth: null })}
+        meta={meta({ truncated: true, completeThroughDepth: null })}
         onJump={vi.fn()}
       />,
     )
     expect(nodeButtons()).toHaveLength(0)
     expect(rowDepths()).toEqual([])
     expect(summaryText()).not.toMatch(/\d/)
-    // completeThroughDepth null says the response did not describe even depth
-    // 0 completely. "This map has nothing to draw" is then the one thing the
-    // client may not say, and the caveat is the one thing it must (I8). The
-    // old assertion above passes either way, which is why this is here.
+    // 🔴 truncated TRUE with no depth named is the state where the response cut
+    // something and could not say where — the client knows only that it does not
+    // know. "This map has nothing to draw" is then the one thing it may not say,
+    // and the caveat is the one thing it must (I8). The assertion above passes
+    // either way, which is why this is here.
+    //
+    // This originally ran with the default truncated:false, which encodes the
+    // OPPOSITE — nothing was cut — and so asserted the caveat on a response that
+    // was complete. The first live call after deploy returned exactly that
+    // ({truncated:false, completeThroughDepth:null} for a whole one-node tree)
+    // and the map suppressed its counts. See the sibling test below.
     expect(summaryText()).not.toMatch(/nothing to draw/i)
     expect(summaryText()).toMatch(/no level of this map is complete/i)
     // And a sighted reader gets the same sentence, not a bare empty box.
@@ -164,6 +171,34 @@ describe('TreeMinimap', () => {
     )
     expect(summaryText()).toMatch(/nothing to draw/i)
     expect(screen.queryByTestId('tree-minimap-cutoff')).not.toBeInTheDocument()
+  })
+
+  // 🔴 THE REGRESSION THE DEPLOY FOUND. {truncated:false, completeThroughDepth:null} is
+  // what the API sends when NOTHING was cut — null meaning 'the question does not apply', not
+  // 'nothing is complete'. Reading the second field alone inverted the common case: every row
+  // was marked incomplete and the map suppressed its counts and balance on a whole tree. Every
+  // community is in this state today.
+  it('shows the balance when the server says nothing was cut', () => {
+    const shape = [
+      node(0, { depth: 0, side: null }),
+      node(1, { depth: 1, side: 'supports' }),
+      node(2, { depth: 1, side: 'opposes' }),
+      node(3, { depth: 1, side: 'supports' }),
+    ]
+    render(
+      <TreeMinimap
+        shape={shape}
+        focusedId="test-node-0"
+        meta={meta({ truncated: false, completeThroughDepth: null })}
+        onJump={vi.fn()}
+      />,
+    )
+    // The counts are known and must be stated.
+    expect(summaryText()).toMatch(/2 supporting/i)
+    expect(summaryText()).toMatch(/1 opposing/i)
+    // And nothing may claim the map is cut off or incomplete.
+    expect(summaryText()).not.toMatch(/no level of this map is complete/i)
+    expect(screen.queryByTestId('tree-minimap-cutoff')).toBeNull()
   })
 
   it('draws no balance, no count and no absence below completeThroughDepth', () => {
