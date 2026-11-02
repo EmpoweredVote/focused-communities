@@ -345,22 +345,22 @@ Impact sorting buries a *weak* claim but cannot merge a duplicate or move a misf
 Kialo survives this through heavy admin curation that is invisible in its UI. Move and merge
 are the minimum viable version of that curation.
 
-### Blocking dependency: Maven and Admin do not exist here
+### Maven and Admin — resolved, no workaround needed
 
-`src/middleware/tierGuards.ts` knows only `tier: 'inform' | 'connected' | 'empowered'`, and
-`req.user` carries no role field. This blocks more than curation — it also gates draft-season
-visibility, `rationale` display, and hiding.
+An earlier draft proposed an environment-variable allowlist, on the belief that no role
+existed. That was true of the *frozen* backend and false of the engine. Verified
+2026-10-31:
 
-**Interim mechanism:** a Maven/Admin user-id allowlist supplied by environment variable,
-checked by a new `requireMaven` guard alongside `requireConnected`. The guard's interface
-should not change when a real role claim replaces the allowlist. *(Author's call.)*
+- `public.roles` contains the slug **`maven`** ("Empowered civic expert").
+- The engine ships `backend/src/middleware/requireRole.ts` — a factory,
+  `requireRole(roleSlug, { geoid?, resourceId? })`, backed by `lib/roleService.ts`
+  (`getCachedUserRoles`, `checkRole`), returning an opaque 401/403.
+- `backend/src/middleware/requireAdmin.ts` covers Admin.
 
-**Revisit this before building it.** The guard now belongs in
-`ev-accounts/backend/src/focused_communities/`, which is the same codebase that owns
-accounts and roles. A real Maven/Admin role may already be reachable there, in which case
-the allowlist is unnecessary. Check the engine before implementing the interim mechanism —
-the `src/middleware/tierGuards.ts` limitation described above is a fact about the *frozen*
-backend and may not describe the engine at all.
+**Use `requireRole('maven')` and `requireAdmin`.** No allowlist, no new guard, no
+environment secret. Note the engine module's own `tierGuards.ts` still only has
+`requireConnected` — the role middleware lives one level up, in the engine's shared
+`src/middleware/`, and is imported.
 
 The tree can ship and be useful before curation exists — the user explicitly wants to see it
 before revising it — so build the tree first, with curation behind the guard.
@@ -504,7 +504,7 @@ Review these; they were settled by the author, not stated by the user.
 | 6 | Claim bodies stay author-editable forever; ratings not versioned; drift accepted |
 | 6 | Merge re-parents children, discards ratings, redirects the old URL |
 | 6 | Hide renders a tombstone preserving the subtree; no cascade, no re-parenting |
-| 6 | Interim Maven/Admin allowlist via env var behind a `requireMaven` guard |
+| 6 | ~~Interim Maven/Admin allowlist~~ — withdrawn 2026-10-31; the engine's `requireRole('maven')` already exists |
 | 8 | Teal/coral for supports/opposes instead of green/red |
 
 ## 12. External dependencies
@@ -514,8 +514,14 @@ Review these; they were settled by the author, not stated by the user.
   and extends the module's database role to cover them.
 - **`EmpoweredVote/ev-ui`** supplies the components. Read its `ev-designer` skill for the
   public route index and sample responses before building any surface.
-- EV-Accounts must expose a Maven/Admin role to replace the interim allowlist — check
-  whether one already exists in the engine (§6).
+- ~~EV-Accounts must expose a Maven/Admin role~~ — **resolved**, it already does (§6).
+- **The `focused_communities_app` database role is the binding constraint.** CA_0323 grants
+  it SELECT on `connect.communities`, SELECT/INSERT/UPDATE on `connect.threads` and
+  `connect.posts`, SELECT on the two edit tables, and EXECUTE on
+  `connect.get_stances_for_community` — **and nothing else, with no BYPASSRLS**. It has no
+  access to `inform.*` at all. Every season read and every claim table in this design needs
+  grants added by a new ev-accounts migration, following CA_0323's pattern of a
+  `SECURITY DEFINER` RPC plus EXECUTE, and permissive RLS policies scoped to the role.
 - Compass-side authoring to fill `compass_stance_revisions` descriptions before band 2 can
   read revisions for the open season.
 - The static-site cutover in `FROZEN.md` is a founder task and is not part of this work,
