@@ -85,9 +85,27 @@ export interface RateClaimVars {
   rating: number
 }
 
+/**
+ * The rating route answers one of two bodies, and the difference is load-bearing.
+ *
+ * Normally `{ impact, ratingCount }` — the aggregate after the trigger ran.
+ *
+ * 🔴 But the upsert commits in its own transaction and the aggregate is READ BACK in a second
+ * query, so that read can fail after the rating is safely stored. The API refuses to call that
+ * a failure (it is not — the write landed) and refuses to invent a number, so it answers 200
+ * with `{ impact: null, ratingCount: null, aggregateUnavailable: true }`. A 200 is also what
+ * lets its cache invalidation fire; a 500 would leave the pre-rating impact cached for 30s.
+ *
+ * Writing those nulls into the cache is the trap: `Claim.ratingCount` is non-nullable, the card
+ * renders "Not yet rated" on `ratingCount > 0`, and `null > 0` is false — so a reader who just
+ * rated a well-rated claim would be told nobody has rated it, for the whole staleTime. The
+ * aggregate being unreadable is not the same fact as there being no ratings.
+ */
 export interface RatingResult {
-  impact: number
-  ratingCount: number
+  impact: number | null
+  ratingCount: number | null
+  /** True when the rating was stored but the aggregate could not be read back. */
+  aggregateUnavailable?: boolean
 }
 
 /**
@@ -130,11 +148,17 @@ export function useRateClaim() {
     },
     onSuccess: (result, { claimId, rating }) => {
       // impact and ratingCount come from the response, never from arithmetic.
-      patchCachedClaim(qc, viewer, claimId, {
-        myRating: rating,
-        impact: result.impact,
-        ratingCount: result.ratingCount,
-      })
+      //
+      // Unless the server could not read them back — see RatingResult. Then the rating IS
+      // stored and `myRating` must still land, but the aggregate stays at its last known
+      // value rather than being overwritten with nulls. Stale by one rating is a small,
+      // self-correcting error; "Not yet rated" on a claim the reader just rated is a false
+      // statement about other people, and the one this band exists to avoid making.
+      const patch: ClaimPatch =
+        result.aggregateUnavailable || result.impact === null || result.ratingCount === null
+          ? { myRating: rating }
+          : { myRating: rating, impact: result.impact, ratingCount: result.ratingCount }
+      patchCachedClaim(qc, viewer, claimId, patch)
       // Deliberately no invalidation: a refetch would resort the column under
       // the reader's cursor the instant they rate. The shape query carries
       // impact too and refreshes on its own cadence.

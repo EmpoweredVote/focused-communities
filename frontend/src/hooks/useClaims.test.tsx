@@ -532,6 +532,49 @@ describe('useRateClaim', () => {
     expect(other?.pages[0].node.supports[0].myRating).toBeNull()
   })
 
+  // The server stores the rating in one transaction and reads the aggregate back in a second
+  // query, so it can answer 200 with `aggregateUnavailable: true` and nulls where the numbers
+  // would be. Writing those nulls through would make `ratingCount > 0` false and the card would
+  // say "Not yet rated" about a claim this reader has just rated — a false statement about
+  // other people, held for the whole staleTime. The rating itself still has to land.
+  it('keeps the last known aggregate when the server could not read it back', async () => {
+    const client = newClient()
+    const w = wrap(client)
+    mockFetch.mockResolvedValueOnce(
+      nodeResponse(nodeFor(claimFor('cl-1', { impact: 7.25, ratingCount: 12, myRating: null }))),
+    )
+    const node = renderHook(() => useClaimNode('cl-1'), { wrapper: w })
+    await waitFor(() => expect(node.result.current.isSuccess).toBe(true))
+
+    const rating = deferred()
+    mockFetch.mockImplementationOnce(() => rating.promise)
+    const rate = renderHook(() => useRateClaim(), { wrapper: w })
+    act(() => {
+      rate.result.current.mutate({ claimId: 'cl-1', rating: 8 })
+    })
+    act(() => {
+      rating.settle({
+        ok: true,
+        data: { data: { impact: null, ratingCount: null, aggregateUnavailable: true } },
+      })
+    })
+    await waitFor(() => expect(rate.result.current.isSuccess).toBe(true))
+
+    // Asserted against the cache rather than through the hook, and not for convenience:
+    // react-query v5 only re-renders an observer for result properties that observer has
+    // already read, and this test never touches `.data` before the mutation, so the node
+    // hook holds its first render throughout. The cache is what the next reader of this
+    // claim will actually be handed. (The same reason is recorded on the viewer-leak test.)
+    const cached = client.getQueryData<ClaimNodeResult>(['claim', 'anon', 'cl-1'])
+
+    // The reader's own choice registers...
+    expect(cached?.node.claim.myRating).toBe(8)
+    // ...and the aggregate is stale by one rating rather than erased, so the card still
+    // says how many people have rated this instead of "Not yet rated".
+    expect(cached?.node.claim.ratingCount).toBe(12)
+    expect(cached?.node.claim.impact).toBe(7.25)
+  })
+
   it('does not write a rating into another viewer’s cached claim', async () => {
     const client = newClient()
     const w = wrap(client)
