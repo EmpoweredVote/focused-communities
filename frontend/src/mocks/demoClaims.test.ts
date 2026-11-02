@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { demoClaimResponse, isDemoClaimPath } from './demoClaims'
+// The real path builder, not a second copy of it: the fixture and the hook
+// agreeing on a query parameter is exactly the kind of cross-file contract
+// C1 broke, and no test compared the two files then either.
+import { claimNodePath, columnPagePath } from '../hooks/useClaims'
 import type { ClaimNode, ClaimNodeMeta, ShapeNode } from '../types'
 
 // The uuid shape `useFocusedClaim` validates `?claim=` against, and the one the
@@ -81,6 +85,8 @@ describe('the demo tree says nothing per-caller', () => {
 })
 
 describe('the demo tree pages a column the way the route does', () => {
+  const nextPage = (cursor: string) => columnPagePath(claimNodePath(ROOT), 'supports', cursor)
+
   function meta(path: string) {
     const body = demoClaimResponse(path) as { meta: ClaimNodeMeta }
     return body.meta
@@ -103,13 +109,13 @@ describe('the demo tree pages a column the way the route does', () => {
   it('advances only the side whose cursor was sent', () => {
     const cursor = meta(`/api/claims/${ROOT}`).supports.cursor!
     const first = node(`/api/claims/${ROOT}`)
-    const second = node(`/api/claims/${ROOT}?supportsCursor=${encodeURIComponent(cursor)}`)
+    const second = node(nextPage(cursor))
 
     const firstIds = first.supports.map((c) => c.id)
     const secondIds = second.supports.map((c) => c.id)
     expect(secondIds.length).toBeGreaterThan(0)
     expect(secondIds.filter((id) => firstIds.includes(id))).toEqual([])
-    expect(meta(`/api/claims/${ROOT}?supportsCursor=${encodeURIComponent(cursor)}`).supports.hasMore).toBe(
+    expect(meta(nextPage(cursor)).supports.hasMore).toBe(
       false,
     )
 
@@ -121,7 +127,7 @@ describe('the demo tree pages a column the way the route does', () => {
   it('together, the pages are the whole side and nothing twice', () => {
     const root = node(`/api/claims/${ROOT}`)
     const cursor = meta(`/api/claims/${ROOT}`).supports.cursor!
-    const rest = node(`/api/claims/${ROOT}?supportsCursor=${encodeURIComponent(cursor)}`)
+    const rest = node(nextPage(cursor))
     const ids = [...root.supports, ...rest.supports].map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
     expect(ids).toHaveLength(root.claim.childSupports)
