@@ -45,7 +45,7 @@ export function AuthGate({ children, action = 'post' }: AuthGateProps) {
 
 export function SuspendedNotice() {
   return (
-    <p className="text-red-600 text-sm mt-2" role="alert">
+    <p className="text-text-alert text-sm mt-2" role="alert">
       Your account is currently suspended and cannot post.
     </p>
   );

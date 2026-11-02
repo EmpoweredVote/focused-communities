@@ -103,6 +103,15 @@ const PAIRS: Pair[] = [
   // Body text, the thing the whole band is made of.
   { what: 'body text on a card', fg: '--color-text-body', bg: '--color-surface-card', floor: TEXT },
   { what: 'secondary text on a card', fg: '--color-text-secondary', bg: '--color-surface-card', floor: TEXT },
+  // Muted text — bylines, timestamps, counts, "Not yet rated". Small
+  // secondary text, which is where a low ratio hurts most, and the one token
+  // here that is used on BOTH surfaces, so both are floors.
+  { what: 'muted text on a card', fg: '--color-text-muted', bg: '--color-surface-card', floor: TEXT },
+  { what: 'muted text on the page background', fg: '--color-text-muted', bg: '--color-surface-secondary', floor: TEXT },
+  // The character count as it turns red near the limit. It is a number the
+  // writer is meant to read, so it is text, not a part.
+  { what: 'an alerting character count on a card', fg: '--color-text-alert', bg: '--color-surface-card', floor: TEXT },
+  { what: 'an alerting character count on the page background', fg: '--color-text-alert', bg: '--color-surface-secondary', floor: TEXT },
 ]
 
 describe.each(['light', 'dark'] as const)('contrast in %s mode', (mode) => {
@@ -117,19 +126,56 @@ describe.each(['light', 'dark'] as const)('contrast in %s mode', (mode) => {
   })
 })
 
-describe('shortfalls this branch did not introduce and did not fix', () => {
-  // Recorded rather than asserted as a floor, so they are visible and so a
-  // change to either token is noticed. --color-text-muted is a repo-wide token
-  // older than the argument band; raising it touches every page, which is its
-  // own change. Nothing in the claims band depends on muted text to say
-  // something a reader must read.
+/**
+ * The check that noticed, kept, with the numbers it now reads.
+ *
+ * This asserted 4.02 and 3.73 — the shortfall recorded rather than fixed,
+ * because raising a token used in 49 places across 20 files is its own change.
+ * This is that change, so the same two measurements stand here with the values
+ * that pass. The floors in PAIRS above are what a future drift trips; these
+ * two lines are what says which fix was made.
+ */
+describe('the muted token, raised to AA', () => {
   const light = tokens('light')
-  it('--color-text-muted is under 4.5:1 in light mode', () => {
-    expect(ratio(light['--color-text-muted'], light['--color-surface-card']).toFixed(2)).toBe('4.02')
+  const dark = tokens('dark')
+
+  it('clears 4.5:1 on both surfaces it is used on', () => {
+    expect(ratio(light['--color-text-muted'], light['--color-surface-card']).toFixed(2)).toBe('4.96')
     expect(ratio(light['--color-text-muted'], light['--color-surface-secondary']).toFixed(2)).toBe(
-      '3.73',
+      '4.61',
     )
   })
+
+  it('is still the lighter of the two greys, so it still reads as muted', () => {
+    // The job of the token is to be quieter than --color-text-secondary. A fix
+    // that darkened it until the two were interchangeable would pass the floor
+    // above and still have broken the thing.
+    expect(luminance(light['--color-text-muted'])).toBeGreaterThan(
+      luminance(light['--color-text-secondary']),
+    )
+    expect(
+      ratio(light['--color-text-muted'], light['--color-text-secondary']).toFixed(2),
+    ).toBe('1.52')
+  })
+
+  it('records that dark mode draws no such distinction', () => {
+    // Measured, not asserted as a floor, and deliberately not changed here:
+    // dark muted (#7DD4E8) and dark secondary (#A7CFD8) sit at the same
+    // luminance and differ only in hue, so the light-mode hierarchy this
+    // branch restored has no counterpart in dark mode. Dark muted clears AA
+    // on its own (10.49:1), so this is a hierarchy question rather than a
+    // contrast one, and it is somebody's design decision rather than a sum.
+    expect(ratio(dark['--color-text-muted'], dark['--color-text-secondary']).toFixed(2)).toBe('1.01')
+    expect(
+      Number(ratio(dark['--color-text-muted'], dark['--color-surface-card']).toFixed(2)),
+    ).toBeGreaterThanOrEqual(TEXT)
+  })
+})
+
+describe('shortfalls this branch did not introduce and did not fix', () => {
+  // Recorded rather than asserted as a floor, so they are visible and so a
+  // change to the token is noticed.
+  const light = tokens('light')
 
   // White on coral is the house button, at 10 call sites. R79 already names
   // --color-ev-coral-hover (4.64:1) as the escape hatch.
