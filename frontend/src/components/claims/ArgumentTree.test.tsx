@@ -902,6 +902,28 @@ describe('ClaimComposer, through the tree', () => {
     )
   })
 
+  it('says the move happened, so arriving is not silent', () => {
+    // Seeing it run showed the gap: the composer reappears holding the text
+    // and nothing at the point of attention says the parent changed. The
+    // breadcrumb moves, but a reader who clicked quickly reads a normal
+    // composer and never registers that they are somewhere else.
+    mergedRefusal()
+    destinationIs()
+    renderTree()
+    fireEvent.change(openComposer('supports'), { target: { value: 'Demo argument that moves.' } })
+
+    fireEvent.click(screen.getByTestId('claim-composer-merge-offer'))
+
+    expect(screen.getByTestId('claim-composer-moved')).toHaveTextContent(/merged into this one/i)
+  })
+
+  it('says nothing about a move in a composer the reader opened themselves', () => {
+    renderTree()
+    openComposer('supports')
+
+    expect(screen.queryByTestId('claim-composer-moved')).not.toBeInTheDocument()
+  })
+
   it('does not leave the words behind under the claim that was merged away', () => {
     mergedRefusal()
     destinationIs()

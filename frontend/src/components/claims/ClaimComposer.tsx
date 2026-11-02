@@ -18,6 +18,14 @@ interface ClaimComposerProps {
    * job is to put the destination on screen with a composer open on it.
    */
   onMoveTo: (parentId: string) => void
+  /**
+   * This composer is open because the reader took the offer after a merged
+   * parent, rather than because they opened it. Arriving is otherwise silent:
+   * the refusal that explained the move belongs to the composer they left, so
+   * what reappears here is an ordinary form holding text, and a reader who
+   * clicked quickly never registers that the parent changed.
+   */
+  movedByMerge?: boolean
 }
 
 // The server's bounds, measured the same way the server measures them — on the
@@ -144,7 +152,13 @@ function createFailureMessage(err: { status?: number; reason?: string; code?: st
  * refusal and owns the wording of the invitation. The server is the real gate
  * and its refusal is surfaced here rather than swallowed.
  */
-export function ClaimComposer({ parentId, side, onClose, onMoveTo }: ClaimComposerProps) {
+export function ClaimComposer({
+  parentId,
+  side,
+  onClose,
+  onMoveTo,
+  movedByMerge,
+}: ClaimComposerProps) {
   const { viewer } = useViewer()
   const [body, setBody, clearDraft] = useDraft(claimDraftKey(parentId, side, viewer))
   const [touched, setTouched] = useState(false)
@@ -227,6 +241,18 @@ export function ClaimComposer({ parentId, side, onClose, onMoveTo }: ClaimCompos
       data-claim-composer={side}
       className="mt-3 rounded-lg border border-border-light bg-surface-card p-3"
     >
+      {movedByMerge && (
+        // role="status" rather than a visual note alone: the move happened on
+        // a click that also changed what is on screen, which is exactly the
+        // kind of change a reader not watching the breadcrumb misses.
+        <p
+          role="status"
+          data-testid="claim-composer-moved"
+          className="mb-2 text-xs text-text-secondary"
+        >
+          The claim you were answering was merged into this one, so your text came here with you.
+        </p>
+      )}
       <label
         htmlFor={`claim-composer-${side}`}
         className="block text-sm font-medium text-text-secondary"
