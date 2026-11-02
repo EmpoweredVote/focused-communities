@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CharCounter } from '../CharCounter'
 import { useCreateClaim } from '../../hooks/useClaimMutations'
 import { useDraft } from '../../hooks/useDraft'
-import { useViewer } from '../../hooks/useClaims'
+import { useClaimNode, useViewer } from '../../hooks/useClaims'
 import type { ClaimSide } from '../../types'
 
 interface ClaimComposerProps {
@@ -11,6 +11,13 @@ interface ClaimComposerProps {
   side: ClaimSide
   /** Called after the claim is created, and when the reader backs out. */
   onClose: () => void
+  /**
+   * Move this composer to another claim, same side. Called only when the
+   * reader takes up the offer made after a merged parent; the draft has
+   * already been written under the destination's key by then, so the caller's
+   * job is to put the destination on screen with a composer open on it.
+   */
+  onMoveTo: (parentId: string) => void
 }
 
 // The server's bounds, measured the same way the server measures them — on the
@@ -42,6 +49,25 @@ const FIELD_LABEL: Record<ClaimSide, string> = {
  */
 function claimDraftKey(parentId: string, side: ClaimSide, viewer: string): string {
   return `draft-claim-${viewer}-${side}-${parentId}`
+}
+
+/**
+ * How much of the destination claim goes on the button.
+ *
+ * A claim is up to BODY_MAX characters and a button is not, but the reader is
+ * being asked to decide where their argument goes, so the destination has to
+ * be nameable rather than merely referred to. Long enough to recognise the
+ * point being made, short enough to stay a button.
+ */
+const OFFER_PREVIEW_MAX = 90
+
+function preview(body: string): string {
+  if (body.length <= OFFER_PREVIEW_MAX) return body
+  // Cut at a word boundary where there is one in reach, so the preview ends on
+  // a word rather than mid-syllable.
+  const cut = body.slice(0, OFFER_PREVIEW_MAX)
+  const lastSpace = cut.lastIndexOf(' ')
+  return `${(lastSpace > OFFER_PREVIEW_MAX - 20 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`
 }
 
 /**
@@ -118,11 +144,59 @@ function createFailureMessage(err: { status?: number; reason?: string; code?: st
  * refusal and owns the wording of the invitation. The server is the real gate
  * and its refusal is surfaced here rather than swallowed.
  */
-export function ClaimComposer({ parentId, side, onClose }: ClaimComposerProps) {
+export function ClaimComposer({ parentId, side, onClose, onMoveTo }: ClaimComposerProps) {
   const { viewer } = useViewer()
   const [body, setBody, clearDraft] = useDraft(claimDraftKey(parentId, side, viewer))
   const [touched, setTouched] = useState(false)
   const create = useCreateClaim()
+
+  // The claim this argument's parent was merged into, if that is why the write
+  // was refused. Reading it is what makes the offer nameable — and it is the
+  // same request the tree will make when the reader takes the offer up, so it
+  // is already cached by the time they land there.
+  const mergedInto = (create.error as { mergedInto?: string } | null)?.mergedInto
+  const destination = useClaimNode(mergedInto)
+  const destinationClaim = destination.data?.node.claim
+  /**
+   * The offer is made only when it can be honoured.
+   *
+   * A hidden claim is served as a tombstone — 200, body withheld — so there is
+   * nothing to put on a button and nothing to promise about where the reader
+   * is going.
+   *
+   * A destination that has ITSELF been merged is the worse case, and the
+   * reason this is a list rather than a null check. Merge chains exist; the
+   * API bounds them with MERGE_CHAIN_TOO_LONG rather than forbidding them. The
+   * tree gates the composer behind noWritesReason(), so sending a reader to a
+   * merged claim lands them somewhere that renders no composer at all — and
+   * the draft, already written under that claim's key, would have no box to
+   * appear in. The paragraph this whole path exists to protect would be gone
+   * from the screen while the interface said it had been kept. Walking the
+   * chain to its end is the richer answer and is not this change; declining to
+   * offer leaves the reader exactly where they were, which is honest.
+   */
+  const offer =
+    mergedInto &&
+    destinationClaim &&
+    !destinationClaim.isHidden &&
+    !destinationClaim.mergedInto &&
+    destinationClaim.body
+      ? destinationClaim
+      : null
+
+  /**
+   * Take the words to the other claim.
+   *
+   * The draft is keyed by parent, so moving the composer without moving the
+   * draft would show the reader an empty box and quietly strand the paragraph
+   * they were promised was kept. Written under the destination's key first,
+   * then cleared from this one, so no instant exists where it is in neither.
+   */
+  function acceptOffer(destinationId: string) {
+    if (body) localStorage.setItem(claimDraftKey(destinationId, side, viewer), body)
+    clearDraft()
+    onMoveTo(destinationId)
+  }
 
   const trimmed = body.trim()
   const tooShort = trimmed.length < BODY_MIN
@@ -177,6 +251,17 @@ export function ClaimComposer({ parentId, side, onClose }: ClaimComposerProps) {
           {/* Said once, every time, so the reader can see their words are not
               gone before they decide what to do next. */}
           <p className="text-text-secondary">Your text has been kept.</p>
+          {offer && (
+            <button
+              type="button"
+              data-testid="claim-composer-merge-offer"
+              onClick={() => acceptOffer(offer.id)}
+              className="mt-2 block w-full rounded-lg border border-border-medium px-3 py-2 text-left text-xs text-text-body transition-colors hover:bg-surface-hover"
+            >
+              <span className="block font-medium">Add it under this claim instead</span>
+              <span className="mt-0.5 block text-text-secondary">{preview(offer.body)}</span>
+            </button>
+          )}
         </div>
       )}
 

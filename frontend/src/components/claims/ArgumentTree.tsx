@@ -293,6 +293,15 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
                   parentId={openOn.parentId}
                   side={openOn.side}
                   onClose={() => setOpenOn(null)}
+                  // The parent was merged while they were writing. Put the
+                  // claim that now carries the argument on screen and open a
+                  // composer on it, same side: the draft has already moved
+                  // with them, and the re-key below remounts the form against
+                  // it rather than against the draft they just left.
+                  onMoveTo={(destinationId) => {
+                    focusClaim(destinationId)
+                    setOpenOn({ parentId: destinationId, side: openOn.side })
+                  }}
                 />
               )}
             </div>

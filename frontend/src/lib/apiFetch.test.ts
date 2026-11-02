@@ -98,6 +98,40 @@ describe('apiFetch error envelopes', () => {
     })
   })
 
+  it('carries the merge target on a 409', async () => {
+    // CLAIM_MERGED is the one refusal with somewhere to go: the route sends
+    // the id of the claim that now carries the argument so a client can offer
+    // it rather than losing what the contributor wrote.
+    fetchMock.mockResolvedValue(
+      jsonResponse(409, {
+        error: {
+          code: 'CLAIM_MERGED',
+          message: 'This point has been merged into another claim',
+          mergedInto: '00000000-0000-4000-8000-000000000004',
+        },
+      })
+    )
+
+    const result = await apiFetch('/api/claims/abc/children')
+
+    expect(result).toMatchObject({
+      ok: false,
+      status: 409,
+      code: 'CLAIM_MERGED',
+      mergedInto: '00000000-0000-4000-8000-000000000004',
+    })
+  })
+
+  it('ignores a merge target that is not a string', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(409, { error: { code: 'CLAIM_MERGED', mergedInto: { id: 'nope' } } })
+    )
+
+    const result = await apiFetch('/api/claims/abc/children')
+
+    expect(result).not.toHaveProperty('mergedInto')
+  })
+
   it('carries reason on a status other than 403', async () => {
     fetchMock.mockResolvedValue(jsonResponse(429, { reason: 'rate_limited' }))
 
