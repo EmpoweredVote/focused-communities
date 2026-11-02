@@ -1,4 +1,5 @@
 import { demoThreadResponse } from '../mocks/demoThreads';
+import { demoClaimResponse, isDemoClaimPath } from '../mocks/demoClaims';
 
 // The API now lives in the accounts engine under /fc (see FROZEN.md). Production builds set
 // VITE_API_BASE_URL; the fallback keeps a build that forgot it pointed at the engine instead of
@@ -10,6 +11,12 @@ const API_BASE =
 
 // Dev-only, opt-in synthetic threads (see src/mocks/demoThreads.ts).
 const DEMO_THREADS = import.meta.env.DEV && import.meta.env.VITE_DEMO_THREADS === '1';
+
+// Dev-only, opt-in synthetic argument tree (see src/mocks/demoClaims.ts). The
+// claims API is built but not deployed, so these routes 404 against the live
+// API; this is the same opt-in escape hatch as DEMO_THREADS, not a licence to
+// invent data anywhere else. Unreachable in a production build.
+const DEMO_CLAIMS = import.meta.env.DEV && import.meta.env.VITE_DEMO_CLAIMS === '1';
 
 export type ApiResult<T> =
   | { ok: true; data: T }
@@ -25,6 +32,17 @@ export async function apiFetch<T>(
       return { ok: false, error: 'Demo threads: writes are off', status: 0 };
     }
     const demo = demoThreadResponse(path);
+    if (demo === null) return { ok: false, error: 'Not found', status: 404 };
+    if (demo !== undefined) return { ok: true, data: demo as T };
+  }
+  if (DEMO_CLAIMS && isDemoClaimPath(path)) {
+    // Writes are off, and only on the claim routes: the thread and community
+    // routes are live and must keep working while the demo tree is on.
+    const method = (options?.method ?? 'GET').toUpperCase();
+    if (method !== 'GET') {
+      return { ok: false, error: 'Demo claims: writes are off', status: 0 };
+    }
+    const demo = demoClaimResponse(path);
     if (demo === null) return { ok: false, error: 'Not found', status: 404 };
     if (demo !== undefined) return { ok: true, data: demo as T };
   }

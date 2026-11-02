@@ -27,3 +27,13 @@ export function ThreadListItemSkeleton() {
     </div>
   )
 }
+
+export function ClaimCardSkeleton() {
+  return (
+    <div className="border border-border-light rounded-lg p-3">
+      <Skeleton height={14} width="30%" className="mb-2" />
+      <Skeleton count={2} height={14} />
+      <Skeleton height={12} width="45%" className="mt-2" />
+    </div>
+  )
+}

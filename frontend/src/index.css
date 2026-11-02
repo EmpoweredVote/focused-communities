@@ -24,6 +24,76 @@
   --color-text-secondary: #4A5568;
   --color-text-muted: #718096;
 
+  /* Semantic argument-side colors.
+     "supports" and "opposes" are roles, not brand paint. Components reference
+     only these two, so recolouring a side is a change here, not a hunt through
+     every card. Contrast measured against the card surface of each mode:
+       light  supports #00657C on #FFFFFF = 6.66:1   opposes #FF5740 on #FFFFFF = 3.14:1
+       dark   supports #59B0C4 on #0F1A1E = 7.10:1   opposes #FF5740 on #0F1A1E = 5.64:1
+     The dark override below exists because #00657C on #0F1A1E is 2.66:1 —
+     under the 3:1 a non-text UI part needs, and barely visible beside a coral
+     that reads at 5.64:1. Opposes at 3.14:1 clears 3:1 for a border or a rule
+     and fails 4.5:1 for text, so neither token may ever set `color:` on
+     something a reader has to read. */
+  --color-claim-supports: var(--color-ev-teal);
+  --color-claim-opposes: var(--color-ev-coral);
+
+  /* The fill for a claim that takes no side — a root, which is the default
+     landing view. It used to borrow --color-border-medium, which is a hairline
+     colour and reads 1.58:1 on the white card and 1.30:1 inside the bar's old
+     track: the bar and the checked rating step were invisible on exactly the
+     claim most readers see first (I5). Neutral greys, not a side colour,
+     because having no side is the thing being said:
+       light #636363 on #FFFFFF = 6.01:1   dark #9FAFB4 on #0F1A1E = 7.81:1 */
+  --color-claim-neutral: #636363;
+
+  /* The impact bar's outline.
+     A bar needs two things legible: how long the fill is, and how long the bar
+     is. The fill carries the first against the surface behind it; this outline
+     carries the second. It is an outline rather than a filled track because no
+     filled track can do both — a track dark enough to be 3:1 against the white
+     card leaves coral at 2.60:1 against the track, and a track light enough to
+     clear coral is white (I6: the old #E2EBEF track measured 2.60 / 2.78 /
+     2.20 against the three fills, under the 3:1 the component's own comment
+     claimed). The bar's interior is the card, so the fills read:
+       light  supports 6.66:1  opposes 3.14:1  neutral 6.01:1   on #FFFFFF
+       dark   supports 7.10:1  opposes 5.64:1  neutral 7.81:1   on #0F1A1E
+     and the outline itself:
+       light #8C8C8C on #FFFFFF = 3.36:1   dark #327E8F on #0F1A1E = 3.81:1 */
+  --color-impact-track: #8C8C8C;
+
+  /* Link text, which has to clear 4.5:1 like any other text a reader reads.
+     --color-ev-teal-light is the house link colour and is 2.49:1 on the white
+     card and 2.31:1 on the page background — the floor is missed by half, and
+     only the hover state (6.66:1) passes, which is why mousing over it looks
+     fine (I9). In dark mode that token is fine, so the override below is the
+     light-mode one being wrong rather than both:
+       light #00657C 6.66:1 on the card, 6.19:1 on the page background
+             hover #003E4D 11.69:1 / 10.86:1
+       dark  #59B0C4 7.10:1 on the card, 6.37:1 on the page background
+             hover #A7CFD8 10.58:1 / 9.49:1 */
+  --color-link: #00657C;
+  --color-link-hover: #003E4D;
+
+  /* Minimap impact ramp.
+     Impact ("how much weight readers gave this") and side ("which side of its
+     parent this takes") are two different meanings, so they get two different
+     channels: the side is a node's shape and which half of the axis it sits on,
+     the impact is this neutral ramp. Reusing --color-claim-* for impact would
+     put both meanings in one palette, where a teal dot tells the reader
+     nothing. Neutral greys also stay clearly off teal and coral at dot size.
+     A dot is a non-text part, so 3:1 against the card surface is the floor, and
+     --color-ev-teal reading 2.66:1 on the dark card is the standing reminder to
+     measure both surfaces rather than one:
+       light  low #8C8C8C 3.36:1  moderate #636363 6.01:1  high #333333 12.63:1
+       dark   low #6D7C81 4.09:1  moderate #9FAFB4 7.81:1  high #D7E3E7 13.51:1
+     The light ramp measured on the DARK card runs 5.26 / 2.95 / 1.40, so the
+     override below is not cosmetic: two of its three steps would sit under 3:1
+     without it. */
+  --color-minimap-impact-low: #8C8C8C;
+  --color-minimap-impact-moderate: #636363;
+  --color-minimap-impact-high: #333333;
+
   /* Semantic border colors */
   --color-border-light: #E2EBEF;
   --color-border-medium: #C9CFD1;
@@ -54,6 +124,19 @@ html.dark {
   color-scheme: dark;
   --color-ev-yellow-light: #4A3A05;
   --color-focus-ring: #59B0C4;
+  /* 2.66:1 -> 7.10:1 on the dark card. Opposes needs no override (5.64:1). */
+  --color-claim-supports: var(--color-ev-teal-light);
+  /* 6.01:1 on the white card -> 1.21:1 on the dark one, so this one inverts. */
+  --color-claim-neutral: #9FAFB4;
+  /* 3.36:1 on white -> 1.17:1 on the dark card. 3.81:1 after the swap. */
+  --color-impact-track: #327E8F;
+  /* 6.66:1 on white -> 2.66:1 on the dark card. 7.10:1 after the swap. */
+  --color-link: var(--color-ev-teal-light);
+  --color-link-hover: #A7CFD8;
+  /* 5.26 / 2.95 / 1.40 -> 4.09 / 7.81 / 13.51 on the dark card. */
+  --color-minimap-impact-low: #6D7C81;
+  --color-minimap-impact-moderate: #9FAFB4;
+  --color-minimap-impact-high: #D7E3E7;
   --color-surface-primary: #0F1A1E;
   --color-surface-secondary: #05262E;
   --color-surface-hover: #03303A;

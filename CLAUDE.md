@@ -17,6 +17,11 @@ component becomes rework for whoever merges the PR.
 - **Production has no threads yet.** `VITE_DEMO_THREADS=1 npm run dev` serves the synthetic threads in
   `frontend/src/mocks/demoThreads.ts` (every author is a "Demo" pseudonym; writes are off). Communities
   and stances stay live. Extend that file rather than hardcoding posts in components.
+- **The argument-tree API is built but not deployed.** `VITE_DEMO_CLAIMS=1 npm run dev` serves the
+  synthetic tree in `frontend/src/mocks/demoClaims.ts` (dev only; writes are off on claim routes
+  only, so threads keep working). Until `feat/fc-claims-api` ships, every `/api/claims/...` and
+  `/api/communities/:id/claims/...` call 404s against the live API — which is the honest answer and
+  is what the hooks surface. Extend that file rather than hardcoding claims in components.
 - **Start from current `main`:** `git fetch origin && git switch -c <branch> origin/main`. Use
   `@empoweredvote/ev-ui` components instead of copying or restyling them.
 
