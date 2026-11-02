@@ -50,7 +50,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
             className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring"
           />
           <CharCounter value={title} max={150} />
-          {titleError && <p className="text-red-500 text-xs mt-1">{titleError}</p>}
+          {titleError && <p className="text-text-alert text-xs mt-1">{titleError}</p>}
         </div>
 
         <div>
@@ -65,7 +65,7 @@ export function ThreadCreateForm({ communityId, communitySlug }: ThreadCreateFor
             className="w-full px-3 py-2 border border-border-medium rounded-lg text-sm focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring resize-none"
           />
           <CharCounter value={body} max={2000} />
-          {bodyError && <p className="text-red-500 text-xs mt-1">{bodyError}</p>}
+          {bodyError && <p className="text-text-alert text-xs mt-1">{bodyError}</p>}
         </div>
 
         {suspended && <SuspendedNotice />}

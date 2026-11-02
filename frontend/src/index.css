@@ -22,7 +22,38 @@
   --color-text-primary: #00657C;
   --color-text-body: #1C1C1C;
   --color-text-secondary: #4A5568;
-  --color-text-muted: #718096;
+
+  /* Muted text: bylines, timestamps, counts, "Not yet rated". Used in 49
+     places across 20 files, and on BOTH surfaces, which is what made the old
+     #718096 worth changing — it read 4.02:1 on the card and 3.73:1 on the page
+     background, under the 4.5:1 normal text needs, on exactly the small
+     secondary text where a low ratio costs most. The page background is the
+     binding constraint and is why the obvious slate (#64748B, 4.42:1 there)
+     is not the answer.
+
+     Darkened along its own hue and saturation (215.7°, 15%) rather than
+     replaced, by the least that clears the floor with room to spare, because
+     the token's job is to be QUIETER than --color-text-secondary and a fix
+     that darkened it to #4A5568's weight would pass the sum and lose the job:
+       light #637185 on the card #FFFFFF = 4.96:1, on the page #F0F8FA = 4.61:1
+             against --color-text-secondary #4A5568 = 1.52:1, still the lighter
+       dark  #7DD4E8 on the card #0F1A1E = 10.49:1 (unchanged; see below) */
+  --color-text-muted: #637185;
+
+  /* Text that has turned to warn — a character count inside its last 10%, a
+     field that failed validation, the suspended notice. Four call sites across
+     three components reached for a raw Tailwind red, and neither shade clears
+     the floor on every surface it lands on:
+       red-500 #FB2C36  3.81 card / 3.54 page   light, and 4.17 on the dark page
+       red-600 #E7000B  4.77 card / 4.43 page   light, and 3.71 on the dark card
+     A raw palette colour also has no dark-mode override, which is how red-600
+     ended up at 3.71:1 there. Text a reader is being asked to read has to
+     clear 4.5:1 whatever its colour means, so it gets a token that does:
+       light #C81E1E = 5.74:1 on the card, 5.33:1 on the page background
+       dark  #FCA5A5 = 9.32:1 on the card, 8.36:1 on the page background
+     Not --color-ev-coral-hover — that is 4.32:1 on the page background, so the
+     house's red-for-buttons does not clear the floor for red-as-text. */
+  --color-text-alert: #C81E1E;
 
   /* Semantic argument-side colors.
      "supports" and "opposes" are roles, not brand paint. Components reference
@@ -144,7 +175,15 @@ html.dark {
   --color-text-primary: #59B0C4;
   --color-text-body: #E4F3F6;
   --color-text-secondary: #A7CFD8;
+  /* 10.49:1 on the dark card, so it clears AA and is left where it is. Worth
+     writing down, though: it sits at the SAME luminance as the secondary above
+     (1.01:1 between them) and differs only in hue, so the quiet-then-quieter
+     hierarchy light mode has does not exist here. That is a design decision
+     rather than a contrast one, and index.contrast.test.ts records it. */
   --color-text-muted: #7DD4E8;
+  /* #FB2C36 reads 4.65:1 on the dark card but 4.17:1 on the dark page
+     background, so the alert token is overridden here too. */
+  --color-text-alert: #FCA5A5;
   --color-border-light: #2B616E;
   --color-border-medium: #327E8F;
 }
