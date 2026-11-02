@@ -89,7 +89,7 @@ const ANCHORS = ['Low', 'Moderate', 'High']
  * useRateClaim has already rolled the mark back by the time this shows, which
  * is what keeps the revert from being silent.
  */
-function rateFailureMessage(err: { status?: number; reason?: string }): string {
+function rateFailureMessage(err: { status?: number; reason?: string; code?: string }): string {
   if (err.status === 403 && err.reason === 'suspended') {
     return 'Your account is suspended, so that rating was not saved.'
   }
@@ -101,6 +101,15 @@ function rateFailureMessage(err: { status?: number; reason?: string }): string {
   }
   if (err.status === 429) {
     return 'That was a lot of ratings at once, so this one was not saved. Try again shortly.'
+  }
+  // The two refusals a retry cannot fix. The route answers an absent claim, a
+  // withdrawn one and the community's root with one indistinguishable 404 on
+  // purpose, so this line has to be true of all three and name none of them.
+  if (err.code === 'CLAIM_NOT_FOUND') {
+    return 'That claim is no longer part of this argument, so the rating was not saved.'
+  }
+  if (err.code === 'CLAIM_MERGED') {
+    return 'That point has been merged into another claim, so the rating was not saved.'
   }
   return 'That rating was not saved. Try again.'
 }

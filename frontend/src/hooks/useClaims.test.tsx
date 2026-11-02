@@ -663,6 +663,36 @@ describe('useCreateClaim', () => {
     await waitFor(() => expect(create.result.current.error?.message).toBe('Request failed (404)'))
     expect(pathsEnding('/claims/shape')).toBe(1)
   })
+
+  it('carries the error code to the component that has to word the refusal', async () => {
+    // Without this, ANCESTOR_NOT_VISIBLE and CLAIM_NOT_FOUND arrive at the
+    // composer as the same 404 and it cannot say which happened.
+    const client = newClient()
+    const w = wrap(client)
+    mockFetch.mockImplementation(async (_path: string, options?: RequestInit) => {
+      if (options?.method === 'POST') {
+        return {
+          ok: false,
+          error: 'The discussion above this point was removed',
+          status: 404,
+          code: 'ANCESTOR_NOT_VISIBLE',
+        }
+      }
+      return shapeResponse
+    })
+    const shape = renderHook(() => useTreeShape('c1'), { wrapper: w })
+    await waitFor(() => expect(shape.result.current.isSuccess).toBe(true))
+
+    const create = renderHook(() => useCreateClaim(), { wrapper: w })
+    await act(async () => {
+      await create.result.current.mutateAsync({ parentId: 'cl-1', side: 'supports', body: 'x' }).catch(() => {})
+    })
+    await waitFor(() =>
+      expect((create.result.current.error as { code?: string } | null)?.code).toBe(
+        'ANCESTOR_NOT_VISIBLE',
+      ),
+    )
+  })
 })
 
 describe('useEditClaim', () => {
