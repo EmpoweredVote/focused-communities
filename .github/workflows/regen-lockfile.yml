@@ -1,0 +1,68 @@
+# TEMPORARY. Delete this file once it has done its job.
+#
+# frontend/package-lock.json was regenerated on Windows when the season work added vitest,
+# testing-library and jsdom. npm prunes optional native packages that cannot install on the
+# current platform, so the lockfile lost the entries Linux needs and `npm ci` in the Build check
+# fails with "Missing: @emnapi/core@1.11.3 from lock file". Four regeneration attempts on
+# Windows — in place, from master's lockfile, a full delete-and-re-resolve, and with
+# --os=linux --cpu=x64 — all reproduce the pruning. It can only be fixed on Linux.
+#
+# This runs on a Linux runner, regenerates the lockfile, PROVES it by running the same two
+# commands the Build check runs, and only then commits. If the proof fails the job fails and
+# nothing is written, so this cannot push a lockfile that does not work.
+#
+# It triggers only on a push that touches this file, so the lockfile commit it makes does not
+# re-trigger it.
+
+name: Regenerate frontend lockfile
+
+on:
+  push:
+    paths:
+      - '.github/workflows/regen-lockfile.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      # Resolve the tree from package.json on Linux, where the optional packages are installable.
+      - name: Regenerate the lockfile
+        working-directory: frontend
+        run: npm install --package-lock-only --no-audit --no-fund
+
+      # 🔴 THE PROOF, AND THE REASON THIS WORKFLOW IS TRUSTWORTHY. These are the two commands
+      # that fail today, run against the regenerated lockfile before anything is committed.
+      - name: Prove it with the commands that are failing
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit the lockfile
+        run: |
+          if git diff --quiet -- frontend/package-lock.json; then
+            echo "Lockfile did not change — nothing to commit."
+            echo "That would mean the drift is somewhere other than platform pruning."
+            exit 1
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package-lock.json
+          git commit -m "fix(frontend): regenerate the lockfile on Linux
+
+          npm ci could not install: the lockfile was last written on Windows, where npm prunes
+          optional native packages that do not apply to the current platform, so it lost the
+          @emnapi entries a Linux install resolves. Regenerated on ubuntu-latest and proven in
+          the same job by running npm ci and npm run build against it before committing."
+          git push
