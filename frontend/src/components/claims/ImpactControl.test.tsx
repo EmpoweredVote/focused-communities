@@ -339,7 +339,12 @@ describe('ImpactControl — one sweep is one rating (I4)', () => {
 })
 
 describe('ImpactControl refusals (R91)', () => {
-  async function rateAndFail(result: { error: string; status: number; reason?: string }) {
+  async function rateAndFail(result: {
+    error: string
+    status: number
+    reason?: string
+    code?: string
+  }) {
     mockApiFetch.mockResolvedValue({ ok: false, ...result })
     render(<ImpactControl {...props({ myRating: 5 })} />, { wrapper: makeWrapper() })
     fireEvent.click(screen.getByRole('radio', { name: 'High weight' }))
@@ -372,6 +377,38 @@ describe('ImpactControl refusals (R91)', () => {
     const status = await rateAndFail({ error: 'Too many requests', status: 429 })
     expect(status.textContent).toMatch(/a lot of ratings at once/i)
     expect(status.textContent).not.toMatch(/suspended|connected account|refused/i)
+  })
+
+  // The rating route's own refusals, which reached this component as
+  // "Request failed (n)" until apiFetch carried `code`. "Try again" is wrong
+  // for both: neither will ever succeed on a retry.
+  it('says the claim is gone rather than inviting a retry that cannot work', async () => {
+    const status = await rateAndFail({
+      error: 'Claim not found',
+      status: 404,
+      code: 'CLAIM_NOT_FOUND',
+    })
+    expect(status.textContent).toMatch(/no longer part of this argument/i)
+    expect(status.textContent).not.toMatch(/Try again/)
+  })
+
+  it('says a merged claim was merged rather than failing silently', async () => {
+    const status = await rateAndFail({
+      error: 'This point has been merged into another claim',
+      status: 409,
+      code: 'CLAIM_MERGED',
+    })
+    expect(status.textContent).toMatch(/merged/i)
+    expect(status.textContent).not.toMatch(/Try again/)
+  })
+
+  it('still invites a retry when the server failed on its own side', async () => {
+    const status = await rateAndFail({
+      error: 'Could not save the rating',
+      status: 500,
+      code: 'CLAIM_RATING_FAILED',
+    })
+    expect(status.textContent).toMatch(/Try again/)
   })
 
   it('falls back to a plain retry for a failure it cannot name', async () => {

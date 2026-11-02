@@ -20,7 +20,58 @@ const DEMO_CLAIMS = import.meta.env.DEV && import.meta.env.VITE_DEMO_CLAIMS === 
 
 export type ApiResult<T> =
   | { ok: true; data: T }
-  | { ok: false; error: string; status: number; reason?: string };
+  | { ok: false; error: string; status: number; reason?: string; code?: string };
+
+/**
+ * The fields an error body can contribute. `error` is always a string, because
+ * every caller treats it as one — `new Error(res.error)` appears in a dozen
+ * hooks — and because one of the envelopes below would otherwise put an object
+ * there.
+ */
+interface ErrorFields {
+  error: string;
+  reason?: string;
+  code?: string;
+}
+
+/**
+ * Reads whichever error envelope came back.
+ *
+ * Three shapes are on the wire and all three are real:
+ *
+ *   { error: 'Connected account required', reason: 'tier' }   tierGuards, engine auth
+ *   { error: { code: 'CLAIM_NOT_FOUND', message: '...' } }    every claims route
+ *   { reason: 'rate_limited' }                                the rate limiter
+ *
+ * The coded form is the one that matters here: the claims routes emit ~30
+ * distinct codes, and several pairs share a status on purpose —
+ * CLAIM_NOT_FOUND and ANCESTOR_NOT_VISIBLE are both 404, and the write route
+ * takes real care to keep them apart. Without the code a client cannot.
+ *
+ * Nothing here may throw. Not every endpoint in this app answers in either
+ * envelope, and a proxy returning an HTML error page is a failure to describe,
+ * not a failure to report — so anything unrecognised leaves `fallback` standing.
+ */
+async function readErrorBody(response: Response, fallback: string): Promise<ErrorFields> {
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    return { error: fallback };
+  }
+  if (body === null || typeof body !== 'object') return { error: fallback };
+  const { error, reason } = body as { error?: unknown; reason?: unknown };
+  const fields: ErrorFields = { error: fallback };
+  if (typeof error === 'string') {
+    fields.error = error;
+  } else if (error !== null && typeof error === 'object') {
+    const { code, message } = error as { code?: unknown; message?: unknown };
+    if (typeof message === 'string') fields.error = message;
+    if (typeof code === 'string') fields.code = code;
+  }
+  if (typeof reason === 'string') fields.reason = reason;
+  return fields;
+}
 
 export async function apiFetch<T>(
   path: string,
@@ -67,17 +118,12 @@ export async function apiFetch<T>(
     );
     return { ok: false, error: 'Session expired - sign in to continue', status: 401 };
   }
-  if (response.status === 403) {
-    let body: { error?: string; reason?: string } = {};
-    try {
-      body = await response.json();
-    } catch {
-      // ignore parse errors
-    }
-    return { ok: false, error: body.error ?? 'Forbidden', status: 403, reason: body.reason };
-  }
   if (!response.ok) {
-    return { ok: false, error: `Request failed (${response.status})`, status: response.status };
+    // 403 keeps its own fallback: a refusal with a body this function cannot
+    // read still says more as "Forbidden" than as a status line.
+    const fallback =
+      response.status === 403 ? 'Forbidden' : `Request failed (${response.status})`;
+    return { ok: false, status: response.status, ...(await readErrorBody(response, fallback)) };
   }
   const data: T = await response.json();
   return { ok: true, data };

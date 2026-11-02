@@ -47,13 +47,18 @@ function claimDraftKey(parentId: string, side: ClaimSide, viewer: string): strin
 /**
  * What the reader is told when the server refuses.
  *
- * Keyed on the STATUS, not on the server's error code: `apiFetch` surfaces
- * `reason` only for a 403 and reduces every other failure body to
- * "Request failed (n)", so the codes the write route distinguishes
- * (CLAIM_NOT_FOUND vs ANCESTOR_NOT_VISIBLE) do not reach this component. Each
- * line below says only what the status alone supports.
+ * Keyed on the server's error CODE where there is one, and on the status
+ * otherwise. The code is what lets this say which of two refusals that share a
+ * status actually happened — ANCESTOR_NOT_VISIBLE and CLAIM_NOT_FOUND are both
+ * 404, and the write route takes deliberate care to keep them apart, because
+ * only one of them suggests making the argument somewhere else.
+ *
+ * The status branches below are still the whole answer for anything that did
+ * not come back in the claims API's envelope: a proxy's error page, or any
+ * endpoint that answers in the older flat shape. Each of those lines says only
+ * what the status alone supports.
  */
-function createFailureMessage(err: { status?: number; reason?: string }): string {
+function createFailureMessage(err: { status?: number; reason?: string; code?: string }): string {
   if (err.status === 403 && err.reason === 'suspended') {
     return 'Your account is suspended, so this argument was not added.'
   }
@@ -63,10 +68,28 @@ function createFailureMessage(err: { status?: number; reason?: string }): string
   if (err.status === 403) {
     return 'The server refused this argument, so it was not added.'
   }
+  if (err.code === 'ANCESTOR_NOT_VISIBLE') {
+    // Not the point being answered — the discussion above it. Worth saying,
+    // because the argument may still have a place elsewhere in the tree.
+    return 'The discussion above this point was removed, so this was not added. The argument may still belong elsewhere in this tree.'
+  }
+  if (err.code === 'CLAIM_NOT_FOUND') {
+    return 'The claim you are answering is no longer part of this argument, so this was not added.'
+  }
+  if (err.code === 'CLAIM_MERGED') {
+    return 'That claim has been merged into another one, so nothing can be added under it.'
+  }
+  if (err.code === 'MAX_DEPTH_REACHED') {
+    return 'This argument has reached its maximum depth, so nothing further can be added here.'
+  }
+  if (err.code === 'INVALID_BODY') {
+    // The server measures the trimmed body against the same two bounds this
+    // form counts against, so the numbers here are the server's own.
+    return `An argument has to be between ${BODY_MIN} and ${BODY_MAX} characters, so this one was not added.`
+  }
   if (err.status === 404) {
-    // Covers a parent withdrawn and an ancestor withdrawn: the write route
-    // tells them apart, apiFetch does not carry the distinction, and guessing
-    // which one happened would be inventing the reason.
+    // No code came through: the two 404s above cannot be told apart, and
+    // guessing which one happened would be inventing the reason.
     return 'The claim you are answering is no longer part of this argument, so this was not added.'
   }
   if (err.status === 409) {

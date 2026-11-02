@@ -11,10 +11,25 @@ import {
   type ClaimNodeResult,
 } from './useClaims'
 
-type ApiError = Error & { status?: number; reason?: string }
+type ApiError = Error & { status?: number; reason?: string; code?: string }
 
-function apiError(res: { error: string; status: number; reason?: string }): ApiError {
-  return Object.assign(new Error(res.error), { status: res.status, reason: res.reason })
+/**
+ * `code` rides along with `status` because several of the write route's
+ * refusals share a status on purpose — ANCESTOR_NOT_VISIBLE and
+ * CLAIM_NOT_FOUND are both 404 — and the component wording the refusal is the
+ * one that needs to tell them apart.
+ */
+function apiError(res: {
+  error: string
+  status: number
+  reason?: string
+  code?: string
+}): ApiError {
+  return Object.assign(new Error(res.error), {
+    status: res.status,
+    reason: res.reason,
+    code: res.code,
+  })
 }
 
 function reportFailure(err: ApiError, fallback: string) {

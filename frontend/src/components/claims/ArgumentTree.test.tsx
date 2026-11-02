@@ -798,6 +798,51 @@ describe('ClaimComposer, through the tree', () => {
     expect(block).toHaveTextContent(expected)
     expect(block).toHaveTextContent('Your text has been kept.')
   })
+
+  /**
+   * The write route answers a withdrawn PARENT and a withdrawn DISCUSSION ABOVE
+   * it with two different codes on the same 404, because only one of them
+   * suggests the contributor find another place to make the argument. Before
+   * apiFetch carried `code`, both arrived here as "Request failed (404)" and
+   * the copy had to be true of either.
+   */
+  function composerErrorFor(err: { status: number; code?: string; message?: string }) {
+    h.create.isError = true
+    h.create.error = Object.assign(new Error(err.message ?? `Request failed (${err.status})`), {
+      status: err.status,
+      code: err.code,
+    })
+    renderTree()
+    openComposer('supports')
+    return screen.getByTestId('claim-composer-error').textContent ?? ''
+  }
+
+  it('says the discussion above was removed, not that this point was', () => {
+    const text = composerErrorFor({
+      status: 404,
+      code: 'ANCESTOR_NOT_VISIBLE',
+      message: 'The discussion above this point was removed',
+    })
+    expect(text).toMatch(/discussion above/i)
+    expect(text).toContain('Your text has been kept.')
+  })
+
+  it('tells a withdrawn parent apart from a withdrawn discussion above it', () => {
+    const ancestor = composerErrorFor({ status: 404, code: 'ANCESTOR_NOT_VISIBLE' })
+    cleanup()
+    const parent = composerErrorFor({ status: 404, code: 'CLAIM_NOT_FOUND' })
+    expect(ancestor).not.toBe(parent)
+    expect(parent).not.toMatch(/discussion above/i)
+  })
+
+  it('names the text as the problem on INVALID_BODY rather than the server', () => {
+    expect(composerErrorFor({ status: 400, code: 'INVALID_BODY' })).toMatch(/10 and 500/)
+  })
+
+  it('falls back to the status when no code came through', () => {
+    // Every endpoint that is not the claims API, and any proxy in front of it.
+    expect(composerErrorFor({ status: 404 })).toMatch(/no longer part of this argument/i)
+  })
 })
 
 describe('CommunityHubPage — band 3 in place', () => {
