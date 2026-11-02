@@ -79,7 +79,14 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
   // Which composer is open, carried WITH the claim it belongs to rather than
   // reset by an effect when the focus moves. An open composer for a claim the
   // reader has zoomed away from would post to the wrong parent.
-  const [openOn, setOpenOn] = useState<{ parentId: string; side: ClaimSide } | null>(null)
+  // `movedByMerge` rides along so the composer that opens at the destination
+  // can say why it is there; it is set only by the offer below, never by a
+  // reader opening a composer themselves.
+  const [openOn, setOpenOn] = useState<{
+    parentId: string
+    side: ClaimSide
+    movedByMerge?: boolean
+  } | null>(null)
 
   // Exactly one of these is enabled: the other is called with undefined, which
   // its own `enabled` turns off.
@@ -298,9 +305,10 @@ export function ArgumentTree({ communityId }: ArgumentTreeProps) {
                   // composer on it, same side: the draft has already moved
                   // with them, and the re-key below remounts the form against
                   // it rather than against the draft they just left.
+                  movedByMerge={openOn.movedByMerge}
                   onMoveTo={(destinationId) => {
                     focusClaim(destinationId)
-                    setOpenOn({ parentId: destinationId, side: openOn.side })
+                    setOpenOn({ parentId: destinationId, side: openOn.side, movedByMerge: true })
                   }}
                 />
               )}
