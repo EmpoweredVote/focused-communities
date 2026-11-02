@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CharCounter } from '../CharCounter'
 import { useCreateClaim } from '../../hooks/useClaimMutations'
 import { useDraft } from '../../hooks/useDraft'
+import { useViewer } from '../../hooks/useClaims'
 import type { ClaimSide } from '../../types'
 
 interface ClaimComposerProps {
@@ -26,15 +27,21 @@ const FIELD_LABEL: Record<ClaimSide, string> = {
 }
 
 /**
- * The draft key carries the SIDE as well as the parent (R99).
+ * The draft key carries the SIDE as well as the parent (R99), and the VIEWER.
  *
  * Keyed by parent alone, a reader who starts a supporting argument, changes
  * their mind and opens the opposing composer on the same claim finds their own
  * supporting text waiting there as the opposing one. The two are different
  * drafts about the same claim and must not share a slot.
+ *
+ * The viewer is the third term, and the one that was missing: `signOut()`
+ * removes `ev_token` and leaves localStorage's drafts where they are, so on a
+ * shared device the next reader opening the same composer found the previous
+ * reader's half-written argument in it. Same reasoning as the query keys —
+ * anything that can hold one reader's words carries who they were.
  */
-function claimDraftKey(parentId: string, side: ClaimSide): string {
-  return `draft-claim-${side}-${parentId}`
+function claimDraftKey(parentId: string, side: ClaimSide, viewer: string): string {
+  return `draft-claim-${viewer}-${side}-${parentId}`
 }
 
 /**
@@ -89,7 +96,8 @@ function createFailureMessage(err: { status?: number; reason?: string }): string
  * and its refusal is surfaced here rather than swallowed.
  */
 export function ClaimComposer({ parentId, side, onClose }: ClaimComposerProps) {
-  const [body, setBody, clearDraft] = useDraft(claimDraftKey(parentId, side))
+  const { viewer } = useViewer()
+  const [body, setBody, clearDraft] = useDraft(claimDraftKey(parentId, side, viewer))
   const [touched, setTouched] = useState(false)
   const create = useCreateClaim()
 

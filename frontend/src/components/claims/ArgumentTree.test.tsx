@@ -673,6 +673,10 @@ describe('ClaimComposer, through the tree', () => {
     return screen.getByRole('textbox')
   }
 
+  /** Parent, side AND viewer: a draft is one reader's unsent words. */
+  const draftKey = (side: 'supports' | 'opposes', parentId: string) =>
+    `draft-claim-${USER_ID}-${side}-${parentId}`
+
   it('adds a claim to the side the composer was opened on', () => {
     renderTree()
     const box = openComposer('opposes')
@@ -726,7 +730,7 @@ describe('ClaimComposer, through the tree', () => {
   })
 
   it('keeps supporting and opposing drafts apart on the same claim (R99)', () => {
-    localStorage.setItem(`draft-claim-supports-${ROOT_ID}`, 'Demo half-written supporting argument.')
+    localStorage.setItem(draftKey('supports', ROOT_ID), 'Demo half-written supporting argument.')
     renderTree()
     expect(openComposer('opposes')).toHaveValue('')
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -734,7 +738,24 @@ describe('ClaimComposer, through the tree', () => {
   })
 
   it('keeps drafts apart between claims', () => {
-    localStorage.setItem(`draft-claim-supports-${SUPPORT_ID}`, 'Demo draft on the child claim.')
+    localStorage.setItem(draftKey('supports', SUPPORT_ID), 'Demo draft on the child claim.')
+    renderTree()
+    expect(openComposer('supports')).toHaveValue('')
+  })
+
+  it('keeps one reader’s unsent words off the next reader’s screen (Minor 3)', () => {
+    // signOut() removes ev_token and leaves localStorage alone, so on a shared
+    // device the draft outlives the reader who wrote it.
+    // Both the shape another reader's draft has now and the shape every draft
+    // had before the viewer was part of the key.
+    localStorage.setItem(
+      `draft-claim-00000000-0000-4000-8000-0000000000fe-supports-${ROOT_ID}`,
+      'Demo argument another reader did not send.',
+    )
+    localStorage.setItem(
+      `draft-claim-supports-${ROOT_ID}`,
+      'Demo argument the previous reader did not send.',
+    )
     renderTree()
     expect(openComposer('supports')).toHaveValue('')
   })
