@@ -14,6 +14,7 @@ import type { Claim, ClaimNode, ShapeNode } from '../../types'
 const ROOT_ID = '00000000-0000-4000-8000-000000000001'
 const SUPPORT_ID = '00000000-0000-4000-8000-000000000002'
 const OPPOSE_ID = '00000000-0000-4000-8000-000000000003'
+const MERGED_ID = '00000000-0000-4000-8000-000000000004'
 const USER_ID = '00000000-0000-4000-8000-0000000000ff'
 
 const connectedUser: AccountUser = {
@@ -842,6 +843,142 @@ describe('ClaimComposer, through the tree', () => {
   it('falls back to the status when no code came through', () => {
     // Every endpoint that is not the claims API, and any proxy in front of it.
     expect(composerErrorFor({ status: 404 })).toMatch(/no longer part of this argument/i)
+  })
+
+  /**
+   * The merged parent, which is the one refusal with somewhere to go.
+   *
+   * noWritesReason() hides the composer on a claim that is already merged, so
+   * the only way to meet this is to have been mid-paragraph when a maven
+   * merged the claim being answered. The reader did nothing wrong and is
+   * holding up to 500 characters with nowhere to put them, so the server sends
+   * the id of the claim that now carries the argument and the composer offers
+   * it.
+   */
+  const MERGE_TARGET_BODY = 'Demo claim that now carries this argument.'
+
+  function mergedRefusal() {
+    h.create.isError = true
+    h.create.error = Object.assign(new Error('This point has been merged into another claim'), {
+      status: 409,
+      code: 'CLAIM_MERGED',
+      mergedInto: MERGED_ID,
+    })
+  }
+
+  /** The destination as the node route serves it. */
+  function destinationIs(over: Partial<Claim> = {}) {
+    h.node = loaded(nodeOf({ claim: claim({ id: MERGED_ID, body: MERGE_TARGET_BODY, ...over }) }))
+  }
+
+  it('offers the claim the argument was merged into, naming it', () => {
+    mergedRefusal()
+    destinationIs()
+    renderTree()
+    openComposer('supports')
+
+    const offer = screen.getByTestId('claim-composer-merge-offer')
+    expect(offer).toHaveTextContent(MERGE_TARGET_BODY)
+    expect(h.calls.node).toContain(MERGED_ID)
+  })
+
+  it('carries the reader’s words to the claim it sends them to', () => {
+    mergedRefusal()
+    destinationIs()
+    renderTree()
+    const box = openComposer('supports')
+    fireEvent.change(box, { target: { value: 'Demo argument the reader does not want to lose.' } })
+
+    fireEvent.click(screen.getByTestId('claim-composer-merge-offer'))
+
+    // The focus moved…
+    expect(screen.getByTestId('loc')).toHaveTextContent(`claim=${MERGED_ID}`)
+    // …the composer is open on the same side…
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    expect(screen.getByLabelText('Your supporting argument')).toBeInTheDocument()
+    // …and their text came with it.
+    expect(screen.getByRole('textbox')).toHaveValue(
+      'Demo argument the reader does not want to lose.',
+    )
+  })
+
+  it('does not leave the words behind under the claim that was merged away', () => {
+    mergedRefusal()
+    destinationIs()
+    renderTree()
+    fireEvent.change(openComposer('supports'), { target: { value: 'Demo argument that moves.' } })
+
+    fireEvent.click(screen.getByTestId('claim-composer-merge-offer'))
+
+    expect(localStorage.getItem(draftKey('supports', ROOT_ID))).toBeNull()
+    expect(localStorage.getItem(draftKey('supports', MERGED_ID))).toBe('Demo argument that moves.')
+  })
+
+  it('shortens a long claim rather than putting 500 characters on a button', () => {
+    const long = `Demo claim that runs on ${'and on '.repeat(60)}past any sensible button.`
+    mergedRefusal()
+    destinationIs({ body: long })
+    renderTree()
+    openComposer('supports')
+
+    const offer = screen.getByTestId('claim-composer-merge-offer')
+    expect(offer.textContent!.length).toBeLessThan(long.length)
+    expect(offer).toHaveTextContent('…')
+  })
+
+  it('makes no offer it cannot describe when the destination is withheld', () => {
+    // A hidden claim is served as a tombstone: 200, body withheld. Sending a
+    // reader somewhere this cannot name is worse than the dead end.
+    mergedRefusal()
+    destinationIs({ body: '', isHidden: true })
+    renderTree()
+    openComposer('supports')
+
+    expect(screen.queryByTestId('claim-composer-merge-offer')).not.toBeInTheDocument()
+    expect(screen.getByTestId('claim-composer-error')).toHaveTextContent(/merged into another one/i)
+  })
+
+  it('makes no offer while the destination is still loading, and none if it fails', () => {
+    mergedRefusal()
+    h.node = pending
+    renderTree()
+    openComposer('supports')
+    expect(screen.queryByTestId('claim-composer-merge-offer')).not.toBeInTheDocument()
+
+    cleanup()
+    mergedRefusal()
+    h.node = failed('Request failed (404)')
+    renderTree()
+    openComposer('supports')
+    expect(screen.queryByTestId('claim-composer-merge-offer')).not.toBeInTheDocument()
+  })
+
+  it('makes no offer to a claim that has itself been merged', () => {
+    // Merge chains exist — the API bounds them with MERGE_CHAIN_TOO_LONG
+    // rather than forbidding them. The tree gates the composer behind
+    // noWritesReason(), so landing on a merged claim means landing somewhere
+    // with no composer at all: the reader's paragraph would be written under
+    // that claim's draft key and have no box to appear in. An offer that
+    // cannot be honoured is worse than the dead end it replaces.
+    mergedRefusal()
+    destinationIs({ mergedInto: '00000000-0000-4000-8000-000000000005' })
+    renderTree()
+    fireEvent.change(openComposer('supports'), { target: { value: 'Demo argument at risk.' } })
+
+    expect(screen.queryByTestId('claim-composer-merge-offer')).not.toBeInTheDocument()
+    // And the words stay where the reader can still see them.
+    expect(screen.getByRole('textbox')).toHaveValue('Demo argument at risk.')
+  })
+
+  it('makes no offer on a merge refusal that carried no target', () => {
+    h.create.isError = true
+    h.create.error = Object.assign(new Error('merged'), { status: 409, code: 'CLAIM_MERGED' })
+    destinationIs()
+    renderTree()
+    openComposer('supports')
+
+    expect(screen.queryByTestId('claim-composer-merge-offer')).not.toBeInTheDocument()
+    expect(h.calls.node).not.toContain(MERGED_ID)
   })
 })
 

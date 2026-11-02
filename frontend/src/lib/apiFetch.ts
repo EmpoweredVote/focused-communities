@@ -20,7 +20,14 @@ const DEMO_CLAIMS = import.meta.env.DEV && import.meta.env.VITE_DEMO_CLAIMS === 
 
 export type ApiResult<T> =
   | { ok: true; data: T }
-  | { ok: false; error: string; status: number; reason?: string; code?: string };
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      reason?: string;
+      code?: string;
+      mergedInto?: string;
+    };
 
 /**
  * The fields an error body can contribute. `error` is always a string, because
@@ -32,6 +39,12 @@ interface ErrorFields {
   error: string;
   reason?: string;
   code?: string;
+  /**
+   * CLAIM_MERGED's third field: the claim that now carries the argument. It is
+   * the only refusal in the API with somewhere to go, and it is sent so a
+   * client can offer that claim rather than lose what the contributor wrote.
+   */
+  mergedInto?: string;
 }
 
 /**
@@ -65,9 +78,14 @@ async function readErrorBody(response: Response, fallback: string): Promise<Erro
   if (typeof error === 'string') {
     fields.error = error;
   } else if (error !== null && typeof error === 'object') {
-    const { code, message } = error as { code?: unknown; message?: unknown };
+    const { code, message, mergedInto } = error as {
+      code?: unknown;
+      message?: unknown;
+      mergedInto?: unknown;
+    };
     if (typeof message === 'string') fields.error = message;
     if (typeof code === 'string') fields.code = code;
+    if (typeof mergedInto === 'string') fields.mergedInto = mergedInto;
   }
   if (typeof reason === 'string') fields.reason = reason;
   return fields;

@@ -11,7 +11,13 @@ import {
   type ClaimNodeResult,
 } from './useClaims'
 
-type ApiError = Error & { status?: number; reason?: string; code?: string }
+type ApiError = Error & {
+  status?: number
+  reason?: string
+  code?: string
+  /** CLAIM_MERGED only: the claim that now carries the argument. */
+  mergedInto?: string
+}
 
 /**
  * `code` rides along with `status` because several of the write route's
@@ -24,11 +30,13 @@ function apiError(res: {
   status: number
   reason?: string
   code?: string
+  mergedInto?: string
 }): ApiError {
   return Object.assign(new Error(res.error), {
     status: res.status,
     reason: res.reason,
     code: res.code,
+    mergedInto: res.mergedInto,
   })
 }
 
