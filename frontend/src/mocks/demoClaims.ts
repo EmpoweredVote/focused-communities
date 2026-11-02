@@ -1,4 +1,4 @@
-// Stands in for: GET /api/claims/:id — not yet served by the deployed API
+// Stands in for: GET /api/claims/:id — not yet served by the API
 // Also stands in for: GET /api/communities/:id/claims/root,
 // GET /api/communities/:id/claims/shape, GET /api/claims/:id/edits.
 // The claims API is built but unpushed, so every one of those paths 404s
@@ -35,6 +35,11 @@ interface DemoClaim extends Claim {
   parentId: string | null
 }
 
+// myRating is null on every claim here and must stay null. It is the one
+// per-caller field, and this module answers every caller identically — a
+// non-null value would show one of these as "your rating" to whoever opens the
+// demo, which is the single shape of bug the rest of this branch is most
+// careful about.
 const base = {
   isHidden: false,
   mergedInto: null,
@@ -67,7 +72,6 @@ const claims: DemoClaim[] = [
     ratingCount: 9,
     childSupports: 1,
     childOpposes: 1,
-    myRating: 8,
   },
   {
     ...base,

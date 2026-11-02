@@ -206,11 +206,14 @@ describe('ImpactControl', () => {
   })
 
   it('never prints the impact figure, in text or in an accessible name (R78)', () => {
-    const { container } = render(<ImpactControl {...props({ impact: 7.25, ratingCount: 3 })} />, {
+    const { container } = render(<ImpactControl {...props({ impact: 7.25, ratingCount: 7 })} />, {
       wrapper: makeWrapper(),
     })
-    expect(container.textContent).not.toMatch(/7/)
-    expect(container.textContent).not.toMatch(/\.25/)
+    // The rating count is the ONE number this control may print, so that is
+    // what the sweep subtracts. `not.toMatch(/7/)` over the whole container
+    // used to do this job and only passed by coincidence: the count was 3, and
+    // setting it to 7 — as here — failed the test with the bug absent.
+    expect(container.textContent?.replace('7 ratings', '')).not.toMatch(/\d/)
     expect(screen.getByRole('img')).toHaveAccessibleName('Impact so far: high')
 
     // Not in an aria-label, a title, a value text or a test id either.

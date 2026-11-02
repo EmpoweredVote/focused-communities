@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { demoClaimResponse, isDemoClaimPath } from './demoClaims'
 import type { ClaimNode, ClaimNodeMeta, ShapeNode } from '../types'
 
@@ -57,6 +59,24 @@ describe('the demo tree is navigable through the real code path', () => {
     const child = node(`/api/claims/${ROOT}`).supports[0]
     expect(isDemoClaimPath(`/api/claims/${child.id}`)).toBe(true)
     expect(node(`/api/claims/${child.id}`).claim.id).toBe(child.id)
+  })
+})
+
+describe('the demo tree says nothing per-caller', () => {
+  it('shows no claim as rated by whoever opened it', () => {
+    // This module answers every caller identically, so a non-null myRating
+    // here is a rating attributed to a reader who never gave it.
+    const root = node(`/api/claims/${ROOT}`)
+    for (const c of [root.claim, ...root.supports, ...root.opposes]) {
+      expect(c.myRating, `${c.id} carries a rating nobody gave`).toBeNull()
+    }
+  })
+
+  it('uses the header prefix CLAUDE.md names, so a grep for it finds this file', () => {
+    const source = readFileSync(join(process.cwd(), 'src/mocks/demoClaims.ts'), 'utf8')
+    expect(source.startsWith('// Stands in for: GET /api/claims/:id — not yet served by the API')).toBe(
+      true,
+    )
   })
 })
 
