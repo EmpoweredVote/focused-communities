@@ -22,6 +22,13 @@ export default defineConfig(({ mode }) => {
           secure: true,
           rewrite: (path) => path.replace(/^\/api/, '/fc/api'),
         },
+        // The Compass's public API (src/lib/apiFetch.ts, COMPASS_PREFIX): same engine, /api.
+        '/compass-api': {
+          target: env.VITE_API_PROXY_TARGET || 'https://accounts-api.empowered.vote',
+          changeOrigin: true,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/compass-api/, '/api'),
+        },
       },
     },
   }

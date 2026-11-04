@@ -2,13 +2,14 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { apiFetch } from '../lib/apiFetch'
 import type { Community, PaginatedResponse } from '../types'
 
-export function useCommunities(q?: string, sort = 'newest') {
+export function useCommunities(q?: string, sort = 'newest', limit?: number) {
   const result = useInfiniteQuery({
-    queryKey: ['communities', { q, sort }],
+    queryKey: ['communities', { q, sort, limit }],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams()
       if (q) params.set('q', q)
       if (sort) params.set('sort', sort)
+      if (limit) params.set('limit', String(limit))
       if (pageParam) params.set('cursor', pageParam)
       const url = `/api/communities${params.toString() ? '?' + params.toString() : ''}`
       const res = await apiFetch<PaginatedResponse<Community>>(url)

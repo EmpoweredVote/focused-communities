@@ -1,5 +1,6 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 import { Toaster } from 'sonner'
+import LandingPage from './pages/LandingPage'
 import DirectoryPage from './pages/DirectoryPage'
 import CommunityHubPage from './pages/CommunityHubPage'
 import ThreadPage from './pages/ThreadPage'
@@ -10,7 +11,7 @@ export default function App() {
     <>
       <Toaster position="bottom-center" richColors />
       <Routes>
-        <Route path="/" element={<Navigate to="/communities" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/communities" element={<DirectoryPage />} />
         <Route path="/communities/:slug" element={<CommunityHubPage />} />
         <Route path="/communities/:slug/threads/:id" element={<ThreadPage />} />

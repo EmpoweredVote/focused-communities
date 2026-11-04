@@ -9,6 +9,28 @@ const API_BASE =
   import.meta.env.VITE_API_BASE_URL ??
   (import.meta.env.PROD ? 'https://accounts-api.empowered.vote/fc' : '');
 
+// The Compass's own public API (categories, topics and their questions) lives in the same
+// engine under /api rather than /fc/api. A path starting with COMPASS_PREFIX is sent there:
+// through the Vite proxy in dev (vite.config.ts rewrites /compass-api -> /api), and straight to
+// the engine in production, whose CORS list already names fc.empowered.vote.
+export const COMPASS_PREFIX = '/compass-api';
+const COMPASS_BASE =
+  import.meta.env.VITE_COMPASS_API_BASE_URL ??
+  // A staging deploy points VITE_API_BASE_URL at that engine's /fc. The Compass lives on the
+  // same engine under /api, so derive it from whatever base is in play rather than falling
+  // back to production and sending the two halves of the page to two environments.
+  (import.meta.env.VITE_API_BASE_URL
+    ? `${String(import.meta.env.VITE_API_BASE_URL).replace(/\/fc\/?$/, '')}/api`
+    : import.meta.env.PROD
+      ? 'https://accounts-api.empowered.vote/api'
+      : COMPASS_PREFIX);
+
+function resolveUrl(path: string): string {
+  return path.startsWith(`${COMPASS_PREFIX}/`)
+    ? `${COMPASS_BASE}${path.slice(COMPASS_PREFIX.length)}`
+    : `${API_BASE}${path}`;
+}
+
 // Dev-only, opt-in synthetic threads (see src/mocks/demoThreads.ts).
 const DEMO_THREADS = import.meta.env.DEV && import.meta.env.VITE_DEMO_THREADS === '1';
 
@@ -125,7 +147,7 @@ export async function apiFetch<T>(
   }
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    response = await fetch(resolveUrl(path), { ...options, headers });
   } catch {
     return { ok: false, error: 'Network error', status: 0 };
   }

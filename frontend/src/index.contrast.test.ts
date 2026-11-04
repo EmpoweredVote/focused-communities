@@ -158,14 +158,14 @@ describe('the muted token, raised to AA', () => {
     ).toBe('1.52')
   })
 
-  it('records that dark mode draws no such distinction', () => {
-    // Measured, not asserted as a floor, and deliberately not changed here:
-    // dark muted (#7DD4E8) and dark secondary (#A7CFD8) sit at the same
-    // luminance and differ only in hue, so the light-mode hierarchy this
-    // branch restored has no counterpart in dark mode. Dark muted clears AA
-    // on its own (10.49:1), so this is a hierarchy question rather than a
-    // contrast one, and it is somebody's design decision rather than a sum.
-    expect(ratio(dark['--color-text-muted'], dark['--color-text-secondary']).toFixed(2)).toBe('1.01')
+  it('is the quieter of the two greys in dark mode too', () => {
+    // Dark mode used to draw no such distinction (muted and secondary sat at
+    // 1.01:1, differing only in hue). With the Civic Spaces grays, muted
+    // (#99A1AF) sits below secondary (#D1D5DC) the way light mode's does.
+    expect(luminance(dark['--color-text-muted'])).toBeLessThan(
+      luminance(dark['--color-text-secondary']),
+    )
+    expect(ratio(dark['--color-text-muted'], dark['--color-text-secondary']).toFixed(2)).toBe('1.77')
     expect(
       Number(ratio(dark['--color-text-muted'], dark['--color-surface-card']).toFixed(2)),
     ).toBeGreaterThanOrEqual(TEXT)

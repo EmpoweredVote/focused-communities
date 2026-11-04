@@ -1,66 +1,191 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 
+/**
+ * The site header, laid out the way Civic Spaces lays out its own
+ * (civicspaces.empowered.vote): the Empowered Vote logo on the left, the
+ * product's mark and two-tone wordmark in the centre, and the theme toggle and
+ * profile button on the right. The toggle and profile icons are the same
+ * Feather-style strokes Civic Spaces uses, so the suite reads as one product.
+ */
 export function Header() {
-  const { auth, signIn, signOut } = useAuth();
   const { isDark, toggle } = useTheme();
 
   return (
-    <header className="border-b border-border-light bg-surface-primary">
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-        <a href="/communities" className="font-bold text-ev-teal text-sm">
-          Focused Communities
+    <header className="sticky top-0 z-40 flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-3 md:gap-6 h-16 md:h-20 px-4 md:px-8 border-b border-border-light bg-surface-primary">
+      {/* Left: Empowered Vote */}
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <a href="https://empowered.vote" className="hidden sm:flex flex-shrink-0 items-center">
+          <img
+            src={isDark ? '/images/ev-logo-dark-bg.png' : '/images/ev-logo.png'}
+            alt="Empowered Vote"
+            className="h-9 w-auto"
+          />
         </a>
-        <div className="flex items-center gap-3">
-          {/* Dark mode toggle */}
-          <button
-            type="button"
-            onClick={toggle}
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDark ? (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                <path d="M10 2a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 2ZM10 15a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 15ZM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM15.657 5.404a.75.75 0 1 0-1.06-1.06l-1.061 1.06a.75.75 0 0 0 1.06 1.06l1.061-1.06ZM6.464 14.596a.75.75 0 1 0-1.06-1.06l-1.061 1.06a.75.75 0 0 0 1.06 1.06l1.06-1.06ZM18 10a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 18 10ZM5 10a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 5 10ZM14.596 15.657a.75.75 0 0 0 1.06-1.06l-1.06-1.061a.75.75 0 1 0-1.06 1.06l1.06 1.061ZM5.404 6.464a.75.75 0 0 0 1.06-1.06l-1.06-1.061a.75.75 0 1 0-1.06 1.06l1.06 1.061Z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                <path fillRule="evenodd" d="M7.455 2.004a.75.75 0 0 1 .26.77 7 7 0 0 0 9.958 7.967.75.75 0 0 1 1.067.853A8.5 8.5 0 1 1 6.647 1.921a.75.75 0 0 1 .808.083Z" clipRule="evenodd" />
-              </svg>
-            )}
-          </button>
+      </div>
 
-          {/* Auth controls */}
-          {auth.state === 'loading' && <></>}
-          {auth.state === 'inform' && (
-            <button
-              type="button"
-              onClick={() => signIn()}
-              className="text-sm text-text-muted hover:text-text-primary transition-colors"
-            >
-              Sign in
-            </button>
-          )}
-          {(auth.state === 'connected' || auth.state === 'connected_no_compass') && (
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-text-muted">{auth.user.display_name}</span>
+      {/* Centre: Focused Communities */}
+      <Link
+        to="/"
+        className="flex flex-1 md:flex-none items-center gap-2 min-w-0 md:justify-center text-lg md:text-xl font-extrabold tracking-tight whitespace-nowrap"
+      >
+        <FocusedCommunitiesMark className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0" />
+        <span className="sr-only min-[430px]:not-sr-only">
+          <span className="text-ev-teal dark:text-ev-teal-light">Focused</span>{' '}
+          <span className="text-ev-coral-text dark:text-ev-coral">Communities</span>
+        </span>
+      </Link>
+
+      {/* Right: theme toggle, profile */}
+      <div className="flex items-center justify-end gap-0.5 sm:gap-2 flex-shrink-0">
+        <ThemeToggle isDark={isDark} onToggle={toggle} />
+        <ProfileMenu />
+      </div>
+    </header>
+  );
+}
+
+/**
+ * The Focused Communities mark: an arrow that has landed in a target. It is
+ * the product in one picture: a community that narrows one issue down to the
+ * shared facts at its centre, rather than spreading across everything.
+ *
+ * Drawn on a 32×32 grid, framed by a viewBox whose vertical middle is the
+ * target's centre (y 18.5), so the target lines up with the wordmark beside
+ * it instead of sitting low under the arrow's tail. Every colour
+ * is a theme token, so it follows light and dark mode: the target is brand
+ * teal (sky blue in dark) and the whole arrow is plain brand yellow, with no
+ * outline. The gap ring uses the header's own surface colour so it reads as a
+ * cut-out on either background.
+ */
+function FocusedCommunitiesMark({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="-1.5 1 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className={className}>
+      <circle cx="13.5" cy="18.5" r="12" className="fill-ev-teal dark:fill-ev-teal-light" />
+      <circle cx="13.5" cy="18.5" r="8.5" className="fill-surface-primary" />
+      <circle cx="13.5" cy="18.5" r="5.5" className="fill-ev-teal dark:fill-ev-teal-light" />
+      <path d="M14 18 L28 4" strokeWidth="2" strokeLinecap="round" className="stroke-ev-yellow" />
+      <path d="M23.5 5 V8.5 H27" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-ev-yellow" />
+      <path d="M26.5 2 V5.5 H30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-ev-yellow" />
+    </svg>
+  );
+}
+
+function ThemeToggle({ isDark, onToggle }: { isDark: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      className="w-9 h-9 flex items-center justify-center rounded-full text-text-secondary hover:text-text-body hover:bg-surface-hover transition-colors"
+    >
+      {isDark ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function ProfileMenu() {
+  const { auth, signIn, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const signedIn = auth.state === 'connected' || auth.state === 'connected_no_compass';
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const itemClass =
+    'w-full flex items-center gap-3 px-4 py-3 text-sm text-text-body hover:bg-surface-hover transition-colors text-left';
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label={signedIn ? 'Profile menu' : 'Account'}
+        aria-expanded={open}
+        // While the session is still resolving there is no menu to show, so the
+        // button says so rather than toggling aria-expanded over nothing.
+        disabled={auth.state === 'loading'}
+        className="w-9 h-9 flex items-center justify-center rounded-full border-2 border-ev-teal dark:border-ev-teal-light text-ev-teal dark:text-ev-teal-light hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-default"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+      </button>
+
+      {open && auth.state !== 'loading' && (
+        <div className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-border-light bg-surface-card shadow-lg py-1">
+          {signedIn ? (
+            <>
+              <div className="px-4 py-2 text-xs text-text-muted truncate">{auth.user.display_name}</div>
               <a
-                href="https://app.empowered.vote/profile"
-                className="text-ev-teal-light hover:text-ev-teal transition-colors"
+                href="https://accounts.empowered.vote/profile"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                className={itemClass}
               >
-                Your activity
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Account Settings</span>
               </a>
               <button
                 type="button"
-                onClick={signOut}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                onClick={() => {
+                  setOpen(false);
+                  signOut();
+                }}
+                className={itemClass}
               >
-                Sign out
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+                <span>Sign out</span>
               </button>
-            </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                signIn();
+              }}
+              className={itemClass}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
+              </svg>
+              <span>Log in</span>
+            </button>
           )}
         </div>
-      </div>
-    </header>
+      )}
+    </div>
   );
 }
