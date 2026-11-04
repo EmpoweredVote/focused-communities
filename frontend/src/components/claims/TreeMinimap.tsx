@@ -290,6 +290,24 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
             <span className={`block ${SIDE_SHAPE.opposes} bg-minimap-impact-moderate`} />
             Opposes
           </span>
+          {/* The two modifiers a mark can carry, drawn exactly as Node draws them.
+              Without these the map showed a struck mark and an arrowed mark that the
+              legend never accounted for. Side here is arbitrary: both modifiers apply
+              to either shape. */}
+          <span className="inline-flex items-center gap-1.5">
+            <span className="relative flex items-center">
+              <span className={`block ${SIDE_SHAPE.supports} bg-minimap-impact-moderate`} />
+              <span className="pointer-events-none absolute left-1/2 top-1/2 h-px w-[150%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-text-body" />
+            </span>
+            Removed
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="flex items-center gap-px">
+              <span className={`block ${SIDE_SHAPE.supports} bg-minimap-impact-moderate`} />
+              <span className="text-[8px] leading-none text-text-secondary">&rarr;</span>
+            </span>
+            Merged
+          </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="flex gap-0.5">
               <span className={`block h-2.5 w-2.5 rounded-full ${IMPACT_FILL.low}`} />

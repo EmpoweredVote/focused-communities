@@ -16,7 +16,12 @@ export function EditHistory({ edits, isLoading, onToggle, isOpen }: EditHistoryP
         onClick={onToggle}
         className="text-xs text-text-muted hover:text-text-primary underline-offset-2 hover:underline transition-colors"
       >
-        {isOpen ? 'Hide edit history' : `View edit history (${edits.length || ''})`}
+        {/* Edits are fetched when this opens, so before the first click `edits` is empty
+            and there is no count to give. The brackets go with the number: `(${n || ''})`
+            kept them and rendered "View edit history ()". */}
+        {isOpen
+          ? 'Hide edit history'
+          : `View edit history${edits.length ? ` (${edits.length})` : ''}`}
       </button>
       {isOpen && (
         <div className="mt-2 space-y-2">

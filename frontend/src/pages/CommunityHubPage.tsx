@@ -182,7 +182,10 @@ export default function CommunityHubPage() {
         {/* Band 2: the season's chairs */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-primary">Perspectives</h2>
+            {/* text-body, as "Discussion" below. In dark mode --color-text-primary is
+                #59B0C4, the same value as --color-link, so a teal heading reads as a
+                link now that teal means "link" rather than "the house colour". */}
+            <h2 className="text-lg font-semibold text-text-body">Perspectives</h2>
             {displayedChairs.length > 1 && (
               <button
                 aria-pressed={directionChanged}
