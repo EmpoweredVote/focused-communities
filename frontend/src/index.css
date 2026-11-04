@@ -176,7 +176,23 @@ html {
      impact track #6A7282 3.67      minimap low / moderate / high 3.67 / 6.82 / 14.33
      alert #FCA5A5 9.35 / 10.61
    Muted sits 1.77:1 below secondary, so dark mode keeps a quiet-then-quieter
-   text hierarchy. */
+   text hierarchy.
+
+   One correction to the line above, because it measures the wrong backdrop.
+   The minimap's marks are not drawn on the card: TreeMinimap puts each level in
+   a lane of `bg-surface-hover/60`, which composites over the card to #182232.
+   Against THAT, the ramp is:
+     low #6A7282 3.31      moderate #99A1AF 6.14      high #E5E7EB 12.91
+   All three still clear the 3:1 that WCAG 1.4.11 asks of a graphical object,
+   but low clears it by 0.31 rather than the 0.67 the card figure implies, so a
+   lighter lane or a darker low is a regression with very little warning.
+
+   Not fixed, and worth knowing: the dashed outline that marks an incompletely
+   drawn level uses --color-border-medium #4A5565, which is 2.11:1 on that lane
+   (2.35:1 on the card) and so sits BELOW the same 3:1. It carries meaning —
+   "this level is only partly drawn" — though never alone: the sr-only summary
+   and the axis note both say it in words. Raising it is a pixel change nobody
+   has signed off, so it is recorded here rather than quietly altered. */
 html.dark {
   color-scheme: dark;
   --color-ev-yellow-light: #4A3A05;
