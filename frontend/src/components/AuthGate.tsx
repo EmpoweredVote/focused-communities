@@ -28,7 +28,7 @@ export function AuthGate({ children, action = 'post' }: AuthGateProps) {
           <button
             type="button"
             onClick={() => window.open(signInUrl, '_blank')}
-            className="text-ev-teal-light hover:text-ev-teal underline cursor-pointer bg-transparent border-none p-0"
+            className="text-ev-teal-light hover:text-link-hover underline cursor-pointer bg-transparent border-none p-0"
           >
             Sign in
           </button>

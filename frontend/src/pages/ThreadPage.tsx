@@ -193,7 +193,7 @@ export default function ThreadPage() {
         {postsError && (
           <div className="py-4">
             <p className="text-sm text-text-secondary mb-2">Failed to load replies</p>
-            <button onClick={() => refetchPosts()} className="text-sm text-ev-teal-light hover:text-ev-teal hover:underline">
+            <button onClick={() => refetchPosts()} className="text-sm text-ev-teal-light hover:text-link-hover hover:underline">
               Try Again
             </button>
           </div>

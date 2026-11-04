@@ -28,11 +28,11 @@ interface TreeMinimapProps {
 
 // Side is shape-and-position, never colour: the ramp below owns colour.
 const SIDE_SHAPE: Record<ClaimSide, string> = {
-  supports: 'h-3 w-3 rounded-full', // circle
-  opposes: 'h-3 w-3 rounded-[2px]', // square
+  supports: 'h-3.5 w-3.5 rounded-full', // circle
+  opposes: 'h-3.5 w-3.5 rounded-[3px]', // square
 }
 // A root has no side. A wider pill keeps it from reading as either one.
-const ROOT_SHAPE = 'h-3 w-5 rounded-full'
+const ROOT_SHAPE = 'h-3.5 w-6 rounded-full'
 
 const SIDE_WORD: Record<ClaimSide, string> = {
   supports: 'supporting',
@@ -186,7 +186,7 @@ function Node({
       aria-label={nodeLabel(node, isFocused)}
       onClick={() => onJump(node.id)}
       className={[
-        'flex items-center gap-px rounded p-1 transition-colors hover:bg-surface-hover',
+        'flex items-center gap-px rounded-md p-1.5 transition-colors hover:bg-surface-card',
         'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring',
       ].join(' ')}
     >
@@ -268,8 +268,38 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
       data-testid="tree-minimap"
       data-tree-minimap
       aria-label="Map of this argument"
-      className="rounded-lg border border-border-light bg-surface-card p-3"
+      className="rounded-xl border border-border-light bg-surface-card p-4 shadow-sm"
     >
+      {/* Header and legend. The legend repeats, in pictures, what each mark's
+          own label already says, so it is hidden from screen readers. */}
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+        <div>
+          <h3 className="text-sm font-semibold text-text-body">Argument map</h3>
+          <p className="mt-0.5 text-xs text-text-muted">Each row is a level of the argument. Select a mark to jump to it.</p>
+        </div>
+        <div aria-hidden="true" className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-text-secondary">
+          <span className="inline-flex items-center gap-1.5">
+            <span className={`block ${ROOT_SHAPE} bg-minimap-impact-moderate`} />
+            The issue
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className={`block ${SIDE_SHAPE.supports} bg-minimap-impact-moderate`} />
+            Supports
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className={`block ${SIDE_SHAPE.opposes} bg-minimap-impact-moderate`} />
+            Opposes
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="flex gap-0.5">
+              <span className={`block h-2.5 w-2.5 rounded-full ${IMPACT_FILL.low}`} />
+              <span className={`block h-2.5 w-2.5 rounded-full ${IMPACT_FILL.moderate}`} />
+              <span className={`block h-2.5 w-2.5 rounded-full ${IMPACT_FILL.high}`} />
+            </span>
+            Low to high impact
+          </span>
+        </div>
+      </div>
       {/* The drawing is decorative — every line, axis and label in it is
           aria-hidden and this sentence is the alternative. The nodes cannot
           be: they are the controls that jump, and a control hidden from a
@@ -278,14 +308,14 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
         {summary}
       </p>
 
-      <ol className="space-y-1">
+      <ol className="space-y-1.5">
         {rows.map((row) => (
           <li
             key={row.depth}
             data-depth={row.depth}
             data-complete={row.complete ? 'true' : 'false'}
             className={[
-              'flex items-center gap-2 border-l-2 pl-1',
+              'flex items-center gap-3 rounded-lg border bg-surface-hover/60 px-2.5 py-1',
               // The cut is in the row's own outline too, so a reader scanning
               // the picture can see which levels are only partly drawn.
               row.complete ? 'border-transparent' : 'border-dashed border-border-medium',
@@ -294,7 +324,7 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
           >
             <span
               aria-hidden="true"
-              className="w-12 shrink-0 text-[10px] uppercase tracking-wide text-text-muted"
+              className="w-14 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-text-muted"
             >
               Level {row.depth}
             </span>
@@ -333,7 +363,7 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
                     <span
                       data-testid="balance-axis"
                       aria-hidden="true"
-                      className="h-4 w-px bg-border-medium"
+                      className="h-5 w-px bg-border-medium"
                     />
                   )}
                 </div>
@@ -396,9 +426,10 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
         <p
           data-testid="tree-minimap-axis-note"
           aria-hidden="true"
-          className="mt-2 text-xs text-text-secondary"
+          className="mt-3 flex gap-1.5 border-t border-border-light pt-3 text-xs leading-relaxed text-text-secondary"
         >
-          {axisText}
+          <svg viewBox="0 0 20 20" fill="currentColor" className="mt-px h-3.5 w-3.5 flex-shrink-0 text-text-muted" aria-hidden="true"><path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clipRule="evenodd" /></svg>
+          <span>{axisText}</span>
         </p>
       )}
 
@@ -408,9 +439,10 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
         <p
           data-testid="tree-minimap-cutoff"
           aria-hidden="true"
-          className="mt-2 text-xs text-text-secondary"
+          className="mt-3 flex gap-1.5 border-t border-border-light pt-3 text-xs leading-relaxed text-text-secondary"
         >
-          {cutText}
+          <svg viewBox="0 0 20 20" fill="currentColor" className="mt-px h-3.5 w-3.5 flex-shrink-0 text-text-muted" aria-hidden="true"><path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clipRule="evenodd" /></svg>
+          <span>{cutText}</span>
         </p>
       )}
     </section>

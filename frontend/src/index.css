@@ -6,6 +6,12 @@
   /* Brand colors */
   --color-ev-coral: #FF5740;
   --color-ev-coral-hover: #E61B00;
+  /* Coral as wordmark text in light mode, as Civic Spaces uses it (brand-coral-text). */
+  --color-ev-coral-text: #CC4633;
+  /* The landing page's yellow call-to-action: dark ink on brand yellow
+     (#1C1C1C on #FED12E = 11.66:1, on the #F2C21A hover = 10.15:1; the hover is Civic Spaces' brand-yellow-hover). */
+  --color-ev-yellow-hover: #F2C21A;
+  --color-ev-black: #1C1C1C;
   --color-ev-teal: #00657C;
   --color-ev-teal-dark: #003E4D;
   --color-ev-teal-light: #59B0C4;
@@ -37,7 +43,7 @@
      that darkened it to #4A5568's weight would pass the sum and lose the job:
        light #637185 on the card #FFFFFF = 4.96:1, on the page #F0F8FA = 4.61:1
              against --color-text-secondary #4A5568 = 1.52:1, still the lighter
-       dark  #7DD4E8 on the card #0F1A1E = 10.49:1 (unchanged; see below) */
+       dark  #99A1AF on the card #101828 = 6.82:1 (Tailwind gray-400; see below) */
   --color-text-muted: #637185;
 
   /* Text that has turned to warn — a character count inside its last 10%, a
@@ -150,51 +156,100 @@ html {
   color: var(--color-text-body);
 }
 
-/* Dark mode overrides via CSS custom properties */
+/* Dark mode overrides via CSS custom properties.
+
+   Follows Civic Spaces (civicspaces.empowered.vote), which builds its dark
+   mode from Tailwind's gray scale plus the brand tokens:
+     page        gray-950 #030712   (its app shell: dark bg-gray-950)
+     header/card gray-900 #101828   (its bars, cards and panels: dark bg-gray-900)
+     hover       gray-800 #1E2939   (dark hover bg-gray-800)
+     borders     gray-700 #364153, inputs gray-600 #4A5565
+     text        gray-100 #F3F4F6 / gray-300 #D1D5DC / gray-400 #99A1AF
+     accents     brand-light #59B0C4 for links and the focus ring, coral #FF5740
+   Hex values are Tailwind v4's oklch grays converted, so the contrast test can
+   read them.
+
+   Ratios on the dark card #101828 / the dark page #030712:
+     body #F3F4F6 16.13 / 18.30     secondary #D1D5DC 12.05 / 13.67
+     muted #99A1AF 6.82 / 7.74      link #59B0C4 7.13 / 8.08, hover #F3F4F6 16.13 / 18.30
+     supports #59B0C4 7.13          opposes #FF5740 5.65          neutral #99A1AF 6.82
+     impact track #6A7282 3.67      minimap low / moderate / high 3.67 / 6.82 / 14.33
+     alert #FCA5A5 9.35 / 10.61
+   Muted sits 1.77:1 below secondary, so dark mode keeps a quiet-then-quieter
+   text hierarchy. */
 html.dark {
   color-scheme: dark;
   --color-ev-yellow-light: #4A3A05;
   --color-focus-ring: #59B0C4;
-  /* 2.66:1 -> 7.10:1 on the dark card. Opposes needs no override (5.64:1). */
   --color-claim-supports: var(--color-ev-teal-light);
-  /* 6.01:1 on the white card -> 1.21:1 on the dark one, so this one inverts. */
-  --color-claim-neutral: #9FAFB4;
-  /* 3.36:1 on white -> 1.17:1 on the dark card. 3.81:1 after the swap. */
-  --color-impact-track: #327E8F;
-  /* 6.66:1 on white -> 2.66:1 on the dark card. 7.10:1 after the swap. */
+  --color-claim-neutral: #99A1AF;
+  --color-impact-track: #6A7282;
   --color-link: var(--color-ev-teal-light);
-  --color-link-hover: #A7CFD8;
-  /* 5.26 / 2.95 / 1.40 -> 4.09 / 7.81 / 13.51 on the dark card. */
-  --color-minimap-impact-low: #6D7C81;
-  --color-minimap-impact-moderate: #9FAFB4;
-  --color-minimap-impact-high: #D7E3E7;
-  --color-surface-primary: #0F1A1E;
-  --color-surface-secondary: #05262E;
-  --color-surface-hover: #03303A;
-  --color-surface-card: #0F1A1E;
+  --color-link-hover: #F3F4F6;
+  --color-minimap-impact-low: #6A7282;
+  --color-minimap-impact-moderate: #99A1AF;
+  --color-minimap-impact-high: #E5E7EB;
+  --color-surface-primary: #101828;
+  --color-surface-secondary: #030712;
+  --color-surface-hover: #1E2939;
+  --color-surface-card: #101828;
   --color-text-primary: #59B0C4;
-  --color-text-body: #E4F3F6;
-  --color-text-secondary: #A7CFD8;
-  /* 10.49:1 on the dark card, so it clears AA and is left where it is. Worth
-     writing down, though: it sits at the SAME luminance as the secondary above
-     (1.01:1 between them) and differs only in hue, so the quiet-then-quieter
-     hierarchy light mode has does not exist here. That is a design decision
-     rather than a contrast one, and index.contrast.test.ts records it. */
-  --color-text-muted: #7DD4E8;
-  /* #FB2C36 reads 4.65:1 on the dark card but 4.17:1 on the dark page
-     background, so the alert token is overridden here too. */
+  --color-text-body: #F3F4F6;
+  --color-text-secondary: #D1D5DC;
+  --color-text-muted: #99A1AF;
   --color-text-alert: #FCA5A5;
-  --color-border-light: #2B616E;
-  --color-border-medium: #327E8F;
+  --color-border-light: #364153;
+  --color-border-medium: #4A5565;
 }
 
+/* Heading rhythm from the ev-ui type scale (textStyles h1/h2/h3). */
+h1 { letter-spacing: -0.02em; line-height: 1.25; }
+h2 { letter-spacing: -0.01em; line-height: 1.3; }
+h3 { line-height: 1.35; }
+
 /* Smooth dark mode transition */
+html.dark body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Dark mode skeleton overrides */
 .dark .react-loading-skeleton {
-  --base-color: #03303A;
-  --highlight-color: #2B616E;
+  --base-color: #1E2939;
+  --highlight-color: #364153;
+}
+
+/* Landing-page illustration (HowItWorksAnimation). Elements start from their
+   finished state, and these keyframes only describe the way in, so switching
+   animation off leaves every scene complete. */
+@keyframes fc-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fc-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes fc-pick {
+  from { transform: none; box-shadow: 0 0 0 0 transparent; }
+  to { transform: scale(1.05); box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.25); }
+}
+@keyframes fc-point {
+  from { opacity: 0; transform: translate(18px, 18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fc-select {
+  to { background-color: var(--color-claim-supports); }
+}
+@keyframes fc-press {
+  50% { transform: scale(0.92); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-anim { animation: none !important; }
+  .fc-selected { background-color: var(--color-claim-supports); }
+  html { scroll-behavior: auto; }
 }
