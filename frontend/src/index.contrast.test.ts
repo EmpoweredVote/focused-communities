@@ -29,6 +29,27 @@ function ratio(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05)
 }
 
+/**
+ * A translucent fill over an opaque one, as the browser composites it.
+ *
+ * Needed because not every surface in this app is a token. The minimap draws
+ * its levels on `bg-surface-hover/60`, so a mark there sits on neither
+ * --color-surface-hover nor --color-surface-card but on the blend, and
+ * measuring it against the card overstates the ratio by about 0.4.
+ */
+function over(fg: string, bg: string, alpha: number): string {
+  const parse = (hex: string) =>
+    [0, 2, 4].map((i) => parseInt(hex.replace('#', '').slice(i, i + 2), 16))
+  const [f, b] = [parse(fg), parse(bg)]
+  return (
+    '#' +
+    f
+      .map((v, i) => Math.round(alpha * v + (1 - alpha) * b[i]).toString(16).padStart(2, '0'))
+      .join('')
+      .toUpperCase()
+  )
+}
+
 // Read from disk rather than imported: what is being measured is the file a
 // build will ship, not a module graph's idea of it.
 const css = readFileSync(join(process.cwd(), 'src/index.css'), 'utf8')
@@ -123,6 +144,58 @@ describe.each(['light', 'dark'] as const)('contrast in %s mode', (mode) => {
       Number(value.toFixed(2)),
       `${fg} (${resolved[fg]}) on ${bg} (${resolved[bg]}) is ${value.toFixed(2)}:1`,
     ).toBeGreaterThanOrEqual(floor)
+  })
+})
+
+/**
+ * The minimap's lane, which is the one surface here that no token names.
+ *
+ * TreeMinimap puts each level in `bg-surface-hover/60` over the card, so every
+ * mark and outline in the map is painted on that blend. PAIRS above measures
+ * the impact ramp against --color-surface-card, which is the wrong backdrop
+ * and reads about 0.4 too high; these are the figures that ship.
+ *
+ * The dashed outline on an incompletely drawn level is here because it is a
+ * meaning, not a divider: it is the only thing in the picture that says "this
+ * level is part of the argument there, not all of it". It used to borrow
+ * --color-border-medium and came to 2.11:1 in dark mode and 1.46:1 in light,
+ * where it was invisible. --color-border-incomplete exists so that cannot
+ * happen quietly again.
+ */
+describe('the minimap lane, a surface no token names', () => {
+  const lane = (t: Record<string, string>) =>
+    over(t['--color-surface-hover'], t['--color-surface-card'], 0.6)
+
+  describe.each(['light', 'dark'] as const)('%s mode', (mode) => {
+    const t = tokens(mode)
+
+    it.each([
+      '--color-minimap-impact-low',
+      '--color-minimap-impact-moderate',
+      '--color-minimap-impact-high',
+      '--color-border-incomplete',
+    ])('%s clears 3:1 on the lane it is drawn on', (token) => {
+      const value = ratio(t[token], lane(t))
+      expect(
+        Number(value.toFixed(2)),
+        `${token} (${t[token]}) on the lane (${lane(t)}) is ${value.toFixed(2)}:1`,
+      ).toBeGreaterThanOrEqual(PART)
+    })
+  })
+
+  it('records the gap between the card and the lane, which is where this started', () => {
+    const d = tokens('dark')
+    // The ramp as index.css used to describe it, against the card...
+    expect(ratio(d['--color-minimap-impact-low'], d['--color-surface-card']).toFixed(2)).toBe('3.67')
+    // ...and against the surface it is actually on. Still over 3, by less.
+    expect(ratio(d['--color-minimap-impact-low'], lane(d)).toFixed(2)).toBe('3.31')
+  })
+
+  it('records what the dashed outline used to be, so the fix is not re-litigated', () => {
+    const l = tokens('light')
+    const d = tokens('dark')
+    expect(ratio(l['--color-border-medium'], lane(l)).toFixed(2)).toBe('1.46')
+    expect(ratio(d['--color-border-medium'], lane(d)).toFixed(2)).toBe('2.11')
   })
 })
 

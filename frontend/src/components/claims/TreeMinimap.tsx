@@ -336,7 +336,7 @@ export function TreeMinimap({ shape, focusedId, meta, onJump }: TreeMinimapProps
               'flex items-center gap-3 rounded-lg border bg-surface-hover/60 px-2.5 py-1',
               // The cut is in the row's own outline too, so a reader scanning
               // the picture can see which levels are only partly drawn.
-              row.complete ? 'border-transparent' : 'border-dashed border-border-medium',
+              row.complete ? 'border-transparent' : 'border-dashed border-border-incomplete',
             ].join(' ')}
             data-split={row.split ? 'true' : 'false'}
           >

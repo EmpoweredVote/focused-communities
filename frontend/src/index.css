@@ -134,6 +134,17 @@
   /* Semantic border colors */
   --color-border-light: #E2EBEF;
   --color-border-medium: #C9CFD1;
+  /* The dashed outline on a minimap level the response does not describe
+     completely. It is not a hairline divider but a meaning — "this level is
+     only partly drawn" — so WCAG 1.4.11 asks 3:1 of it, and it is measured
+     against the lane it sits on (bg-surface-hover/60 over the card), not
+     against the card: light #EFF8FA, dark #182232.
+       light #637185 on #EFF8FA = 4.60    dark #99A1AF on #182232 = 6.14
+     border-medium, which it used to borrow, gives 1.46 light / 2.11 dark and
+     failed in both. These two values are today's --color-text-muted in each
+     theme; the token is its own so the outline cannot drift with body text,
+     and index.contrast.test.ts holds both to the 3:1 floor. */
+  --color-border-incomplete: #637185;
 
   /* Focus ring */
   --color-focus-ring: #00657C;
@@ -187,12 +198,10 @@ html {
    but low clears it by 0.31 rather than the 0.67 the card figure implies, so a
    lighter lane or a darker low is a regression with very little warning.
 
-   Not fixed, and worth knowing: the dashed outline that marks an incompletely
-   drawn level uses --color-border-medium #4A5565, which is 2.11:1 on that lane
-   (2.35:1 on the card) and so sits BELOW the same 3:1. It carries meaning —
-   "this level is only partly drawn" — though never alone: the sr-only summary
-   and the axis note both say it in words. Raising it is a pixel change nobody
-   has signed off, so it is recorded here rather than quietly altered. */
+   The dashed outline marking an incompletely drawn level used to borrow
+   --color-border-medium and so sat at 2.11:1 on that lane (1.46:1 in light
+   mode, where it was all but invisible). It now has its own token,
+   --color-border-incomplete, declared above with its ratios. */
 html.dark {
   color-scheme: dark;
   --color-ev-yellow-light: #4A3A05;
@@ -216,6 +225,8 @@ html.dark {
   --color-text-alert: #FCA5A5;
   --color-border-light: #364153;
   --color-border-medium: #4A5565;
+  /* 6.14:1 on the lane; see the note beside the light value. */
+  --color-border-incomplete: #99A1AF;
 }
 
 /* Heading rhythm from the ev-ui type scale (textStyles h1/h2/h3). */
