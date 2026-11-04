@@ -127,7 +127,10 @@ function ProfileMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-label={signedIn ? 'Profile menu' : 'Account'}
         aria-expanded={open}
-        className="w-9 h-9 flex items-center justify-center rounded-full border-2 border-ev-teal dark:border-ev-teal-light text-ev-teal dark:text-ev-teal-light hover:bg-surface-hover transition-colors"
+        // While the session is still resolving there is no menu to show, so the
+        // button says so rather than toggling aria-expanded over nothing.
+        disabled={auth.state === 'loading'}
+        className="w-9 h-9 flex items-center justify-center rounded-full border-2 border-ev-teal dark:border-ev-teal-light text-ev-teal dark:text-ev-teal-light hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-default"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
           <circle cx="12" cy="8" r="4" />

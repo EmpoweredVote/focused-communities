@@ -193,7 +193,7 @@ export default function ThreadPage() {
         {postsError && (
           <div className="py-4">
             <p className="text-sm text-text-secondary mb-2">Failed to load replies</p>
-            <button onClick={() => refetchPosts()} className="text-sm text-ev-teal-light hover:text-link-hover hover:underline">
+            <button onClick={() => refetchPosts()} className="text-sm text-link hover:text-link-hover hover:underline">
               Try Again
             </button>
           </div>
@@ -225,7 +225,8 @@ export default function ThreadPage() {
         )}
 
         {/* Reply form */}
-        <div id="reply-form" className="mt-8 pt-8 border-t border-border-light">
+        {/* scroll-mt clears the sticky header, so "jump to reply" does not land under it. */}
+        <div id="reply-form" className="mt-8 pt-8 border-t border-border-light scroll-mt-24">
           <h3 className="text-base font-semibold text-text-body mb-4">Leave a Reply</h3>
           <ReplyForm threadId={id!} />
         </div>

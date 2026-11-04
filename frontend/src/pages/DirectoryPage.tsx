@@ -37,19 +37,47 @@ export default function DirectoryPage() {
   const [params, setParams] = useSearchParams()
   const category = params.get('category')
   function setCategory(next: string | null) {
-    setParams(next ? { category: next } : {})
+    // Change only `category`, so any other param (a deep link, a tracking tag)
+    // survives picking or clearing a category.
+    setParams(
+      (prev) => {
+        const nextParams = new URLSearchParams(prev)
+        if (next) nextParams.set('category', next)
+        else nextParams.delete('category')
+        return nextParams
+      },
+      { replace: false },
+    )
     window.scrollTo({ top: 0 })
   }
   const searchRef = useRef<HTMLInputElement>(null)
 
-  const { communities, isLoading, isError, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useCommunities(undefined, 'newest', 100)
+  const {
+    communities,
+    isLoading,
+    isError,
+    refetch,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    fetchNextPage,
+  } = useCommunities(undefined, 'newest', 100)
   const compass = useCompassCategories()
 
   // Search and filtering are client-side, so every page must be loaded.
+  //
+  // The error guards matter: `hasNextPage` is derived from the last SUCCESSFUL
+  // page, so it stays true after a page fails. Without them, a failed page
+  // would flip `isFetchingNextPage` true -> false, re-fire this effect, and
+  // request the same cursor again for as long as the tab stayed open.
   useEffect(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+    if (hasNextPage && !isFetchingNextPage && !isError && !isFetchNextPageError) {
+      fetchNextPage()
+    }
+  }, [hasNextPage, isFetchingNextPage, isError, isFetchNextPageError, fetchNextPage])
+
+  // True once every page is in, so search and counts can speak with authority.
+  const allLoaded = !hasNextPage && !isFetchingNextPage
 
   // "/" jumps to the search box, as it does on most directories.
   useEffect(() => {
@@ -232,26 +260,36 @@ export default function DirectoryPage() {
 
             {(query || category) && (
               <p className="mb-4 text-sm text-text-muted" aria-live="polite">
-                {visible.length === 0
-                  ? 'No communities match'
-                  : `${visible.length} ${visible.length === 1 ? 'community' : 'communities'}`}
-                {query ? ` for “${search.trim()}”` : ''}
+                {/* Until every page is in, a count or a "no match" would be a claim about
+                    communities that have not arrived yet. Say so instead. */}
+                {!allLoaded
+                  ? 'Still loading communities…'
+                  : visible.length === 0
+                    ? 'No communities match'
+                    : `${visible.length} ${visible.length === 1 ? 'community' : 'communities'}`}
+                {allLoaded && query ? ` for “${search.trim()}”` : ''}
               </p>
             )}
 
             {visible.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border-medium py-12 text-center">
-                <p className="text-text-secondary">Nothing here yet. Try a different word or category.</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch('')
-                    setCategory(null)
-                  }}
-                  className="mt-3 text-sm font-medium text-link hover:text-link-hover underline underline-offset-2"
-                >
-                  Clear search and filters
-                </button>
+                <p className="text-text-secondary">
+                  {allLoaded
+                    ? 'Nothing here yet. Try a different word or category.'
+                    : 'Still loading communities…'}
+                </p>
+                {allLoaded && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('')
+                      setCategory(null)
+                    }}
+                    className="mt-3 text-sm font-medium text-link hover:text-link-hover underline underline-offset-2"
+                  >
+                    Clear search and filters
+                  </button>
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-8">
@@ -270,7 +308,11 @@ export default function DirectoryPage() {
                           onClick={() => setCategory(section.title)}
                           className="inline-flex flex-shrink-0 items-center gap-1 text-sm font-medium text-link hover:text-link-hover"
                         >
-                          See all {section.items.length}
+                          {/* The destination filters by `categories.includes`, while this
+                              overview row groups by first category only, so the count has to
+                              come from `counts` (includes-based) or the number would undershoot
+                              for the 13 topics that sit in more than one category. */}
+                          See all {counts.get(section.title) ?? section.items.length}
                           <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
                             <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.64l-3.97-3.97a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.97-3.97H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
                           </svg>
@@ -416,7 +458,7 @@ function CategoryMenu({
         <div
           role="menu"
           aria-label="Categories"
-          className="absolute right-0 top-full z-30 mt-2 max-h-[70vh] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-border-light bg-surface-card py-1.5 shadow-lg"
+          className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-border-light bg-surface-card py-1.5 shadow-lg"
         >
           {item(null, total)}
           <div className="my-1 border-t border-border-light" />

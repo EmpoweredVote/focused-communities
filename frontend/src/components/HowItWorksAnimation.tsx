@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { HOW_IT_WORKS_STEPS } from '../lib/howItWorks'
+import { useLadderDirection } from '../hooks/useLadderDirection'
 import type { Chair, Community } from '../types'
 
 /**
@@ -80,6 +81,12 @@ export function HowItWorksAnimation({
   const [paused, setPaused] = useState(false)
   const autoplay = !reduced && !paused
 
+  // Which end of the spectrum leads, as everywhere else the ladder is shown: random
+  // per visit, never shuffled (see useLadderDirection). It is decided HERE rather than
+  // inside the scene because each scene remounts on entry to replay its animation, and
+  // a direction re-rolled on every loop would flicker.
+  const { flipped } = useLadderDirection(data.chairs.length)
+
   useEffect(() => {
     if (!autoplay) return
     const t = setTimeout(() => onStepChange((step + 1) % HOW_IT_WORKS_STEPS.length), STEP_MS)
@@ -101,7 +108,7 @@ export function HowItWorksAnimation({
       >
         <div key={step} className="h-full w-full">
           {step === 0 && <SceneTopics data={data} />}
-          {step === 1 && <ScenePerspectives data={data} />}
+          {step === 1 && <ScenePerspectives data={data} flipped={flipped} />}
           {step === 2 && <SceneArgument data={data} />}
           {step === 3 && <SceneDiscussion />}
         </div>
@@ -237,8 +244,10 @@ function SceneTopics({ data }: { data: HowItWorksData }) {
 }
 
 /** 2. That community's question this season, and its perspectives. */
-function ScenePerspectives({ data }: { data: HowItWorksData }) {
-  const chairs = data.chairs.slice(0, 5)
+function ScenePerspectives({ data, flipped }: { data: HowItWorksData; flipped: boolean }) {
+  // Reverse before truncating, so a flip shows the other END of the spectrum rather than
+  // the same five chairs backwards. Same convention as CommunityHubPage.
+  const chairs = (flipped ? [...data.chairs].reverse() : data.chairs).slice(0, 5)
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="fc-anim" style={rise(0)}>
