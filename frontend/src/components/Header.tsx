@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { useTheme } from '../hooks/useTheme';
 
 /**

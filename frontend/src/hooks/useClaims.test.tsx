@@ -3,7 +3,7 @@ import { renderHook, waitFor, cleanup, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { apiFetch, type ApiResult } from '../lib/apiFetch'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import {
   useClaimColumn,
   useClaimNode,
@@ -15,7 +15,7 @@ import { useCreateClaim, useEditClaim, useRateClaim } from './useClaimMutations'
 import type { Claim, ClaimNode, ColumnPage } from '../types'
 
 vi.mock('../lib/apiFetch', () => ({ apiFetch: vi.fn() }))
-vi.mock('../context/AuthContext', () => ({ useAuth: vi.fn() }))
+vi.mock('../context/auth', () => ({ useAuth: vi.fn() }))
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 
 const mockFetch = vi.mocked(apiFetch)

@@ -3,12 +3,12 @@ import { renderHook, waitFor, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { apiFetch } from '../lib/apiFetch'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import { useSeasonList, useSeasonView } from './useSeasons'
 import type { SeasonView } from '../types'
 
 vi.mock('../lib/apiFetch', () => ({ apiFetch: vi.fn() }))
-vi.mock('../context/AuthContext', () => ({ useAuth: vi.fn() }))
+vi.mock('../context/auth', () => ({ useAuth: vi.fn() }))
 const mockFetch = vi.mocked(apiFetch)
 const mockAuth = vi.mocked(useAuth)
 

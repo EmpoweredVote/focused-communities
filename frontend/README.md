@@ -42,8 +42,9 @@ npm run lint    # eslint
 npm run build   # tsc -b && vite build
 ```
 
-`npm run lint` currently reports **3 pre-existing errors** (in `AuthContext.tsx`, `useDraft.ts`
-and `ThreadPage.tsx`). That is the expected baseline — if you see more, they are yours.
+All three run in CI on every PR, and the lint baseline is **zero errors** — anything eslint
+reports is yours. (It used to report 3 long-standing ones, which is why it was not gated; they
+are fixed.)
 
 Two guards are easy to trip and worth knowing about:
 

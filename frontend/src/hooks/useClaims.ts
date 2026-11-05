@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { apiFetch } from '../lib/apiFetch'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import type {
   Claim,
   ClaimNode,
