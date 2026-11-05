@@ -16,11 +16,25 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             frontend/package-lock.json
+      # Root: the frozen backend in src/ (see FROZEN.md). Kept compiling and
+      # passing while it remains the rollback path.
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - name: Build frontend
+
+      # Frontend: the code that actually ships.
+      #
+      # `npm test` is here because it was not, and the gap was invisible: a
+      # green check meant the frozen backend passed and the frontend
+      # type-checked. The 355 tests in frontend/ had never run in CI, so
+      # anything they guard — the contrast floors over index.css among them —
+      # was only ever checked by whoever remembered to run vitest locally.
+      # The jsdom major in #81 is the case that exposed it: jsdom is used by
+      # nothing but vitest in this directory, so that PR could have broken
+      # every test and still gone green.
+      - name: Frontend (test and build)
         working-directory: frontend
         run: |
           npm ci
+          npm test
           npm run build
