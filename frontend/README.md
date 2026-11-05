@@ -19,8 +19,11 @@ npm run dev
 With no `.env` that reads the **live public API** through the dev proxy in `vite.config.ts`
 (`/api` and `/compass-api` both target the accounts engine). No keys, no local backend.
 
-You are **signed out** locally. A failed or 401 `/api/auth/session` in the console is expected,
-and account data is off-limits for design work.
+You are **signed out** locally, and it is silent. With no `ev_token` in localStorage the app makes
+no auth request at all, so there is no console error to look for — `detectUserState()` returns
+early. The call it would make is `GET /api/account/me` against the accounts engine, and only when
+a token is present. Account data is off-limits for design work; mock signed-in states under
+`src/mocks/`.
 
 ## When production has nothing to show
 
@@ -61,6 +64,14 @@ git fetch origin && git switch -c <branch> origin/master
 
 The default branch is `master`. There is no `main`.
 
-Use [`@empoweredvote/ev-ui`](https://github.com/EmpoweredVote/ev-ui) components rather than
-copying or restyling them. The `ev-designer` skill there indexes the public routes with sample
-responses.
+## ev-ui
+
+[`@empoweredvote/ev-ui`](https://github.com/EmpoweredVote/ev-ui) is the shared component library
+and it is published to npm, but **this app does not depend on it yet** — nothing here imports it,
+and the components in `src/components` are local. So `import { ... } from '@empoweredvote/ev-ui'`
+does not resolve today; add the package first if you want one.
+
+Still prefer adding it over hand-restyling something it already provides.
+
+The `ev-designer` skill in that repo (`plugins/ev-designer/`) indexes the public routes with
+sample responses. That is useful whether or not you install the package.
