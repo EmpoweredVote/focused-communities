@@ -17,12 +17,17 @@ component becomes rework for whoever merges the PR.
 - **Production has no threads yet.** `VITE_DEMO_THREADS=1 npm run dev` serves the synthetic threads in
   `frontend/src/mocks/demoThreads.ts` (every author is a "Demo" pseudonym; writes are off). Communities
   and stances stay live. Extend that file rather than hardcoding posts in components.
-- **The argument-tree API is built but not deployed.** `VITE_DEMO_CLAIMS=1 npm run dev` serves the
-  synthetic tree in `frontend/src/mocks/demoClaims.ts` (dev only; writes are off on claim routes
-  only, so threads keep working). Until `feat/fc-claims-api` ships, every `/api/claims/...` and
-  `/api/communities/:id/claims/...` call 404s against the live API — which is the honest answer and
-  is what the hooks surface. Extend that file rather than hardcoding claims in components.
-- **Start from current `main`:** `git fetch origin && git switch -c <branch> origin/main`. Use
+- **The argument-tree API is live; production's trees are empty** (checked 2026-11-04).
+  `GET /api/communities/:id/claims/root` and `/claims/shape` both answer 200 against the live API —
+  the earlier note here said they 404, which stopped being true when `feat/fc-claims-api` shipped.
+  What production has is a bare root claim per community and no children: `shape` returns one node
+  with `completeThroughDepth: null`, so the argument band and its map render but hold nothing.
+  `VITE_DEMO_CLAIMS=1 npm run dev` serves the synthetic tree in `frontend/src/mocks/demoClaims.ts`
+  (dev only; writes are off on claim routes only, so threads keep working). Reach for it to see a
+  tree with depth, and with the merged and removed states production cannot show you yet — not
+  because the API is missing. Extend that file rather than hardcoding claims in components.
+- **Start from current `master`:** `git fetch origin && git switch -c <branch> origin/master`.
+  The default branch is `master`; there is no `main`, so `origin/main` fails. Use
   `@empoweredvote/ev-ui` components instead of copying or restyling them.
 
 The `ev-designer` skill in EmpoweredVote/ev-ui (`plugins/ev-designer/`) has the index of public
