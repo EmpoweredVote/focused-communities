@@ -22,3 +22,16 @@ supabase/.temp/
 
 # Throwaway brainstorm mockups from the superpowers visual companion.
 .superpowers/
+
+# Two documents that are authoritative somewhere other than this repo, kept
+# out so a local copy cannot drift from the real one and be read as current.
+#
+# empowered-vote-primer.md is org-wide — it opens "read this document fully
+# before writing any code", which is a claim no single repo should be making
+# a private copy of. It belongs somewhere one edit reaches every repo; until
+# it has that home, this ignore is the placeholder, not the decision.
+#
+# 10_Connect_Issues-in-Focus-detailed.md is numbered as part of a series
+# maintained elsewhere, so the same reasoning applies.
+empowered-vote-primer.md
+10_Connect_Issues-in-Focus-detailed.md
