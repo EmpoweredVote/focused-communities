@@ -1,4 +1,4 @@
-import type { AccessState, AccountUser } from '../context/AuthContext'
+import type { AccessState, AccountUser } from '../context/auth'
 
 /**
  * Mirrors the server's `requireConnected` gate (`middleware/tierGuards.ts`)

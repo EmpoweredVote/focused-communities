@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router'
 import { ArgumentTree } from './ArgumentTree'
 import CommunityHubPage from '../../pages/CommunityHubPage'
-import type { AccessState, AccountUser } from '../../context/AuthContext'
+import type { AccessState, AccountUser } from '../../context/auth'
 import type { Claim, ClaimNode, ShapeNode } from '../../types'
 
 // Synthetic throughout, and uuid-shaped where `?claim=` has to accept it:
@@ -119,8 +119,8 @@ vi.mock('../../hooks/useClaimMutations', () => ({
   useEditClaim: () => ({ mutate: vi.fn(), isPending: false, isError: false }),
 }))
 
-vi.mock('../../context/AuthContext', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../context/AuthContext')>()
+vi.mock('../../context/auth', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../context/auth')>()
   return {
     ...actual,
     useAuth: () => ({ auth: h.auth, signIn: h.signIn, signOut: vi.fn() }),

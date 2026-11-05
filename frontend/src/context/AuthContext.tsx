@@ -1,21 +1,13 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { AuthContext, type AccessState, type AccountUser } from './auth';
+
+// This file exports <AuthProvider> and nothing else on purpose. The context,
+// its types and useAuth live in ./auth, because a module that exports a
+// component alongside anything else loses fast refresh and reloads the whole
+// page on every edit (react-refresh/only-export-components).
 
 const ACCOUNTS_API_BASE = import.meta.env.VITE_ACCOUNTS_API_URL ?? 'https://accounts-api.empowered.vote';
-
-export interface AccountUser {
-  id: string;
-  tier: 'inform' | 'connected' | 'empowered';
-  account_standing: 'active' | 'suspended';
-  completed_onboarding: boolean;
-  display_name: string;
-}
-
-export type AccessState =
-  | { state: 'loading' }
-  | { state: 'inform' }
-  | { state: 'connected_no_compass'; user: AccountUser }
-  | { state: 'connected'; user: AccountUser };
 
 async function detectUserState(): Promise<AccessState> {
   const token = localStorage.getItem('ev_token');
@@ -36,14 +28,6 @@ async function detectUserState(): Promise<AccessState> {
     return { state: 'inform' };
   }
 }
-
-interface AuthContextValue {
-  auth: AccessState;
-  signIn: (redirectBack?: string) => void;
-  signOut: () => void;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 // Must be mounted inside a QueryClientProvider, as it is in main.tsx: signing
 // out has to be able to drop what the previous reader's requests brought back.
@@ -88,10 +72,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
-  return ctx;
 }

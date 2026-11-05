@@ -32,9 +32,17 @@ jobs:
       # The jsdom major in #81 is the case that exposed it: jsdom is used by
       # nothing but vitest in this directory, so that PR could have broken
       # every test and still gone green.
-      - name: Frontend (test and build)
+      # `npm run lint` is here for the same reason `npm test` is. The rule in
+      # eslint.config.js that rejects an unprefixed text-ev-teal-light was
+      # added after three components shipped exactly that way, and until now it
+      # only fired for whoever remembered to run eslint by hand — which is the
+      # state that let the original bug through. The baseline is zero errors;
+      # the three long-standing ones were fixed to get here, so anything this
+      # reports is new.
+      - name: Frontend (lint, test and build)
         working-directory: frontend
         run: |
           npm ci
+          npm run lint
           npm test
           npm run build

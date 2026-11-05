@@ -9,7 +9,7 @@ import { ReplyItem } from '../components/ReplyItem'
 import { BackNav } from '../components/BackNav'
 import { EditHistory } from '../components/EditHistory'
 import { CharCounter } from '../components/CharCounter'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import { formatRelativeTime } from '../lib/formatTime'
 import { ReplyForm } from '../components/ReplyForm'
 import { Header } from '../components/Header'
@@ -19,7 +19,7 @@ export default function ThreadPage() {
   const { auth } = useAuth()
 
   const { data: community } = useCommunityBySlug(slug)
-  const { data: thread, isLoading: threadLoading, isError: threadError, refetch: _refetchThread } = useThread(id)
+  const { data: thread, isLoading: threadLoading, isError: threadError } = useThread(id)
   const { data: posts, isLoading: postsLoading, isError: postsError, refetch: refetchPosts } = usePosts(id)
 
   const [isThreadEditing, setIsThreadEditing] = useState(false)
